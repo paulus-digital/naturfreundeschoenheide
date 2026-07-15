@@ -1,7 +1,7 @@
 {
-  "openStatus": true,
+  "openStatus": false,
   "banner": {
-    "visible": true,
+    "visible": false,
     "text": "Willkommen im Spartenheim Naturfreunde! Jeden Freitag gibt es bei uns frischen Schweinebraten ab 18:00 Uhr. Bitte reservieren Sie rechtzeitig!"
   },
   "openingHours": [
