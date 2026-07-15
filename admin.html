@@ -31,37 +31,29 @@
   <div class="container auth-wrapper" id="auth-container">
     <div class="auth-card">
       <h2 class="auth-title">Anmelden</h2>
-      <p class="auth-desc">Geben Sie Ihre GitHub-Zugangsdaten ein, um die Website-Inhalte live zu bearbeiten.</p>
+      <p class="auth-desc">Geben Sie Ihr Zugangspasswort ein, um die Website-Inhalte zu bearbeiten.</p>
 
       <div class="auth-info-box">
-        <h5>💡 Wie funktioniert das?</h5>
-        <p>Diese Website ist 100% serverlos. Änderungen werden direkt in Ihr GitHub-Repository übertragen und aktualisieren die Live-Seite in Echtzeit.</p>
-        <ol>
-          <li>Erstellen Sie ein GitHub Repository mit dieser Website.</li>
-          <li>Erstellen Sie einen <strong>Personal Access Token (classic)</strong> mit <code>repo</code> Berechtigung.</li>
-          <li>Geben Sie unten den Token und Repository-Pfad ein.</li>
-        </ol>
+        <h5>💡 So funktioniert's</h5>
+        <p>Geben Sie das Passwort ein, das Sie von Ihrem Webmaster erhalten haben. Nach dem Anmelden können Sie Öffnungszeiten, Banner, Termine und Bilder direkt bearbeiten. Alle Änderungen werden sofort auf der Live-Website sichtbar.</p>
       </div>
 
       <div id="login-error" class="alert-box danger" style="display: none;"></div>
 
       <form id="login-form" onsubmit="handleLogin(event)">
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label for="github-token">GitHub Personal Access Token (PAT) *</label>
-          <input type="password" id="github-token" class="form-control" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" required autocomplete="current-password">
-        </div>
-
-        <div class="form-group" style="margin-bottom: 16px;">
-          <label for="github-repo">GitHub Repository (Inhaber/Name) *</label>
-          <input type="text" id="github-repo" class="form-control" placeholder="z.B. meinname/spartenheim-website" required>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label for="admin-password">Zugangspasswort *</label>
+          <input type="password" id="admin-password" class="form-control" placeholder="Passwort eingeben" required autocomplete="current-password" style="font-size: 1.1rem; padding: 14px 16px;">
         </div>
 
         <div class="form-group" style="margin-bottom: 24px;">
-          <label for="github-branch">Branch *</label>
-          <input type="text" id="github-branch" class="form-control" value="main" required>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 400;">
+            <input type="checkbox" id="remember-login" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+            Angemeldet bleiben (Passwort im Browser speichern)
+          </label>
         </div>
 
-        <button type="submit" class="submit-btn" style="margin-bottom: 12px;">Verbindung aufbauen</button>
+        <button type="submit" class="submit-btn" style="margin-bottom: 12px; font-size: 1.05rem; padding: 14px 20px;">Anmelden</button>
         <button type="button" class="submit-btn" style="background-color: var(--accent-dark);" onclick="startDemoMode()">Lokal testen (Demo-Modus)</button>
       </form>
     </div>

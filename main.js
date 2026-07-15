@@ -6,20 +6,32 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEventListeners();
 });
 
-// Load data.json
+// GitHub Raw API URL for instant data freshness (bypasses GitHub Pages cache)
+const RAW_DATA_URL = 'https://raw.githubusercontent.com/paulus-digital/naturfreundeschoenheide/main/data.json';
+
+// Load data.json – tries GitHub Raw API first, then local fallback
 async function loadData() {
   try {
-    // Add cache buster timestamp to ensure fresh data
-    const response = await fetch(`data.json?t=${Date.now()}`);
-    if (!response.ok) {
-      throw new Error('Daten konnten nicht geladen werden.');
+    // First try GitHub Raw API for instant updates after admin changes
+    const rawResponse = await fetch(`${RAW_DATA_URL}?t=${Date.now()}`, {
+      cache: 'no-store'
+    });
+    
+    if (rawResponse.ok) {
+      appData = await rawResponse.json();
+    } else {
+      // Fallback to local data.json (works for local development)
+      const localResponse = await fetch(`data.json?t=${Date.now()}`);
+      if (!localResponse.ok) {
+        throw new Error('Daten konnten nicht geladen werden.');
+      }
+      appData = await localResponse.json();
     }
-    appData = await response.json();
     
     // Check if there is locally saved guestbook entries in localStorage for instant testing
     const localReviews = JSON.parse(localStorage.getItem('local_guestbook_reviews') || '[]');
     if (localReviews.length > 0) {
-      appData.guestbook = [...appData.guestbook, ...localReviews];
+      appData.guestbook = [...(appData.guestbook || []), ...localReviews];
     }
 
     renderWebsite();

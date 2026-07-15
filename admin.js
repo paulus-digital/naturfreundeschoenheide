@@ -1,8 +1,12 @@
+// ============================================
+// CONFIGURATION – These are fixed for this site
+// ============================================
+const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
+const GITHUB_BRANCH = 'main';
+
 // Global Admin State
 let authData = {
   token: '',
-  repo: '',
-  branch: 'main',
   isDemo: false
 };
 
@@ -20,15 +24,14 @@ function checkSavedAuth() {
   const saved = localStorage.getItem('spartenheim_auth');
   if (saved) {
     try {
-      authData = JSON.parse(saved);
-      document.getElementById('github-token').value = authData.token;
-      document.getElementById('github-repo').value = authData.repo;
-      document.getElementById('github-branch').value = authData.branch || 'main';
+      const parsed = JSON.parse(saved);
+      authData.token = parsed.token || '';
+      authData.isDemo = parsed.isDemo || false;
       
-      // Auto connect
-      if (!authData.isDemo) {
+      // Auto connect if token exists
+      if (authData.token && !authData.isDemo) {
         connectToGitHub();
-      } else {
+      } else if (authData.isDemo) {
         startDemoMode();
       }
     } catch (e) {
@@ -37,13 +40,11 @@ function checkSavedAuth() {
   }
 }
 
-// Login Handler
+// Login Handler – simplified: only password field
 function handleLogin(event) {
   event.preventDefault();
   
-  authData.token = document.getElementById('github-token').value.trim();
-  authData.repo = document.getElementById('github-repo').value.trim();
-  authData.branch = document.getElementById('github-branch').value.trim() || 'main';
+  authData.token = document.getElementById('admin-password').value.trim();
   authData.isDemo = false;
 
   connectToGitHub();
@@ -51,12 +52,12 @@ function handleLogin(event) {
 
 // Connect to GitHub API
 async function connectToGitHub() {
-  showToast('🔄 Verbinde mit GitHub...', 'info');
+  showToast('🔄 Verbinde...', 'info');
   const errorEl = document.getElementById('login-error');
   errorEl.style.display = 'none';
 
   try {
-    const url = `https://api.github.com/repos/${authData.repo}/contents/data.json?ref=${authData.branch}`;
+    const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/data.json?ref=${GITHUB_BRANCH}`;
     const response = await fetch(url, {
       headers: {
         'Authorization': `token ${authData.token}`,
@@ -65,12 +66,12 @@ async function connectToGitHub() {
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('data.json wurde im Repository nicht gefunden. Bitte stellen Sie sicher, dass die Datei existiert.');
-      } else if (response.status === 401) {
-        throw new Error('Ungültiger GitHub Access Token. Bitte prüfen Sie Ihre Rechte.');
+      if (response.status === 401) {
+        throw new Error('Falsches Passwort. Bitte prüfen Sie Ihre Eingabe.');
+      } else if (response.status === 404) {
+        throw new Error('Die Website-Daten konnten nicht gefunden werden. Bitte kontaktieren Sie Ihren Webmaster.');
       } else {
-        throw new Error(`GitHub-Verbindungsfehler: ${response.statusText}`);
+        throw new Error(`Verbindungsfehler: ${response.statusText}`);
       }
     }
 
@@ -81,17 +82,20 @@ async function connectToGitHub() {
     const decodedContent = decodeURIComponent(escape(atob(json.content.replace(/\s/g, ''))));
     pageData = JSON.parse(decodedContent);
 
-    // Save auth data
-    localStorage.setItem('spartenheim_auth', JSON.stringify(authData));
+    // Save auth data if "remember me" is checked
+    const rememberCheckbox = document.getElementById('remember-login');
+    if (!rememberCheckbox || rememberCheckbox.checked) {
+      localStorage.setItem('spartenheim_auth', JSON.stringify(authData));
+    }
     
     // Show Dashboard
     showDashboard();
-    showToast('✅ Erfolgreich verbunden!', 'success');
+    showToast('✅ Erfolgreich angemeldet!', 'success');
   } catch (error) {
     console.error(error);
     errorEl.textContent = error.message;
     errorEl.style.display = 'block';
-    showToast('❌ Verbindungsfehler', 'error');
+    showToast('❌ Anmeldung fehlgeschlagen', 'error');
   }
 }
 
@@ -365,7 +369,7 @@ async function commitDataChange(logMessage) {
   }
 
   try {
-    const url = `https://api.github.com/repos/${authData.repo}/contents/data.json`;
+    const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/data.json`;
     
     // UTF-8 safe base64 encoding
     const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(pageData, null, 2))));
@@ -374,7 +378,7 @@ async function commitDataChange(logMessage) {
       message: logMessage || 'Website verwalten: Daten aktualisiert',
       content: encodedContent,
       sha: currentFileSha,
-      branch: authData.branch
+      branch: GITHUB_BRANCH
     };
 
     const response = await fetch(url, {
@@ -517,11 +521,11 @@ async function uploadGalleryImage() {
 
     try {
       // 1. Upload binary file to GitHub repo
-      const uploadUrl = `https://api.github.com/repos/${authData.repo}/contents/${filePath}`;
+      const uploadUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}`;
       const body = {
         message: `Upload gallery image: ${fileName}`,
         content: base64Data,
-        branch: authData.branch
+        branch: GITHUB_BRANCH
       };
 
       const response = await fetch(uploadUrl, {
