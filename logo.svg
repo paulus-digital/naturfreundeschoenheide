@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Soft background gradient for favicon -->
+    <radialGradient id="bg-grad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2d5a27" />
+      <stop offset="100%" stop-color="#1b3b22" />
+    </radialGradient>
+    <!-- Gold gradient for accents -->
+    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe89c" />
+      <stop offset="50%" stop-color="#d4af37" />
+      <stop offset="100%" stop-color="#aa8010" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle (rich forest green) -->
+  <circle cx="256" cy="256" r="240" fill="url(#bg-grad)" stroke="url(#gold-grad)" stroke-width="12" />
+
+  <!-- Inner gold ring -->
+  <circle cx="256" cy="256" r="215" fill="none" stroke="url(#gold-grad)" stroke-width="2" stroke-dasharray="8 6" opacity="0.6" />
+
+  <!-- Center Graphic: Cozy Cabin + Pine Trees + Leaf Accent -->
+  <g id="emblem-center" transform="translate(0, 10)">
+    <!-- Stylized Mountains/Hills in the background (soft gold line) -->
+    <path d="M 120,320 C 180,280 220,300 270,330 C 320,360 380,310 400,320" fill="none" stroke="url(#gold-grad)" stroke-width="4" stroke-linecap="round" opacity="0.4" />
+
+    <!-- Left Pine Tree (Gold silhouette) -->
+    <path d="M 160,330 L 190,260 L 175,260 L 200,210 L 190,210 L 210,170 L 220,170 L 205,210 L 215,210 L 195,260 L 210,260 Z" fill="url(#gold-grad)" opacity="0.75" />
+    
+    <!-- Right Pine Tree (Gold silhouette) -->
+    <path d="M 320,330 L 345,270 L 332,270 L 352,225 L 342,225 L 360,190 L 368,190 L 355,225 L 365,225 L 348,270 L 360,270 Z" fill="url(#gold-grad)" opacity="0.75" />
+
+    <!-- Center Cozy House / Cabin -->
+    <!-- House Base -->
+    <rect x="210" y="250" width="92" height="70" rx="4" fill="#faf8f5" stroke="url(#gold-grad)" stroke-width="6" />
+    <!-- Roof -->
+    <polygon points="195,250 256,190 317,250" fill="url(#gold-grad)" stroke="url(#gold-grad)" stroke-width="4" stroke-linejoin="round" />
+    <!-- Chimney -->
+    <rect x="280" y="205" width="12" height="25" fill="url(#gold-grad)" />
+    <!-- Door (Green) -->
+    <rect x="243" y="275" width="26" height="45" rx="2" fill="#1b3b22" />
+    <!-- Door Knob -->
+    <circle cx="263" cy="298" r="2.5" fill="url(#gold-grad)" />
+    <!-- Windows (Round) -->
+    <circle cx="228" cy="275" r="10" fill="#faf8f5" stroke="url(#gold-grad)" stroke-width="2" />
+    <circle cx="284" cy="275" r="10" fill="#faf8f5" stroke="url(#gold-grad)" stroke-width="2" />
+    <!-- Window Crosses -->
+    <line x1="228" y1="265" x2="228" y2="285" stroke="url(#gold-grad)" stroke-width="1.5" />
+    <line x1="218" y1="275" x2="238" y2="275" stroke="url(#gold-grad)" stroke-width="1.5" />
+    <line x1="284" y1="265" x2="284" y2="285" stroke="url(#gold-grad)" stroke-width="1.5" />
+    <line x1="274" y1="275" x2="294" y2="275" stroke="url(#gold-grad)" stroke-width="1.5" />
+  </g>
+
+  <!-- Oak Leaves / Laurel branches wrapping the bottom outer part -->
+  <path d="M 100,320 C 80,380 120,440 256,450 C 392,440 432,380 412,320" fill="none" stroke="url(#gold-grad)" stroke-width="4" stroke-dasharray="1 15" stroke-linecap="round" />
+  
+  <!-- Stylized leaf decoration at the bottom -->
+  <path d="M 236,450 C 246,435 256,430 256,430 C 256,430 266,435 276,450 C 266,455 256,458 256,458 C 256,458 246,455 236,450 Z" fill="url(#gold-grad)" />
+  <path d="M 216,442 C 228,432 238,432 238,432 C 238,432 242,442 246,454 C 234,453 222,448 216,442 Z" fill="url(#gold-grad)" />
+  <path d="M 296,442 C 284,432 274,432 274,432 C 274,432 270,442 266,454 C 278,453 290,448 296,442 Z" fill="url(#gold-grad)" />
+</svg>

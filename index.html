@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gaststätte Spartenheim Naturfreunde – Schönheide</title>
+  <meta name="description"
+    content="Gemütliche Gaststätte im Gartenweg, Schönheide. Genießen Sie gutbürgerliche Küche, unseren idyllischen Biergarten und aktuelle Events.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+</head>
+
+<body>
+
+  <!-- Live News Banner -->
+  <div id="live-banner" class="news-banner hidden">
+    <span class="banner-icon">📢</span>
+    <span id="banner-text">Neuigkeiten werden geladen...</span>
+    <button class="news-banner-close" onclick="closeBanner()" aria-label="Schließen">&times;</button>
+  </div>
+
+  <!-- Header Navigation -->
+  <header>
+    <div class="container header-container">
+      <a href="#" class="logo-link">
+        <img src="logo.svg" alt="Wappen Naturfreunde" class="logo-img">
+        <span>Spartenheim Naturfreunde</span>
+      </a>
+
+      <nav id="navbar">
+        <ul>
+          <li><a href="#home">Startseite</a></li>
+          <li><a href="#zeiten">Öffnungszeiten</a></li>
+          <li><a href="#termine">Termine &amp; Events</a></li>
+          <li><a href="#galerie">Galerie</a></li>
+          <li><a href="#gaestebuch">Gästebuch</a></li>
+          <li><a href="#kontakt" class="cta-button">Jetzt Anrufen</a></li>
+        </ul>
+      </nav>
+
+      <button class="mobile-nav-toggle" onclick="toggleMobileMenu()" aria-label="Menü öffnen">
+        ☰
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <div class="hero-content">
+      <div id="live-status" class="status-badge closed">
+        <span class="status-dot"></span>
+        <span class="status-text">Geschlossen</span>
+      </div>
+      <p class="hero-subtitle">Willkommen im Grünen</p>
+      <h1 class="hero-title">Gaststätte Spartenheim<br>Naturfreunde</h1>
+      <p class="hero-hours-preview" id="today-hours-preview">Heute: Ruhetag</p>
+    </div>
+  </section>
+
+  <!-- Opening Hours & Calendar Planner Grid -->
+  <section id="zeiten" class="section-padding">
+    <div class="container">
+      <div class="text-center">
+        <h2 class="section-title">Öffnungszeiten &amp; Belegung</h2>
+        <p class="section-subtitle">Planen Sie Ihren Besuch bei uns im Gartenweg</p>
+      </div>
+
+      <div class="info-grid">
+        <!-- Opening Hours Card -->
+        <div class="card">
+          <h3 class="card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z">
+              </path>
+            </svg>
+            Öffnungszeiten
+          </h3>
+          <ul class="hours-list" id="hours-list">
+            <!-- Populated dynamically via JS -->
+            <li class="hours-row">Montag: Ruhetag</li>
+            <li class="hours-row">Dienstag: Ruhetag</li>
+            <li class="hours-row">Mittwoch: 16:00 - 22:00</li>
+            <li class="hours-row">Donnerstag: 16:00 - 22:00</li>
+            <li class="hours-row">Freitag: 15:00 - 23:00</li>
+            <li class="hours-row">Samstag: 12:00 - 23:00</li>
+            <li class="hours-row">Sonntag: 11:30 - 21:00</li>
+          </ul>
+        </div>
+
+        <!-- Planner / Calendar Card -->
+        <div class="card" id="termine">
+          <h3 class="card-title">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5">
+              </path>
+            </svg>
+            Termine &amp; Belegung
+          </h3>
+          <div class="planner-timeline" id="planner-list">
+            <!-- Populated dynamically via JS -->
+            <p class="text-muted">Keine besonderen Termine eingetragen.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery Section -->
+  <section id="galerie" class="section-padding" style="background-color: var(--bg-white);">
+    <div class="container">
+      <div class="text-center">
+        <h2 class="section-title">Galerie</h2>
+        <p class="section-subtitle">Impressionen aus unserem Spartenheim &amp; Gartenanlage</p>
+      </div>
+
+      <div class="gallery-container" id="gallery-container">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Lightbox Modal -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <img id="lightbox-img" class="lightbox-content" src="" alt="">
+  </div>
+
+  <!-- Guestbook Section -->
+  <section id="gaestebuch" class="section-padding">
+    <div class="container">
+      <div class="text-center">
+        <h2 class="section-title">Gästebuch</h2>
+        <p class="section-subtitle">Stimmen unserer Gäste &amp; Ihre Bewertung</p>
+      </div>
+
+      <div class="guestbook-wrapper">
+        <div class="reviews-grid" id="reviews-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Add Review Form -->
+        <div class="review-form-card">
+          <h3 class="form-title">Einen Eintrag schreiben</h3>
+          <!-- Form submits to Web3Forms for email delivery to the owner, but we handle submission via JS to also update local state instantly for presentation. -->
+          <form id="review-form" action="https://api.web3forms.com/submit" method="POST">
+            <input type="hidden" name="access_key" id="web3forms-key" value="">
+            <input type="hidden" name="subject" value="Neuer Gästebuch-Eintrag: Spartenheim Naturfreunde">
+            <input type="hidden" name="from_name" value="Spartenheim Webseite">
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="review-name-input">Ihr Name *</label>
+                <input type="text" id="review-name-input" name="name" class="form-control"
+                  placeholder="z.B. Familie Schmidt" required>
+              </div>
+              <div class="form-group">
+                <label>Ihre Bewertung *</label>
+                <div class="star-rating-select">
+                  <input type="radio" id="star5" name="rating" value="5" required><label for="star5"
+                    title="5 Sterne">★</label>
+                  <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 Sterne">★</label>
+                  <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 Sterne">★</label>
+                  <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 Sterne">★</label>
+                  <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 Stern">★</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+              <label for="review-comment-input">Ihr Kommentar *</label>
+              <textarea id="review-comment-input" name="message" class="form-control"
+                placeholder="Wie hat es Ihnen bei uns gefallen?" required></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">Eintrag absenden</button>
+          </form>
+          <div id="form-feedback" class="alert-box success" style="display: none; margin-top: 15px;">
+            Vielen Dank! Ihr Eintrag wurde übermittelt und wird nach Freigabe angezeigt.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact & Directions -->
+  <section id="kontakt" class="section-padding contact-section">
+    <div class="container">
+      <div class="text-center">
+        <h2 class="section-title" style="color: var(--bg-cream);">Kontakt &amp; Anfahrt</h2>
+        <p class="section-subtitle" style="color: var(--accent-light);">Wir freuen uns auf Ihren Besuch</p>
+      </div>
+
+      <div class="contact-grid">
+        <!-- Details Card -->
+        <div class="contact-details">
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"></path>
+              </svg>
+            </div>
+            <div>
+              <h4>Adresse</h4>
+              <p id="contact-address">Gartenweg 5, 08304 Schönheide</p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-1.514 2.035a11.542 11.542 0 0 1-5.45-5.45l2.035-1.514c.361-.272.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z">
+                </path>
+              </svg>
+            </div>
+            <div>
+              <h4>Telefon</h4>
+              <p><a href="tel:" id="contact-phone-link"><span id="contact-phone">Rufnummer wird geladen...</span></a>
+              </p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <div class="contact-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z">
+                </path>
+              </svg>
+            </div>
+            <div>
+              <h4>Inhaber</h4>
+              <p id="contact-inhaber">Ina Schultze</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- OpenStreetMap Container -->
+        <div class="map-container">
+          <!-- We use OpenStreetMap via a static iframe embedding OpenStreetMap coords for Schönheide Gartenweg -->
+          <iframe title="Lageplan Spartenheim Schönheide"
+            src="https://maps.google.com/maps?q=Gartenweg5%2C%2008304%20Sch%C3%B6nheide&t=&z=15&ie=UTF8&iwloc=&output=embed"
+            allowfullscreen loading="lazy">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <div>
+        <p>&copy; 2026 Gaststätte Spartenheim Naturfreunde. Alle Rechte vorbehalten.</p>
+      </div>
+      <div class="footer-links">
+        <a onclick="openModal('impressum')">Impressum</a>
+        <a onclick="openModal('datenschutz')">Datenschutz</a>
+        <a href="admin.html" target="_blank" style="color: var(--accent-light); font-weight: 600;">Backend Login</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Impressum Modal -->
+  <div id="impressum-modal" class="modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Impressum</h3>
+        <button class="modal-close" onclick="closeModal('impressum')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3>Angaben gemäß § 5 TMG</h3>
+        <p>
+          Gaststätte Spartenheim Naturfreunde<br>
+          Gartenweg<br>
+          08304 Schönheide
+        </p>
+
+        <h3>Vertreten durch</h3>
+        <p>Ina Schultze</p>
+
+        <h3>Kontakt</h3>
+        <p>
+          Telefon: <span class="contact-phone-placeholder">+49 (0) 37755 12345</span><br>
+          E-Mail: <span class="contact-email-placeholder">info@spartenheim-schoenheide.de</span>
+        </p>
+
+        <h3>Umsatzsteuer-ID</h3>
+        <p>Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz: DE123456789</p>
+
+        <h3>EU-Streitschlichtung</h3>
+        <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a
+            href="https://ec.europa.eu/consumers/odr/" target="_blank"
+            rel="noopener noreferrer">https://ec.europa.eu/consumers/odr/</a>. Unsere E-Mail-Adresse finden Sie oben im
+          Impressum.</p>
+
+        <h3>Verbraucherstreitbeilegung/Universalschlichtungsstelle</h3>
+        <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
+          teilzunehmen.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Datenschutz Modal -->
+  <div id="datenschutz-modal" class="modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Datenschutzerklärung</h3>
+        <button class="modal-close" onclick="closeModal('datenschutz')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3>1. Datenschutz auf einen Blick</h3>
+        <p><strong>Allgemeine Hinweise:</strong> Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit
+          Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen.</p>
+
+        <h3>2. Datenerfassung auf dieser Website</h3>
+        <p><strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong> Die Datenverarbeitung auf
+          dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem Impressum dieser Website
+          entnehmen.</p>
+        <p><strong>Wie erfassen wir Ihre Daten?</strong> Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese
+          mitteilen. Hierbei kann es sich z. B. um Daten handeln, die Sie in ein Kontakt- oder Gästebuchformular
+          eingeben.</p>
+        <p>Andere Daten werden automatisch oder nach Ihrer Einwilligung beim Besuch der Website durch unsere IT-Systeme
+          erfasst. Das sind vor allem technische Daten (z. B. Internetbrowser, Betriebssystem oder Uhrzeit des
+          Seitenaufrufs).</p>
+
+        <h3>3. Rechte der betroffenen Personen</h3>
+        <p>Sie haben jederzeit das Recht, unentgeltlich Auskunft über Herkunft, Empfänger und Zweck Ihrer gespeicherten
+          personenbezogenen Daten zu erhalten. Sie haben außerdem ein Recht, die Berichtigung oder Löschung dieser Daten
+          zu verlangen. Wenn Sie eine Einwilligung zur Datenverarbeitung erteilt haben, können Sie diese Einwilligung
+          jederzeit für die Zukunft widerrufen.</p>
+
+        <h3>4. Web3Forms und Formulare</h3>
+        <p>Wenn Sie Formulare auf unserer Website nutzen (z.B. Gästebucheinträge), werden die eingetragenen Daten zur
+          Bearbeitung der Anfrage an den E-Mail-Dienst Web3Forms übermittelt und anschließend als E-Mail an uns
+          weitergeleitet. Es findet keine dauerhafte Speicherung der Formularinhalte auf fremden Servern statt, die über
+          die Zusendung der E-Mail hinausgeht.</p>
+
+        <h3>5. Externe Dienste (Google Maps)</h3>
+        <p>Diese Seite nutzt zur Darstellung der Anfahrt eine Karte von Google Maps (API). Um die Datenschutzrichtlinien
+          einzuhalten, wird die Karte erst geladen oder ist in einem Iframe eingebunden. Dabei kann Ihre IP-Adresse an
+          Server von Google übertragen werden.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verwaltung – Spartenheim Naturfreunde</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+</head>
+<body class="admin-body">
+
+  <!-- Admin Navigation Header -->
+  <header class="admin-header">
+    <div class="container admin-nav">
+      <div class="admin-logo">
+        <img src="logo.svg" alt="Wappen" style="width: 40px; height: 40px;">
+        Spartenheim Verwaltung
+        <span class="admin-badge">Admin</span>
+      </div>
+      <button id="logout-btn" class="admin-logout" style="display: none;" onclick="logout()">Abmelden</button>
+    </div>
+  </header>
+
+  <!-- Toast notification for sync status -->
+  <div id="sync-toast" class="sync-toast">
+    <span id="sync-toast-icon">🔄</span>
+    <span id="sync-toast-text">Speichere Änderungen...</span>
+  </div>
+
+  <!-- AUTHENTICATION CONTAINER (LOGIN) -->
+  <div class="container auth-wrapper" id="auth-container">
+    <div class="auth-card">
+      <h2 class="auth-title">Anmelden</h2>
+      <p class="auth-desc">Geben Sie Ihre GitHub-Zugangsdaten ein, um die Website-Inhalte live zu bearbeiten.</p>
+
+      <div class="auth-info-box">
+        <h5>💡 Wie funktioniert das?</h5>
+        <p>Diese Website ist 100% serverlos. Änderungen werden direkt in Ihr GitHub-Repository übertragen und aktualisieren die Live-Seite in Echtzeit.</p>
+        <ol>
+          <li>Erstellen Sie ein GitHub Repository mit dieser Website.</li>
+          <li>Erstellen Sie einen <strong>Personal Access Token (classic)</strong> mit <code>repo</code> Berechtigung.</li>
+          <li>Geben Sie unten den Token und Repository-Pfad ein.</li>
+        </ol>
+      </div>
+
+      <div id="login-error" class="alert-box danger" style="display: none;"></div>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="github-token">GitHub Personal Access Token (PAT) *</label>
+          <input type="password" id="github-token" class="form-control" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" required autocomplete="current-password">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="github-repo">GitHub Repository (Inhaber/Name) *</label>
+          <input type="text" id="github-repo" class="form-control" placeholder="z.B. meinname/spartenheim-website" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label for="github-branch">Branch *</label>
+          <input type="text" id="github-branch" class="form-control" value="main" required>
+        </div>
+
+        <button type="submit" class="submit-btn" style="margin-bottom: 12px;">Verbindung aufbauen</button>
+        <button type="button" class="submit-btn" style="background-color: var(--accent-dark);" onclick="startDemoMode()">Lokal testen (Demo-Modus)</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD CONTAINER (HIDDEN UNTIL AUTH) -->
+  <div class="container admin-container" id="dashboard-container" style="display: none;">
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar">
+      <button class="admin-tab-btn active" onclick="switchTab('general')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"></path>
+        </svg>
+        Status &amp; Banner
+      </button>
+      <button class="admin-tab-btn" onclick="switchTab('hours')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+        </svg>
+        Öffnungszeiten
+      </button>
+      <button class="admin-tab-btn" onclick="switchTab('calendar')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"></path>
+        </svg>
+        Termine &amp; Planner
+      </button>
+      <button class="admin-tab-btn" onclick="switchTab('gallery')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"></path>
+        </svg>
+        Bilder-Galerie
+      </button>
+      <button class="admin-tab-btn" onclick="switchTab('guestbook')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 0 1-.92 1.78c-.082.095-.008.235.11.206a8.94 8.94 0 0 0 3.328-1.21c.302-.189.66-.214.982-.147.782.164 1.6.251 2.441.251Z"></path>
+        </svg>
+        Gästebuch
+      </button>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="admin-main">
+      <!-- 1. GENERAL TAB PANEL -->
+      <section id="panel-general" class="panel-section active">
+        <div class="panel-header">
+          <h2 class="panel-title">Allgemeine Einstellungen</h2>
+        </div>
+
+        <div class="form-group">
+          <div class="switch-group">
+            <span class="switch-label">Live-Status Gaststätte:</span>
+            <label class="switch">
+              <input type="checkbox" id="admin-status-toggle">
+              <span class="slider"></span>
+            </label>
+            <span id="admin-status-label" style="font-weight: 600;">Geöffnet</span>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: 16px;">Live Banner Benachrichtigung</h3>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <div class="switch-group" style="padding: 12px; margin-bottom: 12px; background: none; border: none;">
+            <label class="switch">
+              <input type="checkbox" id="admin-banner-toggle">
+              <span class="slider"></span>
+            </label>
+            <span>Banner auf Website einblenden</span>
+          </div>
+          <label for="admin-banner-text">Meldungstext</label>
+          <textarea id="admin-banner-text" class="form-control" placeholder="z.B. Urlaub vom 01.08. bis 14.08."></textarea>
+        </div>
+
+        <h3 style="margin-top: 30px; margin-bottom: 16px;">Kontaktdaten</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="admin-contact-phone">Telefonnummer</label>
+            <input type="text" id="admin-contact-phone" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="admin-contact-email">E-Mail Adresse</label>
+            <input type="email" id="admin-contact-email" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="admin-contact-inhaber">Inhaber/in</label>
+            <input type="text" id="admin-contact-inhaber" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="admin-contact-web3forms">Web3Forms Access Key</label>
+            <input type="password" id="admin-contact-web3forms" class="form-control" placeholder="Erhältlich auf web3forms.com">
+          </div>
+        </div>
+
+        <div class="admin-save-bar">
+          <button class="admin-btn admin-btn-primary" onclick="saveGeneralData()">Live Speichern</button>
+        </div>
+      </section>
+
+      <!-- 2. OPENING HOURS TAB PANEL -->
+      <section id="panel-hours" class="panel-section">
+        <div class="panel-header">
+          <h2 class="panel-title">Öffnungszeiten verwalten</h2>
+        </div>
+
+        <p class="text-muted" style="margin-bottom: 24px;">Geben Sie die Zeiten ein. Für Ruhetage tragen Sie bitte "Ruhetag" ein.</p>
+
+        <form id="admin-hours-form">
+          <div class="form-grid" id="admin-hours-fields" style="grid-template-columns: 1fr;">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </form>
+
+        <div class="admin-save-bar">
+          <button class="admin-btn admin-btn-primary" onclick="saveHoursData()">Live Speichern</button>
+        </div>
+      </section>
+
+      <!-- 3. CALENDAR TAB PANEL -->
+      <section id="panel-calendar" class="panel-section">
+        <div class="panel-header">
+          <h2 class="panel-title">Termine &amp; Belegungsplaner</h2>
+        </div>
+
+        <div class="card" style="margin-bottom: 30px; border-color: var(--primary-light);">
+          <h4 style="margin-bottom: 16px;">Neuen Eintrag hinzufügen</h4>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="new-event-date">Datum</label>
+              <input type="date" id="new-event-date" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="new-event-status">Status / Belegung</label>
+              <select id="new-event-status" class="form-control">
+                <option value="open">Geöffnet</option>
+                <option value="reservation">Reservierung möglich</option>
+                <option value="booked">Ausgebucht</option>
+                <option value="closed">Geschlossen (Feier o.ä.)</option>
+                <option value="holiday">Betriebsferien / Feiertag</option>
+                <option value="event">Besonderes Event</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin: 16px 0;">
+            <label for="new-event-label">Beschreibung / Zusatzinfo</label>
+            <input type="text" id="new-event-label" class="form-control" placeholder="z.B. Schlachtfest ab 17:00, Betriebsferien etc.">
+          </div>
+          <button class="admin-btn admin-btn-primary" style="width: auto;" onclick="addNewCalendarEntry()">Eintrag hinzufügen</button>
+        </div>
+
+        <h4>Aktuelle Einträge</h4>
+        <div id="admin-calendar-list" style="margin-top: 15px;">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <div class="admin-save-bar">
+          <button class="admin-btn admin-btn-primary" onclick="saveCalendarData()">Planung Live Speichern</button>
+        </div>
+      </section>
+
+      <!-- 4. GALLERY TAB PANEL -->
+      <section id="panel-gallery" class="panel-section">
+        <div class="panel-header">
+          <h2 class="panel-title">Bilder-Galerie verwalten</h2>
+        </div>
+
+        <div class="card" style="margin-bottom: 30px;">
+          <h4 style="margin-bottom: 12px;">Bild hochladen</h4>
+          <p class="text-muted" style="margin-bottom: 16px; font-size: 0.9rem;">Wählen Sie ein Bild aus. Im Live-Betrieb wird das Bild Base64-codiert direkt im Repository gespeichert.</p>
+          
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="new-gallery-file">Bilddatei (.jpg, .jpeg, .png, .webp)</label>
+            <input type="file" id="new-gallery-file" class="form-control" accept="image/*">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label for="new-gallery-alt">Bildbeschreibung (Titel)</label>
+            <input type="text" id="new-gallery-alt" class="form-control" placeholder="z.B. Unser gemütlicher Gastraum">
+          </div>
+
+          <button class="admin-btn admin-btn-primary" onclick="uploadGalleryImage()">Bild hochladen</button>
+        </div>
+
+        <h4>Aktuelle Galeriebilder</h4>
+        <div class="gallery-admin-grid" id="admin-gallery-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </section>
+
+      <!-- 5. GUESTBOOK TAB PANEL -->
+      <section id="panel-guestbook" class="panel-section">
+        <div class="panel-header">
+          <h2 class="panel-title">Gästebuch Einträge</h2>
+        </div>
+
+        <div class="card" style="margin-bottom: 30px;">
+          <h4 style="margin-bottom: 12px;">Eintrag manuell eintragen</h4>
+          <p class="text-muted" style="margin-bottom: 16px; font-size: 0.9rem;">Hier können Sie Einträge eintragen, die Sie zum Beispiel per E-Mail (Web3Forms) erhalten haben.</p>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="admin-gb-name">Name</label>
+              <input type="text" id="admin-gb-name" class="form-control" placeholder="Name des Gastes">
+            </div>
+            <div class="form-group">
+              <label for="admin-gb-rating">Bewertung</label>
+              <select id="admin-gb-rating" class="form-control">
+                <option value="5">★★★★★ (5 Sterne)</option>
+                <option value="4">★★★★☆ (4 Sterne)</option>
+                <option value="3">★★★☆☆ (3 Sterne)</option>
+                <option value="2">★★☆☆☆ (2 Sterne)</option>
+                <option value="1">★☆☆☆☆ (1 Stern)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin: 16px 0;">
+            <label for="admin-gb-comment">Kommentar</label>
+            <textarea id="admin-gb-comment" class="form-control" placeholder="Was hat der Gast geschrieben?"></textarea>
+          </div>
+          <button class="admin-btn admin-btn-primary" onclick="addManualReview()">Eintrag hinzufügen</button>
+        </div>
+
+        <h4>Alle Einträge (Freigabe &amp; Löschen)</h4>
+        <div class="reviews-admin-list" id="admin-reviews-list" style="margin-top: 15px;">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <div class="admin-save-bar">
+          <button class="admin-btn admin-btn-primary" onclick="saveReviewsData()">Änderungen Live Speichern</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
