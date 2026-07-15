@@ -41,12 +41,7 @@
       "label": "Schlachtfest & Musik ab 17:00 Uhr"
     }
   ],
-  "gallery": [
-    {
-      "src": "logo.svg",
-      "alt": "Vereinswappen Spartenheim"
-    }
-  ],
+  "gallery": [],
   "guestbook": [
     {
       "id": "1",
