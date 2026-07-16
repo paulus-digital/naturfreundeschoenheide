@@ -218,14 +218,22 @@ header {
 .logo-link {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-family: var(--font-serif);
   font-weight: 600;
   font-size: 1.15rem;
   color: var(--primary-dark);
   white-space: nowrap;
-  flex-shrink: 0;
+  flex-shrink: 1;
   letter-spacing: 0.02em;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.logo-link span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .logo-img {
@@ -300,6 +308,22 @@ nav a:hover::after {
   color: var(--primary) !important;
   transform: none;
   box-shadow: none;
+}
+
+/* Mobile navigation drawer backdrop */
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  background-color: rgba(16, 29, 18, 0.55);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.nav-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .mobile-nav-toggle {
@@ -992,7 +1016,7 @@ textarea.form-control {
   display: flex;
   flex-direction: row-reverse;
   justify-content: flex-end;
-  gap: 4px;
+  gap: 2px;
 }
 
 .star-rating-select input {
@@ -1004,6 +1028,12 @@ textarea.form-control {
   color: #ddd;
   cursor: pointer;
   transition: var(--transition);
+  padding: 6px 4px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .star-rating-select label:hover,
@@ -1474,19 +1504,23 @@ input:checked + .slider:before {
 /* Sync status toast overlay */
 .sync-toast {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
+  bottom: 16px;
+  right: 16px;
+  left: 16px;
+  max-width: 400px;
   background-color: var(--primary-dark);
   color: var(--bg-cream);
-  padding: 16px 24px;
+  padding: 14px 20px;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-lg);
   z-index: 3000;
   display: none;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   font-weight: 600;
   border-left: 6px solid var(--accent);
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .sync-toast.success {
@@ -1548,26 +1582,34 @@ input:checked + .slider:before {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 16px;
   background-color: var(--bg-cream);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .admin-item-details {
   display: flex;
-  gap: 20px;
+  gap: 12px;
   align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .admin-item-date {
   font-weight: 700;
   color: var(--primary-dark);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .admin-item-label {
   font-weight: 500;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* Gallery Uploader Admin */
@@ -1732,7 +1774,7 @@ input:checked + .slider:before {
   .admin-container {
     grid-template-columns: 1fr;
     gap: 20px;
-    padding: 96px 16px 40px;
+    padding: 82px 16px 30px;
   }
   .admin-sidebar {
     display: flex;
@@ -2185,6 +2227,9 @@ input:checked + .slider:before {
   border: none;
   transition: var(--transition);
   text-decoration: none;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .details-action-btn:hover {
@@ -2414,6 +2459,13 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 420px) {
+  .section-title { font-size: 1.6rem; }
+  .section-subtitle { font-size: 0.95rem; }
+  .section-padding { padding: 60px 0; }
+  .container { padding: 0 16px; }
+
+  .card { padding: 22px 16px; }
+
   .calendar-days-grid {
     gap: 4px;
   }
@@ -2426,4 +2478,50 @@ input:checked + .slider:before {
   .calendar-day-num {
     font-size: 0.78rem;
   }
+
+  .card-title {
+    font-size: 1.4rem;
+  }
+
+  .hero-title {
+    font-size: 1.8rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .status-banner {
+    font-size: 0.85rem;
+    padding: 10px 20px;
+  }
+
+  .hero-btn {
+    font-size: 0.85rem;
+    padding: 11px 18px;
+  }
+
+  .status-banner {
+    font-size: 0.82rem;
+    padding: 10px 18px;
+  }
+
+  .header-container {
+    height: 64px;
+  }
+
+  .logo-link {
+    font-size: 1rem;
+    gap: 8px;
+  }
+
+  .logo-img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hero {
+    padding: 78px 0 48px;
+  }
+}
 }

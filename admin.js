@@ -167,7 +167,7 @@ async function connectToFirebase(firebaseUrl) {
 
 // Logout
 function logout() {
-  localStorage.removeItem('spartenheim_auth');
+  localStorage.removeItem('spartenheim_auth_secure');
   document.getElementById('dashboard-container').style.display = 'none';
   document.getElementById('auth-container').style.display = 'flex';
   document.getElementById('logout-btn').style.display = 'none';

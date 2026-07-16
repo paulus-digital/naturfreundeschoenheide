@@ -818,16 +818,17 @@ function closeModal(id) {
 function toggleMobileMenu() {
   const nav = document.getElementById('navbar');
   const toggleBtn = document.querySelector('.mobile-nav-toggle');
+  const backdrop = document.getElementById('nav-backdrop');
   
   if (!nav) return;
   
   nav.classList.toggle('active');
-  if (nav.classList.contains('active')) {
-    toggleBtn.textContent = '✕';
-    document.body.style.overflow = 'hidden';
-  } else {
-    toggleBtn.textContent = '☰';
-    document.body.style.overflow = '';
+  const open = nav.classList.contains('active');
+  toggleBtn.textContent = open ? '✕' : '☰';
+  document.body.style.overflow = open ? 'hidden' : '';
+  if (backdrop) {
+    backdrop.hidden = false;
+    backdrop.classList.toggle('visible', open);
   }
 }
 
