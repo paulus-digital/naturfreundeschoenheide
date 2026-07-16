@@ -8,6 +8,8 @@ const RAW_DATA_URL = 'https://raw.githubusercontent.com/paulus-digital/naturfreu
 // Setup active tab polling
 let pollInterval = null;
 let slideshowInterval = null;
+let calendarView = 'month';
+let calendarDate = new Date();
 
 function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
@@ -172,12 +174,18 @@ function renderWebsite() {
   // 0. Hero Background Image / Slideshow
   renderHeroSlideshow();
 
-  // 1. Live Banner
+  // 1. Live Banner - respect session dismissal
   const liveBanner = document.getElementById('live-banner');
   const bannerText = document.getElementById('banner-text');
+  const bannerDismissedText = sessionStorage.getItem('bannerDismissedText');
   if (appData.banner && appData.banner.visible && appData.banner.text.trim()) {
     bannerText.textContent = appData.banner.text;
-    liveBanner.classList.remove('hidden');
+    // Only show if user hasn't dismissed THIS exact banner text in this session
+    if (bannerDismissedText !== appData.banner.text) {
+      liveBanner.classList.remove('hidden');
+    } else {
+      liveBanner.classList.add('hidden');
+    }
   } else {
     liveBanner.classList.add('hidden');
   }
@@ -256,52 +264,327 @@ function renderOpeningHours() {
   }
 }
 
-function renderPlanner() {
-  const plannerList = document.getElementById('planner-list');
-  if (!plannerList) return;
+const MONTH_NAMES = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 
-  plannerList.innerHTML = '';
+function renderCalendar() {
+  const title = document.getElementById('calendar-month-year');
+  if (!title) return;
+
+  if (calendarView === 'month') {
+    title.textContent = `${MONTH_NAMES[calendarDate.getMonth()]} ${calendarDate.getFullYear()}`;
+    document.getElementById('calendar-month-container').style.display = 'block';
+    document.getElementById('calendar-week-container').style.display = 'none';
+    document.getElementById('calendar-year-container').style.display = 'none';
+    renderMonthView();
+  } else if (calendarView === 'week') {
+    const startOfWeek = getStartOfWeek(calendarDate);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    const startStr = `${startOfWeek.getDate()}. ${MONTH_NAMES[startOfWeek.getMonth()].substring(0,3)}`;
+    const endStr = `${endOfWeek.getDate()}. ${MONTH_NAMES[endOfWeek.getMonth()].substring(0,3)}`;
+    title.textContent = `${startStr} – ${endStr}`;
+    document.getElementById('calendar-month-container').style.display = 'none';
+    document.getElementById('calendar-week-container').style.display = 'block';
+    document.getElementById('calendar-year-container').style.display = 'none';
+    renderWeekView();
+  } else {
+    title.textContent = `${calendarDate.getFullYear()}`;
+    document.getElementById('calendar-month-container').style.display = 'none';
+    document.getElementById('calendar-week-container').style.display = 'none';
+    document.getElementById('calendar-year-container').style.display = 'block';
+    renderYearView();
+  }
+}
+
+function getStartOfWeek(d) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(date.setDate(diff));
+}
+
+function getEventForDate(dateObj) {
+  if (!appData.planner) return null;
+  const checkTime = new Date(dateObj).setHours(0,0,0,0);
+  
+  return appData.planner.find(event => {
+    const start = new Date(event.startDate || event.date);
+    start.setHours(0,0,0,0);
+    const end = new Date(event.endDate || event.startDate || event.date);
+    end.setHours(23,59,59,999);
+    return checkTime >= start.getTime() && checkTime <= end.getTime();
+  });
+}
+
+function renderMonthView() {
+  const daysContainer = document.getElementById('calendar-days');
+  if (!daysContainer) return;
+  daysContainer.innerHTML = '';
+
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const numDays = new Date(year, month + 1, 0).getDate();
+
+  let startOffset = firstDay.getDay() - 1;
+  if (startOffset < 0) startOffset = 6;
+
+  for (let i = 0; i < startOffset; i++) {
+    const emptyDiv = document.createElement('div');
+    emptyDiv.className = 'calendar-day empty';
+    daysContainer.appendChild(emptyDiv);
+  }
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  for (let d = 1; d <= numDays; d++) {
+    const currentDateObj = new Date(year, month, d);
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'calendar-day';
+    
+    if (currentDateObj < yesterday) {
+      dayDiv.classList.add('past-event');
+    }
+    if (currentDateObj.getTime() === today.getTime()) {
+      dayDiv.classList.add('today');
+    }
+
+    const event = getEventForDate(currentDateObj);
+    let statusClass = 'status-free';
+    if (event) {
+      statusClass = `status-${event.status}`;
+      dayDiv.classList.add(statusClass);
+    }
+    
+    dayDiv.innerHTML = `
+      <div class="calendar-day-num">${d}</div>
+      <div class="calendar-day-dots">
+        <span class="calendar-day-status-indicator ${statusClass}"></span>
+      </div>
+    `;
+
+    dayDiv.onclick = () => selectCalendarDay(currentDateObj, event);
+    daysContainer.appendChild(dayDiv);
+  }
+}
+
+function renderWeekView() {
+  const container = document.getElementById('calendar-week-days');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const startOfWeek = getStartOfWeek(calendarDate);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const GERMAN_DAY_LABELS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+
+  for (let i = 0; i < 7; i++) {
+    const currentDateObj = new Date(startOfWeek);
+    currentDateObj.setDate(startOfWeek.getDate() + i);
+
+    const event = getEventForDate(currentDateObj);
+    const statusClass = event ? `status-${event.status}` : 'status-free';
+
+    const row = document.createElement('div');
+    row.className = `calendar-week-row ${statusClass}`;
+    
+    if (currentDateObj < yesterday) {
+      row.classList.add('past-event');
+    }
+
+    const dayName = GERMAN_DAY_LABELS[currentDateObj.getDay()];
+    const dateStr = currentDateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    let statusText = 'Geöffnet / Reservierung möglich';
+    if (event) {
+      const statusTranslations = {
+        'open': 'Geöffnet',
+        'booked': 'Ausgebucht',
+        'closed': 'Geschlossen',
+        'holiday': 'Urlaub / Betriebsferien',
+        'reservation': 'Reservierung möglich',
+        'event': event.label
+      };
+      statusText = statusTranslations[event.status] || event.label;
+    }
+
+    row.innerHTML = `
+      <div class="calendar-week-date-box">
+        <span class="calendar-week-day-name">${dayName}</span>
+        <span class="calendar-week-date-string">${dateStr}</span>
+      </div>
+      <div style="font-weight:600;">${statusText}</div>
+    `;
+
+    row.onclick = () => selectCalendarDay(currentDateObj, event);
+    container.appendChild(row);
+  }
+}
+
+function renderYearView() {
+  const container = document.getElementById('calendar-year-events');
+  if (!container) return;
+  container.innerHTML = '';
 
   if (!appData.planner || appData.planner.length === 0) {
-    plannerList.innerHTML = '<p class="text-muted text-center" style="grid-column: 1/-1; padding: 20px;">Zur Zeit liegen keine Termine oder Belegungspläne vor.</p>';
+    container.innerHTML = '<p class="text-muted text-center" style="padding: 20px;">Keine Termine eingetragen.</p>';
     return;
   }
 
-  // Sort planner items by date (earliest first)
-  const sortedPlanner = [...appData.planner].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
 
-  // Translate status keys to display badges
+  const events = appData.planner
+    .filter(event => {
+      const end = new Date(event.endDate || event.startDate || event.date);
+      end.setHours(0,0,0,0);
+      return end >= yesterday;
+    })
+    .sort((a, b) => new Date(a.startDate || a.date) - new Date(b.startDate || b.date));
+
+  if (events.length === 0) {
+    container.innerHTML = '<p class="text-muted text-center" style="padding: 20px;">Keine anstehenden Termine.</p>';
+    return;
+  }
+
   const statusTranslations = {
     'open': 'Geöffnet',
     'booked': 'Ausgebucht',
     'closed': 'Geschlossen',
-    'holiday': 'Urlaub/Feiertag',
+    'holiday': 'Urlaub/Betriebsferien',
     'reservation': 'Reservierung möglich',
     'event': 'Event'
   };
 
-  sortedPlanner.forEach(item => {
-    const dateObj = new Date(item.date);
-    const day = dateObj.getDate().toString().padStart(2, '0');
-    const month = dateObj.toLocaleDateString('de-DE', { month: 'short' });
+  events.forEach(event => {
+    const start = new Date(event.startDate || event.date);
+    const end = new Date(event.endDate || event.startDate || event.date);
     
-    const statusClass = `status-${item.status}`;
-    const badgeText = statusTranslations[item.status] || item.status;
+    const row = document.createElement('div');
+    const statusClass = `status-${event.status}`;
+    row.className = `calendar-week-row ${statusClass}`;
 
-    const plannerItem = document.createElement('div');
-    plannerItem.className = `planner-item ${statusClass}`;
-    plannerItem.innerHTML = `
-      <div class="planner-date">
-        <div class="day-num">${day}</div>
-        <div class="month-name">${month}</div>
+    const isPast = end < today;
+    if (isPast) {
+      row.classList.add('past-event');
+    }
+
+    const startStr = start.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    const endStr = end.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    const dateRangeStr = event.endDate && event.endDate !== event.startDate
+      ? `${startStr}. – ${endStr}.`
+      : `${startStr}.`;
+
+    const badgeText = statusTranslations[event.status] || event.status;
+
+    row.innerHTML = `
+      <div class="calendar-week-date-box">
+        <span class="calendar-week-day-name">${event.label}</span>
+        <span class="calendar-week-date-string">${dateRangeStr} ${start.getFullYear()}</span>
       </div>
-      <div class="planner-info">
-        <div class="planner-label">${item.label}</div>
-        <span class="planner-badge">${badgeText}</span>
-      </div>
+      <div style="font-weight:600;">${badgeText}</div>
     `;
-    plannerList.appendChild(plannerItem);
+
+    row.onclick = () => selectCalendarDay(start, event);
+    container.appendChild(row);
   });
+}
+
+function selectCalendarDay(dateObj, event) {
+  const detailsBox = document.getElementById('calendar-day-details');
+  if (!detailsBox) return;
+
+  const dateStr = dateObj.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+  
+  let statusKey = 'free';
+  let statusText = 'Geöffnet / Reservierung möglich';
+  let descText = 'Für diesen Tag liegen keine Belegungen vor. Rufen Sie uns gerne an, um eine Anfrage zu stellen.';
+
+  if (event) {
+    statusKey = event.status;
+    const statusTextTranslations = {
+      'open': 'Geöffnet',
+      'booked': 'Ausgebucht',
+      'closed': 'Geschlossen',
+      'holiday': 'Urlaub / Betriebsferien',
+      'reservation': 'Reservierung möglich',
+      'event': 'Sonder-Event'
+    };
+    statusText = statusTextTranslations[event.status] || event.status;
+    descText = event.label;
+  }
+
+  const dayNameGerman = GERMAN_DAYS[dateObj.getDay()];
+  
+  let hoursText = '';
+  if (appData.openingHours) {
+    const hoursMatch = appData.openingHours.find(h => h.day.toLowerCase() === dayNameGerman.toLowerCase());
+    if (hoursMatch) {
+      hoursText = `Reguläre Öffnungszeit: ${hoursMatch.hours}`;
+      if (hoursMatch.hours.toLowerCase().includes('ruhetag') && statusKey === 'free') {
+        statusKey = 'closed';
+        statusText = 'Ruhetag';
+        descText = 'Montags und Dienstags haben wir Ruhetag.';
+      }
+    }
+  }
+
+  const phone = appData.contact ? appData.contact.phone : '+49 (0) 37755 12345';
+
+  let actionButtonHtml = '';
+  if (statusKey === 'free' || statusKey === 'open' || statusKey === 'reservation') {
+    actionButtonHtml = `
+      <a href="tel:${phone.replace(/\s+/g, '')}" class="details-action-btn">Jetzt Tisch anfragen (Anrufen: ${phone})</a>
+    `;
+  }
+
+  detailsBox.innerHTML = `
+    <div class="details-header">
+      <span class="details-date">${dateStr}</span>
+      <span class="details-status-badge ${statusKey}">${statusText}</span>
+    </div>
+    <p style="font-size: 0.95rem; margin-top:8px; font-weight: 500;">${descText}</p>
+    ${hoursText ? `<p style="font-size: 0.85rem; color:var(--text-muted); margin-top:6px;">${hoursText}</p>` : ''}
+    ${actionButtonHtml}
+  `;
+
+  detailsBox.style.display = 'block';
+
+  if (window.innerWidth <= 768) {
+    detailsBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function setCalendarView(view) {
+  calendarView = view;
+  document.getElementById('view-month-btn').classList.toggle('active', view === 'month');
+  document.getElementById('view-week-btn').classList.toggle('active', view === 'week');
+  document.getElementById('view-year-btn').classList.toggle('active', view === 'year');
+  renderCalendar();
+  const details = document.getElementById('calendar-day-details');
+  if (details) details.style.display = 'none';
+}
+
+function navigateCalendar(direction) {
+  if (calendarView === 'month') {
+    calendarDate.setMonth(calendarDate.getMonth() + direction);
+  } else if (calendarView === 'week') {
+    calendarDate.setDate(calendarDate.getDate() + (direction * 7));
+  } else {
+    calendarDate.setFullYear(calendarDate.getFullYear() + direction);
+  }
+  renderCalendar();
+  const details = document.getElementById('calendar-day-details');
+  if (details) details.style.display = 'none';
 }
 
 function renderGallery() {
@@ -407,6 +690,11 @@ function closeBanner() {
   const banner = document.getElementById('live-banner');
   if (banner) {
     banner.classList.add('hidden');
+    // Remember dismissal for this session - store current banner text
+    const bannerText = document.getElementById('banner-text');
+    if (bannerText) {
+      sessionStorage.setItem('bannerDismissedText', bannerText.textContent);
+    }
   }
 }
 

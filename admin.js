@@ -360,8 +360,8 @@ function populateCalendarTab() {
     return;
   }
 
-  // Sort by date
-  const sorted = [...pageData.planner].sort((a, b) => new Date(a.date) - new Date(b.date));
+  // Sort by start date
+  const sorted = [...pageData.planner].sort((a, b) => new Date(a.startDate || a.date) - new Date(b.startDate || b.date));
 
   sorted.forEach((item, index) => {
     const row = document.createElement('div');
@@ -373,12 +373,19 @@ function populateCalendarTab() {
       'holiday': 'Urlaub', 'reservation': 'Reservierung möglich', 'event': 'Event'
     }[item.status] || item.status;
 
-    const formattedDate = new Date(item.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const start = new Date(item.startDate || item.date);
+    const end = new Date(item.endDate || item.startDate || item.date);
+
+    const startStr = start.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const endStr = end.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const formattedDate = item.endDate && item.endDate !== item.startDate
+      ? `${startStr} - ${endStr}`
+      : startStr;
 
     row.innerHTML = `
       <div class="admin-item-details">
-        <span class="admin-item-date">${formattedDate}</span>
-        <span class="admin-item-label">${item.label} (${statusText})</span>
+        <span class="admin-item-date" style="font-size:0.9rem; font-weight:700;">${formattedDate}</span>
+        <span class="admin-item-label">${escapeHTML(item.label)} (${statusText})</span>
       </div>
       <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem;" onclick="deleteCalendarEntry(${index})">Löschen</button>
     `;
@@ -592,19 +599,30 @@ async function saveCalendarData() {
 }
 
 async function addNewCalendarEntry() {
-  const dateInput = document.getElementById('new-event-date');
+  const startInput = document.getElementById('new-event-start-date');
+  const endInput = document.getElementById('new-event-end-date');
   const statusInput = document.getElementById('new-event-status');
   const labelInput = document.getElementById('new-event-label');
 
-  if (!dateInput.value || !labelInput.value.trim()) {
-    alert('Bitte tragen Sie ein Datum und eine Beschreibung ein.');
+  if (!startInput.value || !labelInput.value.trim()) {
+    alert('Bitte tragen Sie ein Startdatum und eine Beschreibung ein.');
+    return;
+  }
+
+  const startDate = startInput.value;
+  const endDate = endInput.value || startDate;
+
+  if (new Date(endDate) < new Date(startDate)) {
+    alert('Das Enddatum darf nicht vor dem Startdatum liegen.');
     return;
   }
 
   if (!pageData.planner) pageData.planner = [];
 
   const newEntry = {
-    date: dateInput.value,
+    date: startDate,
+    startDate: startDate,
+    endDate: endDate,
     status: statusInput.value,
     label: labelInput.value.trim()
   };
@@ -613,7 +631,8 @@ async function addNewCalendarEntry() {
   populateCalendarTab();
   
   // Clear inputs
-  dateInput.value = '';
+  startInput.value = '';
+  endInput.value = '';
   labelInput.value = '';
 
   await saveCalendarData();
@@ -623,7 +642,7 @@ async function deleteCalendarEntry(index) {
   // Sort planner to match populated index representation
   const sortedIndices = [...pageData.planner]
     .map((item, origIndex) => ({ item, origIndex }))
-    .sort((a, b) => new Date(a.item.date) - new Date(b.item.date));
+    .sort((a, b) => new Date(a.item.startDate || a.item.date) - new Date(b.item.startDate || b.item.date));
 
   const targetOrigIndex = sortedIndices[index].origIndex;
   
