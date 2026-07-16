@@ -259,7 +259,7 @@ function renderLiveStatus() {
     'closed': 'Geschlossen',
     'booked': 'Ausgebucht',
     'holiday': 'Im Urlaub',
-    'event': 'Event heute',
+    'event': 'Event-Tag',
     'reservation': 'Reservierung möglich'
   };
 
