@@ -67,9 +67,11 @@ async function connectToGitHub() {
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error('Falsches Passwort. Bitte prüfen Sie Ihre Eingabe.');
+        throw new Error('Ungültiger GitHub-Token (401 Unauthorized). Bitte prüfen Sie, ob der Token korrekt eingegeben wurde.');
+      } else if (response.status === 403) {
+        throw new Error('Zugriff verweigert (403 Forbidden). Ihr Token besitzt eventuell keine ausreichenden Rechte. Stellen Sie sicher, dass "repo" aktiviert ist.');
       } else if (response.status === 404) {
-        throw new Error('Die Website-Daten konnten nicht gefunden werden. Bitte kontaktieren Sie Ihren Webmaster.');
+        throw new Error('Die Website-Daten (data.json) konnten nicht gefunden werden. Prüfen Sie den Repository-Namen.');
       } else {
         throw new Error(`Verbindungsfehler: ${response.statusText}`);
       }
@@ -296,7 +298,7 @@ function populateGalleryTab() {
     const card = document.createElement('div');
     card.className = 'gallery-admin-card';
     card.innerHTML = `
-      <img src="${img.src}" alt="${img.alt || 'Galerie'}" onerror="this.src='logo.svg'; this.style.objectFit='contain';">
+      <img src="${img.src}" alt="${img.alt || 'Galerie'}" onerror="this.src='logo.png'; this.style.objectFit='contain';">
       <div class="gallery-admin-actions">
         <p style="font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px;">${img.alt || 'Bild'}</p>
         <button class="admin-btn admin-btn-danger" style="padding: 4px 10px; font-size: 0.8rem; width: 100%;" onclick="deleteGalleryImage(${index})">Entfernen</button>

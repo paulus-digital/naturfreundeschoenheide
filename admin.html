@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verwaltung – Spartenheim Naturfreunde</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="icon" type="image/png" href="logo.png">
 </head>
 <body class="admin-body">
 
@@ -13,7 +13,7 @@
   <header class="admin-header">
     <div class="container admin-nav">
       <div class="admin-logo">
-        <img src="logo.svg" alt="Wappen" style="width: 40px; height: 40px;">
+        <img src="logo.png" alt="Wappen" style="width: 40px; height: 40px;">
         Spartenheim Verwaltung
         <span class="admin-badge">Admin</span>
       </div>
@@ -34,16 +34,23 @@
       <p class="auth-desc">Geben Sie Ihr Zugangspasswort ein, um die Website-Inhalte zu bearbeiten.</p>
 
       <div class="auth-info-box">
-        <h5>💡 So funktioniert's</h5>
-        <p>Geben Sie das Passwort ein, das Sie von Ihrem Webmaster erhalten haben. Nach dem Anmelden können Sie Öffnungszeiten, Banner, Termine und Bilder direkt bearbeiten. Alle Änderungen werden sofort auf der Live-Website sichtbar.</p>
+        <h5>💡 Live-Synchronisation mit GitHub</h5>
+        <p>Dieses Control Panel speichert Ihre Änderungen direkt im GitHub Repository. Dazu benötigen Sie einen <strong>GitHub Personal Access Token (PAT)</strong> mit Schreibzugriff für dieses Repository.</p>
+        <div style="font-size: 0.85rem; background: rgba(0,0,0,0.03); border-left: 3px solid var(--accent); padding: 8px 12px; margin-top: 10px; border-radius: 0 4px 4px 0;">
+          <strong>Kurzanleitung Token erstellen:</strong><br>
+          1. Öffnen Sie GitHub und navigieren Sie zu: <strong>Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Tokens (classic)</strong>.<br>
+          2. Klicken Sie auf <em>Generate new token (classic)</em>.<br>
+          3. Wählen Sie als Berechtigung (Scope) <strong>repo</strong> aus.<br>
+          4. Klicken Sie ganz unten auf <em>Generate token</em>, kopieren Sie den Code und fügen Sie ihn unten ein.
+        </div>
       </div>
 
       <div id="login-error" class="alert-box danger" style="display: none;"></div>
 
       <form id="login-form" onsubmit="handleLogin(event)">
         <div class="form-group" style="margin-bottom: 20px;">
-          <label for="admin-password">Zugangspasswort *</label>
-          <input type="password" id="admin-password" class="form-control" placeholder="Passwort eingeben" required autocomplete="current-password" style="font-size: 1.1rem; padding: 14px 16px;">
+          <label for="admin-password">GitHub Personal Access Token (PAT) *</label>
+          <input type="password" id="admin-password" class="form-control" placeholder="ghp_..." required autocomplete="current-password" style="font-size: 1.1rem; padding: 14px 16px;">
         </div>
 
         <div class="form-group" style="margin-bottom: 24px;">

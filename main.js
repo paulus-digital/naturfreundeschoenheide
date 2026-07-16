@@ -1,33 +1,61 @@
 // Global data state
 let appData = {};
 
+// GitHub API and Raw URL definitions
+const GITHUB_API_URL = 'https://api.github.com/repos/paulus-digital/naturfreundeschoenheide/contents/data.json';
+const RAW_DATA_URL = 'https://raw.githubusercontent.com/paulus-digital/naturfreundeschoenheide/main/data.json';
+
+// Setup polling on load
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
   setupEventListeners();
+  // Poll for updates every 15 seconds to sync changes live
+  setInterval(loadData, 15000);
 });
 
-// GitHub Raw API URL for instant data freshness (bypasses GitHub Pages cache)
-const RAW_DATA_URL = 'https://raw.githubusercontent.com/paulus-digital/naturfreundeschoenheide/main/data.json';
-
-// Load data.json – tries GitHub Raw API first, then local fallback
+// Load data.json – tries GitHub API contents first for 100% fresh data, falls back to RAW/Local CDN
 async function loadData() {
   try {
-    // First try GitHub Raw API for instant updates after admin changes
-    const rawResponse = await fetch(`${RAW_DATA_URL}?t=${Date.now()}`, {
-      cache: 'no-store'
-    });
-    
-    if (rawResponse.ok) {
-      appData = await rawResponse.json();
-    } else {
-      // Fallback to local data.json (works for local development)
-      const localResponse = await fetch(`data.json?t=${Date.now()}`);
-      if (!localResponse.ok) {
-        throw new Error('Daten konnten nicht geladen werden.');
+    let freshData = null;
+
+    try {
+      // 1. Try GitHub API for instant, non-cached data (rate limits are per visitor IP)
+      const apiResponse = await fetch(GITHUB_API_URL, {
+        headers: { 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (apiResponse.ok) {
+        const apiJson = await apiResponse.json();
+        const decoded = decodeURIComponent(escape(atob(apiJson.content.replace(/\s/g, ''))));
+        freshData = JSON.parse(decoded);
       }
-      appData = await localResponse.json();
+    } catch (apiErr) {
+      console.warn('GitHub API Rate Limit oder Netzwerkfehler, weiche auf CDN aus:', apiErr);
     }
-    
+
+    // 2. Fallback to raw.githubusercontent.com if API failed or rate-limited
+    if (!freshData) {
+      const rawResponse = await fetch(`${RAW_DATA_URL}?t=${Date.now()}`, {
+        cache: 'no-store'
+      });
+      if (rawResponse.ok) {
+        freshData = await rawResponse.json();
+      }
+    }
+
+    // 3. Local fallback for offline/local development
+    if (!freshData) {
+      const localResponse = await fetch(`data.json?t=${Date.now()}`);
+      if (localResponse.ok) {
+        freshData = await localResponse.json();
+      }
+    }
+
+    if (!freshData) {
+      throw new Error('Keine Datenquelle erreichbar.');
+    }
+
+    appData = freshData;
+
     // Check if there is locally saved guestbook entries in localStorage for instant testing
     const localReviews = JSON.parse(localStorage.getItem('local_guestbook_reviews') || '[]');
     if (localReviews.length > 0) {
@@ -37,7 +65,7 @@ async function loadData() {
     renderWebsite();
   } catch (error) {
     console.error('Fehler beim Laden der Website-Daten:', error);
-    // If fetching fails, look in localStorage as fallback (for local admin testing)
+    // If everything fails, look in localStorage as fallback
     const backupData = localStorage.getItem('spartenheim_backup_data');
     if (backupData) {
       appData = JSON.parse(backupData);
@@ -190,7 +218,7 @@ function renderGallery() {
     item.onclick = () => openLightbox(img.src, img.alt);
     
     item.innerHTML = `
-      <img src="${img.src}" alt="${img.alt || 'Galeriebild'}" onerror="this.src='logo.svg'; this.style.objectFit='contain';">
+      <img src="${img.src}" alt="${img.alt || 'Galeriebild'}" onerror="this.src='logo.png'; this.style.objectFit='contain';">
       <div class="gallery-overlay">
         <div class="gallery-caption">${img.alt || 'Spartenheim Impression'}</div>
       </div>

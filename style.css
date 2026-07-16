@@ -267,7 +267,7 @@ nav a:hover::after {
 /* Hero Section */
 .hero {
   position: relative;
-  background: linear-gradient(rgba(27, 59, 34, 0.8), rgba(15, 36, 21, 0.9)), url('logo.svg') no-repeat center/30%;
+  background: linear-gradient(rgba(27, 59, 34, 0.85), rgba(15, 36, 21, 0.95)), url('logo.png') no-repeat center/20%;
   background-color: var(--primary-dark);
   color: var(--bg-cream);
   min-height: 80vh;
