@@ -143,8 +143,12 @@
       </div>
 
       <div class="guestbook-wrapper">
-        <div class="reviews-grid" id="reviews-container">
-          <!-- Populated dynamically via JS -->
+        <div class="carousel-wrapper" style="margin-bottom: 50px;">
+          <button class="carousel-btn prev" onclick="scrollReviews(-1)" aria-label="Vorherige Bewertungen">&lsaquo;</button>
+          <div class="reviews-carousel" id="reviews-container">
+            <!-- Populated dynamically via JS -->
+          </div>
+          <button class="carousel-btn next" onclick="scrollReviews(1)" aria-label="Nächste Bewertungen">&rsaquo;</button>
         </div>
 
         <!-- Add Review Form -->

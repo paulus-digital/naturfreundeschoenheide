@@ -726,14 +726,30 @@ nav a:hover::after {
   margin: 0 auto;
 }
 
-.reviews-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* Guestbook Reviews Carousel */
+.reviews-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
   gap: 24px;
-  margin-bottom: 50px;
+  width: 100%;
+  padding: 10px 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.reviews-carousel::-webkit-scrollbar {
+  display: none;
+}
+.reviews-carousel {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .review-card {
+  position: relative;
+  flex: 0 0 calc(50% - 12px);
+  scroll-snap-align: start;
   background-color: var(--bg-white);
   border-radius: var(--radius-md);
   padding: 30px;
@@ -742,6 +758,7 @@ nav a:hover::after {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  min-height: 200px;
 }
 
 .review-header {

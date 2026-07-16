@@ -548,6 +548,17 @@ function scrollCarousel(direction) {
   });
 }
 
+// Reviews Scroll Helper
+function scrollReviews(direction) {
+  const carousel = document.getElementById('reviews-container');
+  if (!carousel) return;
+  const scrollAmount = carousel.clientWidth * 0.8;
+  carousel.scrollBy({
+    left: direction * scrollAmount,
+    behavior: 'smooth'
+  });
+}
+
 // Utility: HTML Escaper to prevent XSS in review forms
 function escapeHTML(str) {
   return str.replace(/[&<>'"]/g, 
