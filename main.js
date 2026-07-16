@@ -27,6 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
   
   startPolling();
 
+  // Close mobile navigation drawer when a link is clicked
+  document.querySelectorAll('nav a').forEach(link => {
+    link.addEventListener('click', () => {
+      const nav = document.getElementById('navbar');
+      const toggleBtn = document.querySelector('.mobile-nav-toggle');
+      if (nav && nav.classList.contains('active')) {
+        nav.classList.remove('active');
+        if (toggleBtn) toggleBtn.textContent = '☰';
+        document.body.style.overflow = '';
+      }
+    });
+  });
+
   // Stop polling when tab is hidden (saves GitHub rate limits), start again when focused
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
@@ -139,6 +152,15 @@ async function loadData() {
 // Render dynamic elements
 function renderWebsite() {
   if (!appData) return;
+
+  // 0. Hero Background Image
+  const heroSection = document.getElementById('home');
+  if (heroSection) {
+    const bgUrl = appData.heroImage || 'hero_cabin.png';
+    heroSection.style.backgroundImage = `linear-gradient(rgba(15, 36, 21, 0.55), rgba(15, 36, 21, 0.85)), url('${bgUrl}')`;
+    heroSection.style.backgroundSize = 'cover';
+    heroSection.style.backgroundPosition = 'center';
+  }
 
   // 1. Live Banner
   const liveBanner = document.getElementById('live-banner');
@@ -393,12 +415,13 @@ function toggleMobileMenu() {
   
   if (!nav) return;
   
-  if (nav.style.display === 'block') {
-    nav.style.display = 'none';
-    toggleBtn.textContent = '☰';
-  } else {
-    nav.style.display = 'block';
+  nav.classList.toggle('active');
+  if (nav.classList.contains('active')) {
     toggleBtn.textContent = '✕';
+    document.body.style.overflow = 'hidden';
+  } else {
+    toggleBtn.textContent = '☰';
+    document.body.style.overflow = '';
   }
 }
 

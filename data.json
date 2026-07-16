@@ -3,6 +3,7 @@
     "url": "https://naturfreundeschoenheide-default-rtdb.europe-west1.firebasedatabase.app",
     "apiKey": "AIzaSyAMH7xsRU0XxI7IVyI3iULUcfsIo6DNbpA"
   },
+  "heroImage": "hero_cabin.png",
   "openStatus": true,
   "banner": {
     "visible": true,
@@ -45,7 +46,20 @@
       "label": "Schlachtfest & Musik ab 17:00 Uhr"
     }
   ],
-  "gallery": [],
+  "gallery": [
+    {
+      "src": "hero_cabin.png",
+      "alt": "Gaststätte Naturfreunde Außenansicht im Grünen"
+    },
+    {
+      "src": "hero_interior.png",
+      "alt": "Gemütlicher Innenbereich mit rustikalen Holztischen"
+    },
+    {
+      "src": "hero_buffet.png",
+      "alt": "Hausgemachtes Buffet für Ihre Veranstaltungen"
+    }
+  ],
   "guestbook": [
     {
       "id": "1",

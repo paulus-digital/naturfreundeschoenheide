@@ -1399,37 +1399,102 @@ input:checked + .slider:before {
 @media (max-width: 1024px) {
   .admin-container {
     grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 10px;
   }
   .admin-sidebar {
+    display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 8px 4px;
+    gap: 8px;
+    border-right: none;
+    border-bottom: 2px solid var(--border);
+    -webkit-overflow-scrolling: touch;
   }
   .admin-tab-btn {
-    flex: 1;
-    min-width: 150px;
-    justify-content: center;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    border-bottom: none;
+  }
+  .admin-tab-btn.active {
+    border-bottom: none;
+    background-color: var(--primary);
+    color: var(--bg-cream);
   }
 }
 
 @media (max-width: 768px) {
-  .section-title { font-size: 2.2rem; }
-  .hero-title { font-size: 2.8rem; }
-  .info-grid, .contact-grid, .reviews-grid, .form-grid {
-    grid-template-columns: 1fr;
+  .section-title { font-size: 2.4rem; }
+  .section-padding { padding: 80px 0; }
+  .hero { min-height: 70vh; }
+  .hero-title { font-size: 3rem; }
+  .admin-main { padding: 20px 15px; }
+  
+  /* Mobile Navigation Drawer Overlay */
+  .header-container {
+    height: 70px;
+    position: relative;
   }
-  .header-container { height: 70px; }
-  nav {
-    display: none; /* Hide default nav, show mobile menu drawer if needed */
-  }
-  /* Simple mobile menu trigger display */
   .mobile-nav-toggle {
     display: block;
+    z-index: 1100;
   }
-  .contact-grid {
-    gap: 30px;
+  nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    background-color: var(--bg-cream);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 30px;
+    transition: var(--transition);
   }
+  nav.active {
+    right: 0;
+  }
+  nav ul {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    width: 100%;
+  }
+  nav ul li {
+    width: 100%;
+  }
+  nav a {
+    font-size: 1.25rem;
+    font-family: var(--font-serif);
+    display: block;
+    width: 100%;
+    padding: 8px 0;
+  }
+  .cta-button {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .info-grid, .contact-grid, .reviews-grid, .form-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .card {
+    padding: 30px 24px;
+  }
+
   .footer-content {
     flex-direction: column;
     text-align: center;
+    gap: 20px;
   }
 }

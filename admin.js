@@ -233,6 +233,7 @@ function showDashboard() {
   populateCalendarTab();
   populateGalleryTab();
   populateGuestbookTab();
+  populateSettingsTab();
 }
 
 // Switch Sidebar Tabs
@@ -730,6 +731,43 @@ async function addManualReview() {
   commentInput.value = '';
 
   await saveReviewsData();
+}
+
+function populateSettingsTab() {
+  const previewImg = document.getElementById('hero-preview-img');
+  if (previewImg) {
+    previewImg.src = pageData.heroImage || 'hero_cabin.png';
+  }
+}
+
+async function uploadHeroImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  showToast('📤 Lade neues Hintergrundbild...', 'info');
+
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = async () => {
+    try {
+      pageData.heroImage = reader.result;
+      const previewImg = document.getElementById('hero-preview-img');
+      if (previewImg) previewImg.src = reader.result;
+
+      await commitDataChange('Admin Panel: Startseite-Hintergrundbild aktualisiert');
+    } catch (err) {
+      console.error(err);
+      showToast(`❌ Upload-Fehler: ${err.message}`, 'error');
+    }
+  };
+}
+
+async function resetHeroImage() {
+  if (!confirm('Hintergrundbild wirklich auf Standard zurücksetzen?')) return;
+  pageData.heroImage = 'hero_cabin.png';
+  const previewImg = document.getElementById('hero-preview-img');
+  if (previewImg) previewImg.src = 'hero_cabin.png';
+  await commitDataChange('Admin Panel: Startseite-Hintergrundbild zurückgesetzt');
 }
 
 // ----------------------------------------------------
