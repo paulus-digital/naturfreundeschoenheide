@@ -6,8 +6,7 @@ const GITHUB_BRANCH = 'data-sync';
 
 // Global Admin State
 let authData = {
-  token: '',
-  isDemo: false
+  token: ''
 };
 
 let pageData = {};
@@ -49,7 +48,6 @@ async function handleLogin(event) {
   errorEl.style.display = 'none';
 
   showToast('🔑 Melde an...', 'info');
-  authData.isDemo = false;
 
   try {
     // 1. Fetch config locally/raw to get firebaseUrl & apiKey
@@ -165,52 +163,6 @@ async function connectToFirebase(firebaseUrl) {
     errorEl.style.display = 'block';
     showToast('❌ Datenbank-Verbindung fehlgeschlagen', 'error');
   }
-}
-
-// Start Local Demo Mode
-function startDemoMode() {
-  authData.isDemo = true;
-  localStorage.setItem('spartenheim_auth', JSON.stringify(authData));
-
-  // Load from local storage or fallback to default
-  const localBackup = localStorage.getItem('spartenheim_backup_data');
-  if (localBackup) {
-    pageData = JSON.parse(localBackup);
-  } else {
-    // Default placeholder data
-    pageData = {
-      openStatus: true,
-      banner: {
-        visible: true,
-        text: "Willkommen im Spartenheim Naturfreunde! (Demo Modus aktiv)"
-      },
-      openingHours: [
-        { day: "Montag", hours: "Ruhetag" },
-        { day: "Dienstag", hours: "Ruhetag" },
-        { day: "Mittwoch", hours: "16:00 - 22:00" },
-        { day: "Donnerstag", hours: "16:00 - 22:00" },
-        { day: "Freitag", hours: "15:00 - 23:00" },
-        { day: "Samstag", hours: "12:00 - 23:00" },
-        { day: "Sonntag", hours: "11:30 - 21:00" }
-      ],
-      planner: [
-        { date: "2026-07-17", status: "event", label: "Schlachtfest & Musik ab 17:00 Uhr" }
-      ],
-      gallery: [],
-      guestbook: [],
-      contact: {
-        name: "Gaststätte Spartenheim Naturfreunde",
-        address: "Gartenweg, 08304 Schönheide",
-        inhaber: "Ina Schultze",
-        phone: "+49 (0) 37755 12345",
-        email: "info@spartenheim-schoenheide.de",
-        web3formsKey: "YOUR_WEB3FORMS_ACCESS_KEY_HERE"
-      }
-    };
-  }
-
-  showDashboard();
-  showToast('ℹ️ Demo-Modus geladen', 'success');
 }
 
 // Logout
@@ -472,13 +424,6 @@ function populateGuestbookTab() {
 // Commit entire pageData back to Firebase Realtime Database
 async function commitDataChange(logMessage) {
   showToast('💾 Speichere Änderungen...', 'info');
-
-  if (authData.isDemo) {
-    // Demo mode: Write to local storage
-    localStorage.setItem('spartenheim_backup_data', JSON.stringify(pageData, null, 2));
-    showToast('✅ Lokal gespeichert (Demo-Modus)', 'success');
-    return true;
-  }
 
   try {
     let firebaseUrl = pageData.firebase ? pageData.firebase.url : '';
