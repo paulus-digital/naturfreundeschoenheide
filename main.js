@@ -834,15 +834,16 @@ function renderHeroSlideshow() {
   }
 
   // Create slide divs
+  const singleSlide = slides.length <= 1;
   slides.forEach((src, idx) => {
     const slide = document.createElement('div');
-    slide.className = `hero-slide ${idx === 0 ? 'active' : ''}`;
+    slide.className = `hero-slide ${singleSlide ? 'single' : ''} ${idx === 0 ? 'active' : ''}`;
     slide.style.backgroundImage = `linear-gradient(rgba(15, 36, 21, 0.55), rgba(15, 36, 21, 0.85)), url('${src}')`;
     container.appendChild(slide);
   });
 
-  // If only 1 slide, no animation needed
-  if (slides.length <= 1) return;
+  // If only 1 slide, no looping interval needed (single slide uses a smooth, non-repeating zoom)
+  if (singleSlide) return;
 
   // Start fading slideshow loop
   let currentSlideIdx = 0;

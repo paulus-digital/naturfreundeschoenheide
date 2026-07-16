@@ -337,6 +337,15 @@ nav a:hover::after {
   animation: kenBurnsLoop 28s linear infinite;
 }
 
+@keyframes kenBurnsSingle {
+  0%   { transform: scale(1.02) translate(0%,    0%);   }
+  100% { transform: scale(1.1)  translate(-0.3%, -0.3%); }
+}
+
+.hero-slide.single.active {
+  animation: kenBurnsSingle 30s ease-out forwards;
+}
+
 /* Add an elegant organic background overlay pattern if needed */
 .hero::before {
   content: '';
