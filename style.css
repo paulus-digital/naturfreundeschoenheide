@@ -206,6 +206,7 @@ header {
   font-weight: 400;
   font-size: 1.4rem;
   color: var(--primary);
+  white-space: nowrap;
 }
 
 .logo-img {
@@ -1517,48 +1518,10 @@ input:checked + .slider:before {
 
 
 /* Responsive Adaptations */
-@media (max-width: 1024px) {
-  .admin-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 10px;
-  }
-  .admin-sidebar {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding: 8px 4px;
-    gap: 8px;
-    border-right: none;
-    border-bottom: 2px solid var(--border);
-    -webkit-overflow-scrolling: touch;
-  }
-  .admin-tab-btn {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    padding: 10px 16px;
-    border-radius: var(--radius-sm);
-    font-size: 0.9rem;
-    border-bottom: none;
-  }
-  .admin-tab-btn.active {
-    border-bottom: none;
-    background-color: var(--primary);
-    color: var(--bg-cream);
-  }
-}
-
-@media (max-width: 768px) {
-  .section-title { font-size: 2.4rem; }
-  .section-padding { padding: 80px 0; }
-  .hero { min-height: 70vh; }
-  .hero-title { font-size: 3rem; }
-  .admin-main { padding: 20px 15px; }
-  
-  /* Mobile Navigation Drawer Overlay */
+@media (max-width: 1100px) {
+  /* Trigger Mobile Navigation Drawer Overlay at 1100px */
   .header-container {
-    height: 70px;
+    height: 75px;
     position: relative;
   }
   .mobile-nav-toggle {
@@ -1603,6 +1566,50 @@ input:checked + .slider:before {
     text-align: center;
     margin-top: 10px;
   }
+  
+  .logo-link {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .admin-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 10px;
+  }
+  .admin-sidebar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 8px 4px;
+    gap: 8px;
+    border-right: none;
+    border-bottom: 2px solid var(--border);
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    border-bottom: none;
+  }
+  .admin-tab-btn.active {
+    border-bottom: none;
+    background-color: var(--primary);
+    color: var(--bg-cream);
+  }
+}
+
+@media (max-width: 768px) {
+  .section-title { font-size: 2.4rem; }
+  .section-padding { padding: 80px 0; }
+  .hero { min-height: 70vh; }
+  .hero-title { font-size: 3rem; }
+  .admin-main { padding: 20px 15px; }
 
   .info-grid, .contact-grid, .form-grid {
     grid-template-columns: 1fr;
