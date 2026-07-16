@@ -2242,6 +2242,79 @@ input:checked + .slider:before {
   color: var(--text-dark);
 }
 
+/* Live status badge in hero (now a clickable button) */
+#live-status {
+  cursor: default;
+  font-family: var(--font-sans);
+}
+
+#live-status.clickable {
+  cursor: pointer;
+}
+
+#live-status.clickable:hover {
+  filter: brightness(1.1);
+}
+
+.live-status-detail {
+  max-width: 520px;
+  margin: 14px auto 0;
+  padding: 14px 18px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-light);
+  text-align: left;
+  animation: fadeIn 0.35s ease-out;
+}
+
+.live-detail-event {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* Notice above the opening hours / planner section */
+.info-note {
+  max-width: 760px;
+  margin: 22px auto 0;
+  padding: 14px 20px;
+  text-align: center;
+  font-size: 0.98rem;
+  color: var(--text-muted);
+  background-color: var(--bg-white);
+  border: 1px solid var(--border-warm);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+/* CTA note inside the planner card */
+.planner-cta-note {
+  margin-top: 22px;
+  padding: 18px 20px;
+  background-color: var(--bg-white);
+  border: 1px solid var(--border-warm);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--text-dark);
+}
+
+.planner-cta-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.planner-cta-link:hover {
+  color: var(--accent);
+}
+
 /* Calendar responsive adjustments */
 @media (max-width: 768px) {
   .planner-card {

@@ -184,16 +184,8 @@ function renderWebsite() {
     liveBanner.classList.add('hidden');
   }
 
-  // 2. Live Open/Closed Status
-  const liveStatus = document.getElementById('live-status');
-  const statusText = liveStatus.querySelector('.status-text');
-  if (appData.openStatus) {
-    liveStatus.className = 'status-badge open';
-    statusText.textContent = 'Geöffnet';
-  } else {
-    liveStatus.className = 'status-badge closed';
-    statusText.textContent = 'Heute: Nicht geöffnet';
-  }
+  // 2. Live Open/Closed Status (derived from today's planner + opening hours)
+  renderLiveStatus();
 
   // 3. Opening Hours
   renderOpeningHours();
@@ -248,6 +240,71 @@ function renderOpeningHours() {
     `;
     hoursList.appendChild(li);
   });
+}
+
+// Derive today's live status from the planner + configured opening hours
+function renderLiveStatus() {
+  const liveStatus = document.getElementById('live-status');
+  const liveDetail = document.getElementById('live-status-detail');
+  if (!liveStatus) return;
+
+  const statusText = liveStatus.querySelector('.status-text');
+  const today = new Date();
+  const todayEvents = getEventsForDate(today);
+  const dayStatus = todayEvents.length > 0 ? summarizeStatus(todayEvents) : getOpenStatusForDate(today);
+
+  const STATUS_LABEL = {
+    'open': 'Geöffnet',
+    'free': 'Geöffnet',
+    'closed': 'Geschlossen',
+    'booked': 'Ausgebucht',
+    'holiday': 'Im Urlaub',
+    'event': 'Event heute',
+    'reservation': 'Reservierung möglich'
+  };
+
+  const label = STATUS_LABEL[dayStatus] || 'Geschlossen';
+  liveStatus.className = `status-badge ${dayStatus === 'free' ? 'open' : dayStatus}`;
+  liveStatus.querySelector('.status-dot').className = 'status-dot';
+  statusText.textContent = `Heute: ${label}`;
+
+  // Build detail text
+  let detailHtml = '';
+
+  if (dayStatus === 'holiday') {
+    const ev = todayEvents.find(e => e.status === 'holiday') || {};
+    const fmt = d => new Date(d).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const start = ev.startDate || ev.date ? fmt(ev.startDate || ev.date) : '';
+    const end = ev.endDate ? fmt(ev.endDate) : start;
+    const range = (start && end && start !== end) ? `${start} bis ${end}` : (start || '');
+    detailHtml = `<strong>Wir sind im Urlaub${range ? ' (' + range + ')' : ''}.</strong><br>Bis bald – wir freuen uns auf Ihren nächsten Besuch!`;
+  } else if (dayStatus === 'event' || dayStatus === 'booked') {
+    const evs = todayEvents.filter(e => e.status === 'event' || e.status === 'booked');
+    detailHtml = evs.map(e => `<div class="live-detail-event"><span class="week-event-dot status-${e.status}"></span>${escapeHTML(e.label)}</div>`).join('');
+  } else if (dayStatus === 'closed') {
+    detailHtml = 'Heute haben wir Ruhetag. Schauen Sie auf die Öffnungszeiten für unsere nächsten geöffneten Tage.';
+  } else {
+    detailHtml = 'Wir haben heute geöffnet. Reservieren Sie gerne einen Tisch – wir freuen uns auf Sie!';
+  }
+
+  if (liveDetail) {
+    liveDetail.innerHTML = detailHtml;
+    // Event / booked / holiday are expandable
+    const expandable = (dayStatus === 'event' || dayStatus === 'booked' || dayStatus === 'holiday');
+    if (expandable) {
+      liveStatus.classList.add('clickable');
+      liveStatus.setAttribute('aria-expanded', 'false');
+      liveStatus.onclick = () => {
+        const open = liveStatus.getAttribute('aria-expanded') === 'true';
+        liveStatus.setAttribute('aria-expanded', String(!open));
+        liveDetail.hidden = open;
+      };
+    } else {
+      liveStatus.classList.remove('clickable');
+      liveStatus.onclick = null;
+      liveDetail.hidden = true;
+    }
+  }
 }
 
 const MONTH_NAMES = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];

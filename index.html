@@ -35,7 +35,8 @@
 <body>
 
   <!-- Site Preloader Overlay -->
-  <div id="site-preloader" style="position:fixed; inset:0; background-color: #f0e9da; z-index:9999; display:flex; justify-content:center; align-items:center; transition: opacity 0.5s ease;">
+  <div id="site-preloader"
+    style="position:fixed; inset:0; background-color: #f0e9da; z-index:9999; display:flex; justify-content:center; align-items:center; transition: opacity 0.5s ease;">
     <div class="preloader-spinner"></div>
   </div>
 
@@ -75,23 +76,29 @@
   <section id="home" class="hero">
     <div class="hero-slideshow-container" id="hero-slideshow"></div>
     <div class="hero-content">
-      <div id="live-status" class="status-badge closed">
+      <button type="button" id="live-status" class="status-badge closed" aria-expanded="false">
         <span class="status-dot"></span>
         <span class="status-text">Geschlossen</span>
-      </div>
-      <p class="hero-subtitle">Willkommen im Grünen</p>
+      </button>
+      <div id="live-status-detail" class="live-status-detail" hidden></div>
+      <p class="hero-subtitle">Willkommen in Schönheide</p>
       <h1 class="hero-title">Gaststätte Spartenheim Naturfreunde</h1>
 
       <div class="hero-cta">
         <a href="#zeiten" class="hero-btn hero-btn-secondary">
-          <svg class="hero-btn-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+          <svg class="hero-btn-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z">
+            </path>
           </svg>
           Unsere Öffnungszeiten
         </a>
         <a href="#kontakt" class="hero-btn hero-btn-primary">
-          <svg class="hero-btn-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-1.514 2.035a11.542 11.542 0 0 1-5.45-5.45l2.035-1.514c.361-.272.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"></path>
+          <svg class="hero-btn-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-1.514 2.035a11.542 11.542 0 0 1-5.45-5.45l2.035-1.514c.361-.272.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z">
+            </path>
           </svg>
           Anfrage &amp; Anrufen
         </a>
@@ -106,6 +113,12 @@
         <h2 class="section-title">Öffnungszeiten &amp; Belegung</h2>
         <p class="section-subtitle">Planen Sie Ihren Besuch bei uns im Gartenweg</p>
       </div>
+
+      <p class="info-note">
+        Bitte beachten Sie: Unsere Öffnungszeiten können abweichen. Schauen Sie immer auf den
+        <strong>Live-Status</strong> oben – dort sehen Sie tagesaktuell, ob wir geöffnet haben, ein Event stattfindet
+        oder wir im Urlaub sind.
+      </p>
 
       <div class="info-grid">
         <!-- Opening Hours Card -->
@@ -141,12 +154,13 @@
             </svg>
             Termine &amp; Belegung
           </h3>
-          
+
           <div class="calendar-widget">
             <!-- Calendar Navigation Header -->
             <div class="calendar-header">
               <div class="calendar-views">
-                <button class="calendar-view-btn active" id="view-month-btn" onclick="setCalendarView('month')">Monat</button>
+                <button class="calendar-view-btn active" id="view-month-btn"
+                  onclick="setCalendarView('month')">Monat</button>
                 <button class="calendar-view-btn" id="view-week-btn" onclick="setCalendarView('week')">Woche</button>
                 <button class="calendar-view-btn" id="view-year-btn" onclick="setCalendarView('year')">Jahr</button>
               </div>
@@ -156,11 +170,17 @@
                 <button class="calendar-nav-btn" onclick="navigateCalendar(1)">&rsaquo;</button>
               </div>
             </div>
-            
+
             <!-- Calendar Views Containers -->
             <div id="calendar-month-container" class="calendar-grid-container">
               <div class="calendar-weekdays">
-                <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+                <div>Mo</div>
+                <div>Di</div>
+                <div>Mi</div>
+                <div>Do</div>
+                <div>Fr</div>
+                <div>Sa</div>
+                <div>So</div>
               </div>
               <div class="calendar-days-grid" id="calendar-days">
                 <!-- Populated dynamically -->
@@ -191,6 +211,14 @@
             <!-- Day Details Box -->
             <div class="calendar-details-box" id="calendar-day-details" style="display:none;">
               <!-- Populated dynamically when clicking a day -->
+            </div>
+
+            <div class="planner-cta-note">
+              <strong>Feiern, Events &amp; Buffets jeder Größe:</strong> Kontaktieren Sie uns gerne für
+              Familienfeiern, Geburtstage, Vereinsabende oder Firmenevents. Wir bieten unter anderem
+              <strong>Buffets, Spanferkel, Mutzbraten, À-la-carte und mehr</strong> an.
+              Auf Anfrage sind auch Termine an anderen Tagen möglich.
+              <a href="#kontakt" class="planner-cta-link">Jetzt unverbindlich anfragen &rsaquo;</a>
             </div>
           </div>
         </div>
@@ -232,11 +260,13 @@
 
       <div class="guestbook-wrapper">
         <div class="carousel-wrapper" style="margin-bottom: 50px;">
-          <button class="carousel-btn prev" onclick="scrollReviews(-1)" aria-label="Vorherige Bewertungen">&lsaquo;</button>
+          <button class="carousel-btn prev" onclick="scrollReviews(-1)"
+            aria-label="Vorherige Bewertungen">&lsaquo;</button>
           <div class="reviews-carousel" id="reviews-container">
             <!-- Populated dynamically via JS -->
           </div>
-          <button class="carousel-btn next" onclick="scrollReviews(1)" aria-label="Nächste Bewertungen">&rsaquo;</button>
+          <button class="carousel-btn next" onclick="scrollReviews(1)"
+            aria-label="Nächste Bewertungen">&rsaquo;</button>
         </div>
 
         <!-- Add Review Form -->
