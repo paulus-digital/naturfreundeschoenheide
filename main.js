@@ -321,6 +321,19 @@ function summarizeStatus(events) {
   return events[0].status;
 }
 
+// Determine whether a given date is an "open" day based on configured opening hours.
+// Returns the status key used when there is NO planner event for that day:
+// 'free' (open / reservation possible) or 'closed' (Ruhetag).
+function getOpenStatusForDate(dateObj) {
+  if (!appData.openingHours) return 'free';
+  const dayName = GERMAN_DAYS[dateObj.getDay()];
+  const match = appData.openingHours.find(h => h.day && h.day.toLowerCase() === dayName.toLowerCase());
+  if (match && match.hours && match.hours.toLowerCase().includes('ruhetag')) {
+    return 'closed';
+  }
+  return 'free';
+}
+
 function renderMonthView() {
   const daysContainer = document.getElementById('calendar-days');
   if (!daysContainer) return;
@@ -348,12 +361,19 @@ function renderMonthView() {
 
   for (let d = 1; d <= numDays; d++) {
     const currentDateObj = new Date(year, month, d);
+
+    // Keep the grid aligned: render past days as empty, non-interactive cells
+    // so the month layout stays correct but doesn't get cluttered.
+    if (currentDateObj < yesterday) {
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'calendar-day empty past-hidden';
+      daysContainer.appendChild(emptyDiv);
+      continue;
+    }
+
     const dayDiv = document.createElement('div');
     dayDiv.className = 'calendar-day';
-    
-    if (currentDateObj < yesterday) {
-      dayDiv.classList.add('past-event');
-    }
+
     if (currentDateObj.getTime() === today.getTime()) {
       dayDiv.classList.add('today');
     }
@@ -364,11 +384,16 @@ function renderMonthView() {
       statusClass = `status-${summarizeStatus(events)}`;
       dayDiv.classList.add(statusClass);
       if (events.length > 1) dayDiv.classList.add('has-multiple');
+    } else {
+      // No planner event: derive status from configured opening hours (Ruhetag -> closed)
+      statusClass = `status-${getOpenStatusForDate(currentDateObj)}`;
+      dayDiv.classList.add(statusClass);
     }
-    
+
+    const dotStatus = events.length > 0 ? summarizeStatus(events) : getOpenStatusForDate(currentDateObj);
     const dots = events.length > 0
       ? events.slice(0, 3).map(e => `<span class="calendar-day-status-indicator status-${e.status}"></span>`).join('')
-      : `<span class="calendar-day-status-indicator status-free"></span>`;
+      : `<span class="calendar-day-status-indicator status-${dotStatus}"></span>`;
 
     dayDiv.innerHTML = `
       <div class="calendar-day-num">${d}</div>
@@ -415,7 +440,7 @@ function renderWeekView() {
 
     const eventItems = events.length > 0
       ? events.map(e => `<div class="week-event-item"><span class="week-event-dot status-${e.status}"></span>${escapeHTML(e.label)}</div>`).join('')
-      : `<div class="week-event-item week-event-free">Geöffnet / Reservierung möglich</div>`;
+      : `<div class="week-event-item week-event-free">${getOpenStatusForDate(currentDateObj) === 'closed' ? 'Ruhetag – geschlossen' : 'Geöffnet / Reservierung möglich'}</div>`;
 
     row.innerHTML = `
       <div class="calendar-week-date-box">
@@ -512,6 +537,8 @@ function selectCalendarDay(dateObj, event) {
   let statusText = 'Geöffnet / Reservierung möglich';
   if (!Array.isArray(event)) event = event ? [event] : [];
 
+  const dayNameGerman = GERMAN_DAYS[dateObj.getDay()];
+
   let descText = 'Für diesen Tag liegen keine Belegungen vor. Rufen Sie uns gerne an, um eine Anfrage zu stellen.';
 
   if (event.length > 0) {
@@ -525,20 +552,22 @@ function selectCalendarDay(dateObj, event) {
       'event': 'Sonder-Event'
     };
     statusText = statusTextTranslations[statusKey] || statusKey;
+  } else {
+    // No planner event: status follows the configured opening hours (Ruhetag -> closed)
+    statusKey = getOpenStatusForDate(dateObj);
+    if (statusKey === 'closed') {
+      statusText = 'Ruhetag';
+      descText = 'An diesem Tag haben wir Ruhetag und sind geschlossen.';
+    } else {
+      statusText = 'Geöffnet / Reservierung möglich';
+    }
   }
 
-  const dayNameGerman = GERMAN_DAYS[dateObj.getDay()];
-  
   let hoursText = '';
   if (appData.openingHours) {
     const hoursMatch = appData.openingHours.find(h => h.day.toLowerCase() === dayNameGerman.toLowerCase());
     if (hoursMatch) {
       hoursText = `Reguläre Öffnungszeit: ${hoursMatch.hours}`;
-      if (hoursMatch.hours.toLowerCase().includes('ruhetag') && statusKey === 'free') {
-        statusKey = 'closed';
-        statusText = 'Ruhetag';
-        descText = 'Montags und Dienstags haben wir Ruhetag.';
-      }
     }
   }
 

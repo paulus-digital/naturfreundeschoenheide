@@ -1978,6 +1978,10 @@ input:checked + .slider:before {
   box-shadow: none;
 }
 
+.calendar-day.empty.past-hidden {
+  display: none;
+}
+
 .calendar-day.today {
   border: 2px solid var(--primary);
   border-left-width: 4px;
