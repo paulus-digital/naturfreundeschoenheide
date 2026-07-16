@@ -215,6 +215,30 @@ function renderWebsite() {
 // Helper: Translate Day Number to German Day Name
 const GERMAN_DAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 
+function formatDateToYYYYMMDD(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getDatesForCurrentWeek() {
+  const today = new Date();
+  const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday...
+  const mondayDiff = currentDay === 0 ? -6 : 1 - currentDay;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayDiff);
+  monday.setHours(0,0,0,0);
+
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const dayDate = new Date(monday);
+    dayDate.setDate(monday.getDate() + i);
+    dates.push(dayDate);
+  }
+  return dates;
+}
+
 function renderOpeningHours() {
   const hoursList = document.getElementById('hours-list');
   if (!hoursList || !appData.openingHours) return;
@@ -224,6 +248,7 @@ function renderOpeningHours() {
   // Get current day name in German
   const currentDayIndex = new Date().getDay();
   const currentDayGerman = GERMAN_DAYS[currentDayIndex];
+  const dates = getDatesForCurrentWeek();
   
   appData.openingHours.forEach(item => {
     const li = document.createElement('li');
@@ -233,11 +258,30 @@ function renderOpeningHours() {
     if (isToday) {
       li.classList.add('current-day');
     }
+
+    // Find if this day has a special opening hour planned in the current week
+    const dayDate = dates.find(d => GERMAN_DAYS[d.getDay()].toLowerCase() === item.day.toLowerCase());
+    let specialMatch = null;
+    if (dayDate && appData.specialHours) {
+      const dateStr = formatDateToYYYYMMDD(dayDate);
+      specialMatch = appData.specialHours.find(h => h.date === dateStr);
+    }
     
-    li.innerHTML = `
-      <span>${item.day}</span>
-      <span>${item.hours}</span>
-    `;
+    if (specialMatch) {
+      li.classList.add('special-day');
+      li.innerHTML = `
+        <span>
+          ${item.day}
+          <span class="special-hours-badge" title="${escapeHTML(specialMatch.label)}">${escapeHTML(specialMatch.label || 'Sonderregelung')}</span>
+        </span>
+        <span class="special-hours-time">${escapeHTML(specialMatch.hours)}</span>
+      `;
+    } else {
+      li.innerHTML = `
+        <span>${item.day}</span>
+        <span>${item.hours}</span>
+      `;
+    }
     hoursList.appendChild(li);
   });
 }
@@ -282,9 +326,19 @@ function renderLiveStatus() {
     const evs = todayEvents.filter(e => e.status === 'event' || e.status === 'booked');
     detailHtml = evs.map(e => `<div class="live-detail-event"><span class="week-event-dot status-${e.status}"></span>${escapeHTML(e.label)}</div>`).join('');
   } else if (dayStatus === 'closed') {
-    detailHtml = 'Heute haben wir Ruhetag. Schauen Sie auf die Öffnungszeiten für unsere nächsten geöffneten Tage.';
+    const specialToday = appData.specialHours && appData.specialHours.find(h => h.date === formatDateToYYYYMMDD(today));
+    if (specialToday) {
+      detailHtml = `Heute geschlossen: ${escapeHTML(specialToday.label || 'Sonderregelung')} (${escapeHTML(specialToday.hours)})`;
+    } else {
+      detailHtml = 'Heute haben wir Ruhetag. Schauen Sie auf die Öffnungszeiten für unsere nächsten geöffneten Tage.';
+    }
   } else {
-    detailHtml = 'Wir haben heute geöffnet. Reservieren Sie gerne einen Tisch – wir freuen uns auf Sie!';
+    const specialToday = appData.specialHours && appData.specialHours.find(h => h.date === formatDateToYYYYMMDD(today));
+    if (specialToday) {
+      detailHtml = `Heute geänderte Öffnungszeit: <strong>${escapeHTML(specialToday.hours)}</strong> ${specialToday.label ? '(' + escapeHTML(specialToday.label) + ')' : ''}`;
+    } else {
+      detailHtml = 'Wir haben heute geöffnet. Reservieren Sie gerne einen Tisch – wir freuen uns auf Sie!';
+    }
   }
 
   if (liveDetail) {
@@ -374,6 +428,18 @@ function summarizeStatus(events) {
 // Returns the status key used when there is NO planner event for that day:
 // 'free' (open / reservation possible) or 'closed' (Ruhetag).
 function getOpenStatusForDate(dateObj) {
+  if (appData.specialHours) {
+    const dateStr = formatDateToYYYYMMDD(dateObj);
+    const specialMatch = appData.specialHours.find(h => h.date === dateStr);
+    if (specialMatch) {
+      const hLower = specialMatch.hours.toLowerCase();
+      if (hLower.includes('ruhetag') || hLower.includes('geschlossen') || hLower.includes('nicht geöffnet')) {
+        return 'closed';
+      }
+      return 'free';
+    }
+  }
+
   if (!appData.openingHours) return 'free';
   const dayName = GERMAN_DAYS[dateObj.getDay()];
   const match = appData.openingHours.find(h => h.day && h.day.toLowerCase() === dayName.toLowerCase());

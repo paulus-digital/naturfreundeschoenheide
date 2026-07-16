@@ -1244,10 +1244,14 @@ footer {
 }
 
 .admin-header {
+  position: static;
   background-color: var(--primary-dark);
   color: var(--bg-cream);
-  padding: 16px 0;
+  padding: 14px 0;
   box-shadow: var(--shadow-md);
+  border-bottom: none;
+  backdrop-filter: none;
+  z-index: auto;
 }
 
 .admin-nav {
@@ -1351,13 +1355,13 @@ footer {
   grid-template-columns: 260px 1fr;
   gap: 30px;
   margin: 0 auto;
-  padding-top: 96px;
-  min-height: 100vh;
+  padding-top: 40px;
+  min-height: calc(100vh - 80px);
 }
 
 .auth-wrapper {
-  padding-top: 120px;
-  min-height: 100vh;
+  padding-top: 40px;
+  min-height: calc(100vh - 80px);
 }
 
 .admin-sidebar {
@@ -1774,18 +1778,22 @@ input:checked + .slider:before {
   .admin-container {
     grid-template-columns: 1fr;
     gap: 20px;
-    padding: 82px 16px 30px;
+    padding: 24px 16px 30px;
   }
   .admin-sidebar {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding: 8px 4px;
+    padding: 10px 4px;
     gap: 8px;
     border-right: none;
-    border-bottom: 2px solid var(--border);
+    border-bottom: 2px solid var(--border-warm);
     -webkit-overflow-scrolling: touch;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #f0eae1;
   }
   .admin-tab-btn {
     flex: 0 0 auto;
@@ -2524,4 +2532,48 @@ input:checked + .slider:before {
     padding: 78px 0 48px;
   }
 }
+
+/* Frontend Special Opening Hours Highlight & Badge */
+.special-hours-badge {
+  background-color: var(--accent);
+  color: var(--text-light);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  margin-left: 10px;
+  display: inline-block;
+  vertical-align: middle;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+.hours-row.special-day {
+  background-color: rgba(154, 115, 37, 0.06);
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+}
+
+/* Mobile optimizations for Admin Header elements */
+@media (max-width: 600px) {
+  .admin-logo {
+    font-size: 1.15rem !important;
+    gap: 6px !important;
+  }
+  .admin-logo img {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .admin-badge {
+    font-size: 0.65rem !important;
+    padding: 2px 6px !important;
+  }
+  .admin-logout {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+  }
+  .admin-header {
+    padding: 10px 0 !important;
+  }
 }

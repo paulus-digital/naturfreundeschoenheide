@@ -152,6 +152,7 @@ async function connectToFirebase(firebaseUrl) {
     }
 
     pageData = dbData;
+    if (!pageData.specialHours) pageData.specialHours = [];
     
     // Show Dashboard
     showDashboard();
@@ -276,28 +277,57 @@ function populateGeneralTab() {
 }
 
 function populateHoursTab() {
+  // 1. Standard opening hours fields
   const container = document.getElementById('admin-hours-fields');
-  if (!container || !pageData.openingHours) return;
+  if (container && pageData.openingHours) {
+    container.innerHTML = '';
+    pageData.openingHours.forEach((item, index) => {
+      const row = document.createElement('div');
+      row.className = 'form-group';
+      row.style.marginBottom = '12px';
+      row.innerHTML = `
+        <label style="font-weight: 600;">${item.day}</label>
+        <input type="text" id="hour-day-${index}" class="form-control" value="${item.hours}">
+      `;
+      container.appendChild(row);
 
-  container.innerHTML = '';
-  pageData.openingHours.forEach((item, index) => {
-    const row = document.createElement('div');
-    row.className = 'form-group';
-    row.style.marginBottom = '12px';
-    row.innerHTML = `
-      <label style="font-weight: 600;">${item.day}</label>
-      <input type="text" id="hour-day-${index}" class="form-control" value="${item.hours}">
-    `;
-    container.appendChild(row);
+      // Attach change listener for auto-saving opening hours
+      const input = row.querySelector('input');
+      if (input) {
+        input.addEventListener('change', async () => {
+          await saveHoursData();
+        });
+      }
+    });
+  }
 
-    // Attach change listener for auto-saving opening hours
-    const input = row.querySelector('input');
-    if (input) {
-      input.addEventListener('change', async () => {
-        await saveHoursData();
-      });
+  // 2. Special/Deviating hours list
+  const specialList = document.getElementById('admin-special-hours-list');
+  if (specialList) {
+    specialList.innerHTML = '';
+
+    if (!pageData.specialHours || pageData.specialHours.length === 0) {
+      specialList.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine Sonderöffnungszeiten geplant.</p>';
+      return;
     }
-  });
+
+    pageData.specialHours.forEach((item, index) => {
+      const row = document.createElement('div');
+      row.className = 'admin-item-row';
+
+      const date = new Date(item.date);
+      const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+      row.innerHTML = `
+        <div class="admin-item-details">
+          <span class="admin-item-date" style="font-size:0.9rem; font-weight:700;">${dateStr}</span>
+          <span class="admin-item-label">${escapeHTML(item.hours)} ${item.label ? '(' + escapeHTML(item.label) + ')' : ''}</span>
+        </div>
+        <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem;" onclick="deleteSpecialHours(${index})">Löschen</button>
+      `;
+      specialList.appendChild(row);
+    });
+  }
 }
 
 function populateCalendarTab() {
@@ -846,4 +876,49 @@ function escapeHTML(str) {
       '"': '&quot;'
     }[tag] || tag)
   );
+}
+
+// Special hours additions & deletions
+async function addNewSpecialHours() {
+  const dateInput = document.getElementById('new-special-date');
+  const hoursInput = document.getElementById('new-special-hours');
+  const labelInput = document.getElementById('new-special-label');
+
+  if (!dateInput || !hoursInput) return;
+
+  if (!dateInput.value || !hoursInput.value.trim()) {
+    alert('Bitte wählen Sie ein Datum und tragen Sie die abweichende Öffnungszeit ein.');
+    return;
+  }
+
+  if (!pageData.specialHours) pageData.specialHours = [];
+
+  const newEntry = {
+    date: dateInput.value,
+    hours: hoursInput.value.trim(),
+    label: labelInput ? labelInput.value.trim() : ''
+  };
+
+  pageData.specialHours.push(newEntry);
+
+  // Sort by date (chronological order)
+  pageData.specialHours.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  // Reset input fields
+  dateInput.value = '';
+  hoursInput.value = '';
+  if (labelInput) labelInput.value = '';
+
+  populateHoursTab();
+  await commitDataChange('Admin Panel: Sonderöffnungszeit geplant');
+}
+
+async function deleteSpecialHours(index) {
+  if (!pageData.specialHours || !pageData.specialHours[index]) return;
+
+  if (confirm('Möchten Sie diese Sonderöffnungszeit wirklich löschen?')) {
+    pageData.specialHours.splice(index, 1);
+    populateHoursTab();
+    await commitDataChange('Admin Panel: Sonderöffnungszeit gelöscht');
+  }
 }

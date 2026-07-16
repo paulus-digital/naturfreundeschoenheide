@@ -9,8 +9,8 @@
 </head>
 <body class="admin-body">
 
-  <!-- Admin Navigation Header -->
-  <header class="admin-header">
+  <!-- Admin Navigation Header (div instead of header to prevent inheritance of fixed header styling) -->
+  <div class="admin-header">
     <div class="container admin-nav">
       <div class="admin-logo">
         <img src="logo.png" alt="Wappen" style="width: 40px; height: 40px;">
@@ -19,7 +19,7 @@
       </div>
       <button id="logout-btn" class="admin-logout" style="display: none;" onclick="logout()">Abmelden</button>
     </div>
-  </header>
+  </div>
 
   <!-- Toast notification for sync status -->
   <div id="sync-toast" class="sync-toast">
@@ -164,6 +164,40 @@
             <!-- Populated dynamically via JS -->
           </div>
         </form>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-warm); margin: 40px 0;">
+
+        <div class="panel-header">
+          <h2 class="panel-title">Sonderöffnungszeiten verplanen</h2>
+        </div>
+        <p class="text-muted" style="margin-bottom: 24px;">
+          Planen Sie Tage mit abweichenden Öffnungszeiten (z. B. Feiertage, geschlossene Gesellschaften oder Betriebsferien).
+          Diese überschreiben an dem jeweiligen Datum die Standard-Öffnungszeiten und werden im Live-Status sowie bei den Öffnungszeiten angezeigt.
+        </p>
+
+        <div class="card" style="margin-bottom: 30px; border-color: var(--accent); max-width: 600px;">
+          <h4 style="margin-bottom: 16px;">Sonderöffnungszeit hinzufügen</h4>
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+              <label for="new-special-date">Datum</label>
+              <input type="date" id="new-special-date" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="new-special-hours">Öffnungszeit / Status</label>
+              <input type="text" id="new-special-hours" class="form-control" placeholder="z.B. 11:30 - 21:00 oder Ruhetag">
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="new-special-label">Zusatzinfo / Anlass (optional)</label>
+              <input type="text" id="new-special-label" class="form-control" placeholder="z.B. Karfreitag, Betriebsferien, Private Feier">
+            </div>
+          </div>
+          <button class="admin-btn admin-btn-primary" style="width: auto; margin-top: 16px;" onclick="addNewSpecialHours()">Sonderzeit speichern</button>
+        </div>
+
+        <h4 style="margin-top: 30px; margin-bottom: 12px;">Geplante Sonderöffnungszeiten</h4>
+        <div id="admin-special-hours-list">
+          <!-- Populated dynamically via JS -->
+        </div>
 
       </section>
 
