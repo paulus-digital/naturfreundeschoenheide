@@ -1604,9 +1604,13 @@ input:checked + .slider:before {
     margin-top: 10px;
   }
 
-  .info-grid, .contact-grid, .reviews-grid, .form-grid {
+  .info-grid, .contact-grid, .form-grid {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+
+  .review-card {
+    flex: 0 0 100%;
   }
   
   .card {
