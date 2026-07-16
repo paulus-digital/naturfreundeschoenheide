@@ -442,16 +442,6 @@ nav a:hover::after {
   box-shadow: 0 0 10px #f44336;
 }
 
-.hero-hours-preview {
-  font-size: 1.05rem;
-  opacity: 0.95;
-  background-color: rgba(255, 255, 255, 0.08);
-  display: inline-block;
-  padding: 10px 22px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
 .hero-cta {
   display: flex;
   flex-wrap: wrap;

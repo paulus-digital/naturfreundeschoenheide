@@ -225,7 +225,6 @@ const GERMAN_DAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 
 
 function renderOpeningHours() {
   const hoursList = document.getElementById('hours-list');
-  const todayPreview = document.getElementById('today-hours-preview');
   if (!hoursList || !appData.openingHours) return;
 
   hoursList.innerHTML = '';
@@ -234,8 +233,6 @@ function renderOpeningHours() {
   const currentDayIndex = new Date().getDay();
   const currentDayGerman = GERMAN_DAYS[currentDayIndex];
   
-  let todayHoursString = 'Heute: Ruhetag';
-
   appData.openingHours.forEach(item => {
     const li = document.createElement('li');
     li.className = 'hours-row';
@@ -243,7 +240,6 @@ function renderOpeningHours() {
     const isToday = item.day.toLowerCase() === currentDayGerman.toLowerCase();
     if (isToday) {
       li.classList.add('current-day');
-      todayHoursString = `Heute (${item.day}): ${item.hours}`;
     }
     
     li.innerHTML = `
@@ -252,10 +248,6 @@ function renderOpeningHours() {
     `;
     hoursList.appendChild(li);
   });
-
-  if (todayPreview) {
-    todayPreview.textContent = todayHoursString;
-  }
 }
 
 const MONTH_NAMES = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
