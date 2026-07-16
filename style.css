@@ -203,47 +203,52 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 90px;
+  height: 76px;
+  gap: 16px;
 }
 
 .logo-link {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   font-family: var(--font-serif);
   font-weight: 600;
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   color: var(--primary-dark);
   white-space: nowrap;
+  flex-shrink: 0;
   letter-spacing: 0.02em;
 }
 
 .logo-img {
-  width: 54px;
-  height: 54px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background-color: var(--bg-white);
-  padding: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--border);
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 nav ul {
   list-style: none;
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: 28px;
+  flex-wrap: nowrap;
 }
 
 nav a {
   font-weight: 500;
-  font-size: 0.8rem;
-  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-dark);
   position: relative;
-  padding: 8px 0;
+  padding: 6px 0;
+  white-space: nowrap;
 }
 
 nav a::after {
@@ -268,14 +273,16 @@ nav a:hover::after {
 .cta-button {
   background-color: var(--primary);
   color: var(--bg-cream) !important;
-  padding: 10px 22px;
+  padding: 9px 16px;
   border-radius: var(--radius-sm);
   font-weight: 600;
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   border: 1px solid var(--primary);
   box-shadow: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cta-button:hover {
