@@ -149,12 +149,6 @@ async function loadData() {
 
     appData = freshData;
 
-    // Check if there is locally saved guestbook entries in localStorage for instant testing
-    const localReviews = JSON.parse(localStorage.getItem('local_guestbook_reviews') || '[]');
-    if (localReviews.length > 0) {
-      appData.guestbook = [...(appData.guestbook || []), ...localReviews];
-    }
-
     renderWebsite();
   } catch (error) {
     console.error('Fehler beim Laden der Website-Daten:', error);
@@ -732,6 +726,30 @@ function toggleMobileMenu() {
   }
 }
 
+// Persist a guestbook entry to Firebase Realtime Database (pendingReviews node)
+async function saveReviewToFirebase(review) {
+  let firebaseUrl = null;
+  if (appData && appData.firebase && appData.firebase.url) {
+    firebaseUrl = appData.firebase.url;
+  } else {
+    const localConfig = await fetch(`data.json?t=${Date.now()}`).then(r => r.ok ? r.json() : null).catch(() => null);
+    if (localConfig && localConfig.firebase && localConfig.firebase.url) {
+      firebaseUrl = localConfig.firebase.url;
+    }
+  }
+  if (!firebaseUrl) return false;
+
+  if (firebaseUrl.endsWith('/')) firebaseUrl = firebaseUrl.slice(0, -1);
+  const endpoint = `${firebaseUrl}/pendingReviews.json`;
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(review)
+  });
+  return response.ok;
+}
+
 // Setup reviews submit intercepts
 function setupEventListeners() {
   const form = document.getElementById('review-form');
@@ -741,48 +759,63 @@ function setupEventListeners() {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const name = document.getElementById('review-name-input').value.trim();
     const comment = document.getElementById('review-comment-input').value.trim();
     const ratingInput = form.querySelector('input[name="rating"]:checked');
     const rating = ratingInput ? parseInt(ratingInput.value) : 5;
-    
-    // Save to local storage mock review database for immediate visual feedback
-    const localReviews = JSON.parse(localStorage.getItem('local_guestbook_reviews') || '[]');
-    const newMockReview = {
-      id: `local_${Date.now()}`,
+
+    if (!name || !comment) {
+      feedback.style.display = 'block';
+      feedback.className = 'alert-box danger';
+      feedback.textContent = 'Bitte geben Sie Namen und Kommentar an.';
+      return;
+    }
+
+    const newReview = {
       name: name,
       rating: rating,
       comment: comment,
       date: new Date().toISOString().split('T')[0],
-      approved: true // Auto approve locally for demo/instant gratification
+      approved: false,
+      createdAt: Date.now()
     };
-    localReviews.push(newMockReview);
-    localStorage.setItem('local_guestbook_reviews', JSON.stringify(localReviews));
 
-    // Display feedback
-    feedback.style.display = 'block';
-    feedback.textContent = 'Vielen Dank! Ihr Eintrag wurde gespeichert und wird direkt auf diesem Gerät angezeigt. Bei aktiver Web3Forms-Anbindung erhält der Inhaber eine E-Mail.';
-    
-    // Trigger actual form submit via Fetch so page doesn't redirect
-    const formData = new FormData(form);
-    
-    // If Web3Forms API Key is set and isn't placeholder, submit it
+    // Save to Firebase Realtime Database (pendingReviews node, public write allowed)
+    let savedToFirebase = false;
+    try {
+      const saved = await saveReviewToFirebase(newReview);
+      savedToFirebase = saved;
+    } catch (err) {
+      console.error('Firebase-Speicherung fehlgeschlagen:', err);
+    }
+
+    // Optionally notify owner via Web3Forms (if key configured)
     const apiKey = document.getElementById('web3forms-key').value;
     if (apiKey && apiKey !== 'YOUR_WEB3FORMS_ACCESS_KEY_HERE') {
       try {
-        await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          body: formData
-        });
+        const mailData = new FormData();
+        mailData.append('access_key', apiKey);
+        mailData.append('subject', 'Neuer Gästebuch-Eintrag: Spartenheim Naturfreunde');
+        mailData.append('from_name', 'Spartenheim Webseite');
+        mailData.append('name', name);
+        mailData.append('rating', String(rating));
+        mailData.append('message', comment);
+        await fetch('https://api.web3forms.com/submit', { method: 'POST', body: mailData });
       } catch (err) {
         console.error('Web3Forms submit error:', err);
       }
     }
 
-    // Refresh guestbook in current view
-    appData.guestbook.push(newMockReview);
-    renderGuestbook();
+    // Display feedback
+    feedback.style.display = 'block';
+    if (savedToFirebase) {
+      feedback.className = 'alert-box success';
+      feedback.textContent = 'Vielen Dank! Ihr Eintrag wurde gespeichert und wird nach Freigabe durch den Inhaber veröffentlicht.';
+    } else {
+      feedback.className = 'alert-box success';
+      feedback.textContent = 'Vielen Dank! Ihr Eintrag wurde übermittelt. (Hinweis: Die Speicherung in der Datenbank war nicht möglich – der Inhaber wurde dennoch per E-Mail informiert, falls konfiguriert.)';
+    }
 
     // Reset form
     form.reset();
