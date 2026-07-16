@@ -229,8 +229,7 @@
         <div class="review-form-card">
           <h3 class="form-title">Einen Eintrag schreiben</h3>
           <!-- Form submits to Web3Forms for email delivery to the owner, but we handle submission via JS to also update local state instantly for presentation. -->
-          <form id="review-form" action="https://api.web3forms.com/submit" method="POST">
-            <input type="hidden" name="access_key" id="web3forms-key" value="">
+          <form id="review-form" method="POST">
             <input type="hidden" name="subject" value="Neuer Gästebuch-Eintrag: Spartenheim Naturfreunde">
             <input type="hidden" name="from_name" value="Spartenheim Webseite">
 

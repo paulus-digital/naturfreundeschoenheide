@@ -653,12 +653,6 @@ function renderContact() {
   // Modals placeholders
   document.querySelectorAll('.contact-phone-placeholder').forEach(el => el.textContent = c.phone);
   document.querySelectorAll('.contact-email-placeholder').forEach(el => el.textContent = c.email);
-
-  // Set Web3Forms Access Key
-  const web3formsInput = document.getElementById('web3forms-key');
-  if (web3formsInput && c.web3formsKey) {
-    web3formsInput.value = c.web3formsKey;
-  }
 }
 
 // Lightbox functions
@@ -784,27 +778,9 @@ function setupEventListeners() {
     // Save to Firebase Realtime Database (pendingReviews node, public write allowed)
     let savedToFirebase = false;
     try {
-      const saved = await saveReviewToFirebase(newReview);
-      savedToFirebase = saved;
+      savedToFirebase = await saveReviewToFirebase(newReview);
     } catch (err) {
       console.error('Firebase-Speicherung fehlgeschlagen:', err);
-    }
-
-    // Optionally notify owner via Web3Forms (if key configured)
-    const apiKey = document.getElementById('web3forms-key').value;
-    if (apiKey && apiKey !== 'YOUR_WEB3FORMS_ACCESS_KEY_HERE') {
-      try {
-        const mailData = new FormData();
-        mailData.append('access_key', apiKey);
-        mailData.append('subject', 'Neuer Gästebuch-Eintrag: Spartenheim Naturfreunde');
-        mailData.append('from_name', 'Spartenheim Webseite');
-        mailData.append('name', name);
-        mailData.append('rating', String(rating));
-        mailData.append('message', comment);
-        await fetch('https://api.web3forms.com/submit', { method: 'POST', body: mailData });
-      } catch (err) {
-        console.error('Web3Forms submit error:', err);
-      }
     }
 
     // Display feedback
@@ -813,8 +789,8 @@ function setupEventListeners() {
       feedback.className = 'alert-box success';
       feedback.textContent = 'Vielen Dank! Ihr Eintrag wurde gespeichert und wird nach Freigabe durch den Inhaber veröffentlicht.';
     } else {
-      feedback.className = 'alert-box success';
-      feedback.textContent = 'Vielen Dank! Ihr Eintrag wurde übermittelt. (Hinweis: Die Speicherung in der Datenbank war nicht möglich – der Inhaber wurde dennoch per E-Mail informiert, falls konfiguriert.)';
+      feedback.className = 'alert-box danger';
+      feedback.textContent = 'Vielen Dank! Ihr Eintrag konnte nicht gespeichert werden. Bitte versuchen Sie es später erneut.';
     }
 
     // Reset form
