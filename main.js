@@ -5,12 +5,37 @@ let appData = {};
 const GITHUB_API_URL = 'https://api.github.com/repos/paulus-digital/naturfreundeschoenheide/contents/data.json';
 const RAW_DATA_URL = 'https://raw.githubusercontent.com/paulus-digital/naturfreundeschoenheide/main/data.json';
 
-// Setup polling on load
+// Setup active tab polling
+let pollInterval = null;
+
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  // Poll every 4 seconds for instant updates when active
+  pollInterval = setInterval(loadData, 4000);
+}
+
+function stopPolling() {
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
   setupEventListeners();
-  // Poll for updates every 15 seconds to sync changes live
-  setInterval(loadData, 15000);
+  
+  startPolling();
+
+  // Stop polling when tab is hidden (saves GitHub rate limits), start again when focused
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopPolling();
+    } else {
+      loadData(); // immediate fetch on active
+      startPolling();
+    }
+  });
 });
 
 // Load data.json – tries GitHub API contents first for 100% fresh data, falls back to RAW/Local CDN

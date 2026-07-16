@@ -197,7 +197,7 @@ function setupStatusToggle() {
   
   if (!toggle) return;
   
-  toggle.addEventListener('change', () => {
+  toggle.addEventListener('change', async () => {
     if (toggle.checked) {
       label.textContent = 'Geöffnet';
       label.style.color = 'var(--success)';
@@ -205,6 +205,8 @@ function setupStatusToggle() {
       label.textContent = 'Geschlossen';
       label.style.color = 'var(--danger)';
     }
+    // Auto-save the status immediately when toggled
+    await saveGeneralData();
   });
 }
 

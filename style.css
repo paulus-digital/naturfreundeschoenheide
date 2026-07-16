@@ -1,5 +1,5 @@
 /* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
   /* Color Palette */
@@ -12,24 +12,24 @@
   --accent-dark: #8c6e14;
   --bg-cream: #faf8f5;
   --bg-white: #ffffff;
-  --text-dark: #2c2c2c;
-  --text-light: #f5f5f5;
-  --text-muted: #6e6e6e;
-  --border: #e8e3d9;
-  --danger: #b33939;
-  --success: #2e7d32;
-  --warning: #f57c00;
+  --text-dark: #1f2937;
+  --text-light: #f9fafb;
+  --text-muted: #6b7280;
+  --border: rgba(27, 59, 34, 0.08);
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #ea580c;
   
   /* Layout & Animations */
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.12);
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --shadow-sm: 0 4px 12px rgba(27, 59, 34, 0.03);
+  --shadow-md: 0 12px 30px rgba(27, 59, 34, 0.06);
+  --shadow-lg: 0 20px 50px rgba(27, 59, 34, 0.1);
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   --max-width: 1200px;
 }
 
@@ -48,14 +48,15 @@ body {
   font-family: var(--font-sans);
   background-color: var(--bg-cream);
   color: var(--text-dark);
-  line-height: 1.6;
+  line-height: 1.7;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-serif);
-  font-weight: 600;
+  font-weight: 400;
   color: var(--primary-dark);
+  letter-spacing: -0.02em;
 }
 
 a {
@@ -76,18 +77,17 @@ img {
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-cream);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--primary-light);
-  border-radius: 5px;
-  border: 2px solid var(--bg-cream);
+  background: rgba(27, 59, 34, 0.2);
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
+  background: var(--primary-light);
 }
 
 /* Helper Classes */
@@ -99,43 +99,46 @@ img {
 }
 
 .section-padding {
-  padding: 100px 0;
+  padding: 120px 0;
 }
 
 .text-center { text-align: center; }
 
 .section-title {
-  font-size: 2.8rem;
+  font-size: 3.4rem;
+  font-weight: 400;
   margin-bottom: 16px;
   position: relative;
   display: inline-block;
+  line-height: 1.2;
 }
 
 .section-title::after {
   content: '';
   position: absolute;
-  bottom: -8px;
+  bottom: -6px;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
+  width: 40px;
+  height: 2px;
   background-color: var(--accent);
-  border-radius: 2px;
 }
 
 .section-subtitle {
-  font-family: var(--font-serif);
-  font-style: italic;
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
   color: var(--accent-dark);
-  font-size: 1.2rem;
-  margin-bottom: 50px;
+  font-size: 0.85rem;
+  margin-bottom: 60px;
 }
 
 /* Live News Banner */
 .news-banner {
   background-color: var(--accent);
   color: var(--primary-dark);
-  padding: 12px 24px;
+  padding: 14px 24px;
   font-weight: 600;
   font-size: 0.95rem;
   position: relative;
@@ -146,7 +149,7 @@ img {
   justify-content: center;
   align-items: center;
   gap: 16px;
-  animation: slideDown 0.5s ease-out;
+  animation: slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .news-banner.hidden {
@@ -174,12 +177,11 @@ img {
 header {
   position: sticky;
   top: 0;
-  background-color: rgba(250, 248, 245, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(250, 248, 245, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   z-index: 1000;
   border-bottom: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
   transition: var(--transition);
 }
 
@@ -187,29 +189,35 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 80px;
+  height: 90px;
 }
 
 .logo-link {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   font-family: var(--font-serif);
-  font-weight: 700;
-  font-size: 1.3rem;
+  font-weight: 400;
+  font-size: 1.4rem;
   color: var(--primary);
 }
 
 .logo-img {
-  width: 50px;
-  height: 50px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background-color: var(--bg-white);
+  padding: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+  object-fit: contain;
 }
 
 nav ul {
   list-style: none;
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 40px;
 }
 
 nav a {
@@ -217,22 +225,23 @@ nav a {
   font-size: 0.95rem;
   color: var(--text-dark);
   position: relative;
-  padding: 6px 0;
+  padding: 8px 0;
 }
 
 nav a::after {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 0;
+  left: 50%;
   width: 0;
   height: 2px;
-  background-color: var(--accent);
+  background-color: var(--primary);
   transition: var(--transition);
+  transform: translateX(-50%);
 }
 
 nav a:hover {
-  color: var(--primary-light);
+  color: var(--primary);
 }
 
 nav a:hover::after {
@@ -242,7 +251,7 @@ nav a:hover::after {
 .cta-button {
   background-color: var(--primary);
   color: var(--bg-cream) !important;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: var(--radius-sm);
   font-weight: 600;
   box-shadow: var(--shadow-sm);
@@ -267,10 +276,10 @@ nav a:hover::after {
 /* Hero Section */
 .hero {
   position: relative;
-  background: linear-gradient(rgba(27, 59, 34, 0.85), rgba(15, 36, 21, 0.95)), url('logo.png') no-repeat center/20%;
+  background: linear-gradient(rgba(15, 36, 21, 0.75), rgba(15, 36, 21, 0.95)), url('logo.png') no-repeat center/15%;
   background-color: var(--primary-dark);
   color: var(--bg-cream);
-  min-height: 80vh;
+  min-height: 85vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -379,24 +388,27 @@ nav a:hover::after {
 
 .card {
   background-color: var(--bg-white);
-  border-radius: var(--radius-md);
-  padding: 40px;
+  border-radius: var(--radius-lg);
+  padding: 48px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border);
   transition: var(--transition);
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(27, 59, 34, 0.15);
 }
 
 .card-title {
-  font-size: 2rem;
-  margin-bottom: 24px;
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  font-weight: 400;
+  margin-bottom: 30px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .card-title svg {
