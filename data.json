@@ -4,6 +4,11 @@
     "apiKey": "AIzaSyAMH7xsRU0XxI7IVyI3iULUcfsIo6DNbpA"
   },
   "heroImage": "hero_cabin.png",
+  "heroImages": [
+    "hero_cabin.png",
+    "hero_interior.png",
+    "hero_buffet.png"
+  ],
   "openStatus": true,
   "banner": {
     "visible": true,

@@ -47,6 +47,7 @@
 
   <!-- Hero Section -->
   <section id="home" class="hero">
+    <div class="hero-slideshow-container" id="hero-slideshow"></div>
     <div class="hero-content">
       <div id="live-status" class="status-badge closed">
         <span class="status-dot"></span>
@@ -117,8 +118,12 @@
         <p class="section-subtitle">Impressionen aus unserem Spartenheim &amp; Gartenanlage</p>
       </div>
 
-      <div class="gallery-container" id="gallery-container">
-        <!-- Populated dynamically via JS -->
+      <div class="carousel-wrapper">
+        <button class="carousel-btn prev" onclick="scrollCarousel(-1)" aria-label="Vorheriges Bild">&lsaquo;</button>
+        <div class="gallery-carousel" id="gallery-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+        <button class="carousel-btn next" onclick="scrollCarousel(1)" aria-label="Nächstes Bild">&rsaquo;</button>
       </div>
     </div>
   </section>

@@ -7,6 +7,7 @@ const RAW_DATA_URL = 'https://raw.githubusercontent.com/paulus-digital/naturfreu
 
 // Setup active tab polling
 let pollInterval = null;
+let slideshowInterval = null;
 
 function startPolling() {
   if (pollInterval) clearInterval(pollInterval);
@@ -153,14 +154,8 @@ async function loadData() {
 function renderWebsite() {
   if (!appData) return;
 
-  // 0. Hero Background Image
-  const heroSection = document.getElementById('home');
-  if (heroSection) {
-    const bgUrl = appData.heroImage || 'hero_cabin.png';
-    heroSection.style.backgroundImage = `linear-gradient(rgba(15, 36, 21, 0.55), rgba(15, 36, 21, 0.85)), url('${bgUrl}')`;
-    heroSection.style.backgroundSize = 'cover';
-    heroSection.style.backgroundPosition = 'center';
-  }
+  // 0. Hero Background Image / Slideshow
+  renderHeroSlideshow();
 
   // 1. Live Banner
   const liveBanner = document.getElementById('live-banner');
@@ -177,10 +172,10 @@ function renderWebsite() {
   const statusText = liveStatus.querySelector('.status-text');
   if (appData.openStatus) {
     liveStatus.className = 'status-badge open';
-    statusText.textContent = 'Jetzt geöffnet';
+    statusText.textContent = 'Geöffnet';
   } else {
     liveStatus.className = 'status-badge closed';
-    statusText.textContent = 'Vorübergehend geschlossen';
+    statusText.textContent = 'Heute: Nicht geöffnet';
   }
 
   // 3. Opening Hours
@@ -493,6 +488,63 @@ function setupEventListeners() {
         document.body.style.overflow = '';
       }
     });
+  });
+}
+
+function renderHeroSlideshow() {
+  const container = document.getElementById('hero-slideshow');
+  if (!container) return;
+
+  // Stop any existing intervals
+  if (slideshowInterval) {
+    clearInterval(slideshowInterval);
+    slideshowInterval = null;
+  }
+
+  container.innerHTML = '';
+
+  // Get slide images from DB or fallback to default
+  let slides = [];
+  if (appData.heroImages && appData.heroImages.filter(img => img).length > 0) {
+    slides = appData.heroImages.filter(img => img);
+  } else {
+    // Fallback: use legacy heroImage or default cabin
+    slides = [appData.heroImage || 'hero_cabin.png'];
+  }
+
+  // Create slide divs
+  slides.forEach((src, idx) => {
+    const slide = document.createElement('div');
+    slide.className = `hero-slide ${idx === 0 ? 'active' : ''}`;
+    slide.style.backgroundImage = `linear-gradient(rgba(15, 36, 21, 0.55), rgba(15, 36, 21, 0.85)), url('${src}')`;
+    container.appendChild(slide);
+  });
+
+  // If only 1 slide, no animation needed
+  if (slides.length <= 1) return;
+
+  // Start fading slideshow loop
+  let currentSlideIdx = 0;
+  const slideElements = container.querySelectorAll('.hero-slide');
+  slideshowInterval = setInterval(() => {
+    if (!container.isConnected) {
+      clearInterval(slideshowInterval);
+      return;
+    }
+    slideElements[currentSlideIdx].classList.remove('active');
+    currentSlideIdx = (currentSlideIdx + 1) % slideElements.length;
+    slideElements[currentSlideIdx].classList.add('active');
+  }, 5000);
+}
+
+// Carousel Scroll Helper
+function scrollCarousel(direction) {
+  const carousel = document.getElementById('gallery-container');
+  if (!carousel) return;
+  const scrollAmount = carousel.clientWidth * 0.8;
+  carousel.scrollBy({
+    left: direction * scrollAmount,
+    behavior: 'smooth'
   });
 }
 

@@ -646,29 +646,26 @@ async function uploadGalleryImage() {
   const file = fileInput.files[0];
   const altText = altInput.value.trim() || 'Galeriebild';
 
-  showToast('📤 Bereite Bild-Upload vor...', 'info');
+  showToast('📤 Konvertiere und lade Bild...', 'info');
 
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = async () => {
-    try {
-      if (!pageData.gallery) pageData.gallery = [];
-      pageData.gallery.push({
-        src: reader.result,
-        alt: altText
-      });
+  try {
+    const webpData = await convertToWebP(file);
+    if (!pageData.gallery) pageData.gallery = [];
+    pageData.gallery.push({
+      src: webpData,
+      alt: altText
+    });
 
-      const dataSaved = await commitDataChange('Admin Panel: Bild hochgeladen');
-      if (dataSaved) {
-        populateGalleryTab();
-        fileInput.value = '';
-        altInput.value = '';
-      }
-    } catch (err) {
-      console.error(err);
-      showToast(`❌ Upload-Fehler: ${err.message}`, 'error');
+    const dataSaved = await commitDataChange('Admin Panel: Bild in Galerie hochgeladen');
+    if (dataSaved) {
+      populateGalleryTab();
+      fileInput.value = '';
+      altInput.value = '';
     }
-  };
+  } catch (err) {
+    console.error(err);
+    showToast(`❌ Upload-Fehler: ${err.message}`, 'error');
+  }
 }
 
 async function deleteGalleryImage(index) {
@@ -734,40 +731,117 @@ async function addManualReview() {
 }
 
 function populateSettingsTab() {
-  const previewImg = document.getElementById('hero-preview-img');
-  if (previewImg) {
-    previewImg.src = pageData.heroImage || 'hero_cabin.png';
+  const container = document.getElementById('hero-slides-admin');
+  if (!container) return;
+
+  container.innerHTML = '';
+  const images = pageData.heroImages || [];
+
+  for (let i = 0; i < 5; i++) {
+    const imgData = images[i] || '';
+    const slot = document.createElement('div');
+    slot.className = 'hero-slot-row';
+    slot.style.display = 'flex';
+    slot.style.alignItems = 'center';
+    slot.style.gap = '20px';
+    slot.style.padding = '15px';
+    slot.style.backgroundColor = 'var(--bg-cream)';
+    slot.style.border = '1px solid var(--border)';
+    slot.style.borderRadius = 'var(--radius-sm)';
+
+    let previewHtml = '';
+    if (imgData) {
+      previewHtml = `
+        <img src="${imgData}" style="width: 80px; height: 50px; object-fit: contain; border-radius: 4px; border: 1px solid var(--border); background: #eee;">
+        <div style="flex-grow: 1;">
+          <strong style="display:block; font-size: 0.95rem;">Bild Slot ${i + 1}</strong>
+          <button class="admin-btn admin-btn-danger" style="padding: 4px 10px; font-size: 0.8rem; margin-top: 6px;" onclick="deleteHeroSlot(${i})">Entfernen</button>
+        </div>
+      `;
+    } else {
+      previewHtml = `
+        <div style="width: 80px; height: 50px; background-color: #eee; border-radius: 4px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-muted);">Leer</div>
+        <div style="flex-grow: 1;">
+          <strong style="display:block; font-size: 0.95rem;">Bild Slot ${i + 1}</strong>
+          <input type="file" id="hero-file-slot-${i}" accept="image/*" style="display:none;" onchange="uploadHeroSlot(event, ${i})">
+          <button class="admin-btn admin-btn-primary" style="padding: 4px 10px; font-size: 0.8rem; margin-top: 6px;" onclick="document.getElementById('hero-file-slot-${i}').click()">Bild hochladen</button>
+        </div>
+      `;
+    }
+    slot.innerHTML = previewHtml;
+    container.appendChild(slot);
   }
 }
 
-async function uploadHeroImage(event) {
+async function uploadHeroSlot(event, index) {
   const file = event.target.files[0];
   if (!file) return;
 
-  showToast('📤 Lade neues Hintergrundbild...', 'info');
+  showToast('📤 Konvertiere und lade Bild...', 'info');
 
-  const reader = new FileReader();
-  reader.readAsDataURL(file);
-  reader.onload = async () => {
-    try {
-      pageData.heroImage = reader.result;
-      const previewImg = document.getElementById('hero-preview-img');
-      if (previewImg) previewImg.src = reader.result;
+  try {
+    const webpData = await convertToWebP(file);
+    
+    if (!pageData.heroImages) pageData.heroImages = [];
+    pageData.heroImages[index] = webpData;
 
-      await commitDataChange('Admin Panel: Startseite-Hintergrundbild aktualisiert');
-    } catch (err) {
-      console.error(err);
-      showToast(`❌ Upload-Fehler: ${err.message}`, 'error');
+    // Clean up trailing empty elements
+    while (pageData.heroImages.length > 0 && !pageData.heroImages[pageData.heroImages.length - 1]) {
+      pageData.heroImages.pop();
     }
-  };
+
+    populateSettingsTab();
+    await commitDataChange('Admin Panel: Startseite Slideshow aktualisiert');
+  } catch (err) {
+    console.error(err);
+    showToast(`❌ Fehler beim Hochladen: ${err.message}`, 'error');
+  }
 }
 
-async function resetHeroImage() {
-  if (!confirm('Hintergrundbild wirklich auf Standard zurücksetzen?')) return;
-  pageData.heroImage = 'hero_cabin.png';
-  const previewImg = document.getElementById('hero-preview-img');
-  if (previewImg) previewImg.src = 'hero_cabin.png';
-  await commitDataChange('Admin Panel: Startseite-Hintergrundbild zurückgesetzt');
+async function deleteHeroSlot(index) {
+  if (!confirm(`Möchten Sie das Bild aus Slot ${index + 1} entfernen?`)) return;
+
+  if (pageData.heroImages) {
+    pageData.heroImages[index] = '';
+    // Clean up trailing empty elements
+    while (pageData.heroImages.length > 0 && !pageData.heroImages[pageData.heroImages.length - 1]) {
+      pageData.heroImages.pop();
+    }
+  }
+
+  populateSettingsTab();
+  await commitDataChange('Admin Panel: Bild aus Startseite Slideshow entfernt');
+}
+
+function convertToWebP(file, maxWidth = 1200, quality = 0.8) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const webpDataUrl = canvas.toDataURL('image/webp', quality);
+        resolve(webpDataUrl);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
 }
 
 // ----------------------------------------------------
