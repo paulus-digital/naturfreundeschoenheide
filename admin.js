@@ -2,7 +2,7 @@
 // CONFIGURATION – These are fixed for this site
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
-const GITHUB_BRANCH = 'main';
+const GITHUB_BRANCH = 'data-sync';
 
 // Global Admin State
 let authData = {
