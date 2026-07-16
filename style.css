@@ -630,10 +630,12 @@ nav a:hover::after {
   border-radius: var(--radius-sm);
 }
 
-.hours-row.current-day::after {
+.hours-row.current-day > span:first-child::after {
   content: ' (Heute)';
-  font-size: 0.8rem;
-  color: var(--accent-dark);
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-left: 6px;
 }
 
 /* Calendar & Planner Styles */
@@ -2534,19 +2536,23 @@ input:checked + .slider:before {
 }
 
 /* Frontend Special Opening Hours Highlight & Badge */
+.hours-row > span:last-child {
+  white-space: nowrap;
+}
+
 .special-hours-badge {
   background-color: var(--accent);
   color: var(--text-light);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
   text-transform: uppercase;
-  margin-left: 10px;
+  margin-left: 0;
   display: inline-block;
-  vertical-align: middle;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   line-height: 1.2;
+  margin-top: 4px;
 }
 
 .hours-row.special-day {
@@ -2555,7 +2561,14 @@ input:checked + .slider:before {
   padding-left: 8px;
 }
 
-/* Mobile optimizations for Admin Header elements */
+.hours-row.special-day > span:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+/* Mobile optimizations for Admin Header and listings */
 @media (max-width: 600px) {
   .admin-logo {
     font-size: 1.15rem !important;
@@ -2575,5 +2588,22 @@ input:checked + .slider:before {
   }
   .admin-header {
     padding: 10px 0 !important;
+  }
+  
+  /* Stack list rows in admin list on small screens */
+  .admin-item-row {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px;
+    padding: 16px;
+  }
+  .admin-item-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .admin-item-row button {
+    align-self: flex-end;
+    width: auto;
   }
 }
