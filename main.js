@@ -408,8 +408,6 @@ function renderWeekView() {
   const startOfWeek = getStartOfWeek(calendarDate);
   const today = new Date();
   today.setHours(0,0,0,0);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
 
   const GERMAN_DAY_LABELS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 
@@ -417,15 +415,14 @@ function renderWeekView() {
     const currentDateObj = new Date(startOfWeek);
     currentDateObj.setDate(startOfWeek.getDate() + i);
 
+    // Skip days that are already in the past (only show from today onward)
+    if (currentDateObj < today) continue;
+
     const events = getEventsForDate(currentDateObj);
     const statusClass = events.length > 0 ? `status-${summarizeStatus(events)}` : 'status-free';
 
     const row = document.createElement('div');
     row.className = `calendar-week-row ${statusClass}`;
-    
-    if (currentDateObj < yesterday) {
-      row.classList.add('past-event');
-    }
 
     const dayName = GERMAN_DAY_LABELS[currentDateObj.getDay()];
     const dateStr = currentDateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
