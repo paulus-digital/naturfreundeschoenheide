@@ -245,7 +245,7 @@ function setupStatusToggle() {
   }
 
   // Auto-save contact fields on change
-  ['admin-contact-phone', 'admin-contact-email', 'admin-contact-inhaber', 'admin-contact-web3forms'].forEach(id => {
+  ['admin-contact-phone', 'admin-contact-email', 'admin-contact-inhaber'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('change', async () => {
@@ -272,7 +272,6 @@ function populateGeneralTab() {
     document.getElementById('admin-contact-phone').value = pageData.contact.phone || '';
     document.getElementById('admin-contact-email').value = pageData.contact.email || '';
     document.getElementById('admin-contact-inhaber').value = pageData.contact.inhaber || '';
-    document.getElementById('admin-contact-web3forms').value = pageData.contact.web3formsKey || '';
   }
 }
 
@@ -519,7 +518,6 @@ async function saveGeneralData() {
   pageData.contact.phone = document.getElementById('admin-contact-phone').value.trim();
   pageData.contact.email = document.getElementById('admin-contact-email').value.trim();
   pageData.contact.inhaber = document.getElementById('admin-contact-inhaber').value.trim();
-  pageData.contact.web3formsKey = document.getElementById('admin-contact-web3forms').value.trim();
 
   await commitDataChange('Admin Panel: Status und allgemeine Daten geändert');
 }

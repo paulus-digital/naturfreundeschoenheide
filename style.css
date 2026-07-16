@@ -1320,13 +1320,23 @@ footer {
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 30px;
-  margin: 40px auto;
+  margin: 0 auto;
+  padding-top: 96px;
+  min-height: 100vh;
+}
+
+.auth-wrapper {
+  padding-top: 120px;
+  min-height: 100vh;
 }
 
 .admin-sidebar {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  position: sticky;
+  top: 92px;
+  align-self: start;
 }
 
 .admin-tab-btn {
@@ -1722,7 +1732,7 @@ input:checked + .slider:before {
   .admin-container {
     grid-template-columns: 1fr;
     gap: 20px;
-    padding: 10px;
+    padding: 96px 16px 40px;
   }
   .admin-sidebar {
     display: flex;
