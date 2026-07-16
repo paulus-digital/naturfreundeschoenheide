@@ -41,6 +41,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Scroll Reveal Observer
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('reveal-active');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('section, .card, .carousel-wrapper').forEach(el => {
+    el.classList.add('reveal-element');
+    revealObserver.observe(el);
+  });
+
   // Stop polling when tab is hidden (saves GitHub rate limits), start again when focused
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {

@@ -920,7 +920,7 @@ textarea.form-control {
 .contact-item {
   display: flex;
   gap: 16px;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .contact-icon {
@@ -1607,8 +1607,9 @@ input:checked + .slider:before {
 @media (max-width: 768px) {
   .section-title { font-size: 2.4rem; }
   .section-padding { padding: 80px 0; }
-  .hero { min-height: 70vh; }
+  .hero { min-height: 70vh; padding-top: 95px; }
   .hero-title { font-size: 3rem; }
+  .hero-content { padding-top: 50px; }
   .admin-main { padding: 20px 15px; }
 
   .info-grid, .contact-grid, .form-grid {
@@ -1629,4 +1630,47 @@ input:checked + .slider:before {
     text-align: center;
     gap: 20px;
   }
+}
+
+/* Scroll Reveal Premium Animation */
+.reveal-element {
+  opacity: 0;
+  transform: translateY(35px);
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-element.reveal-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card hover premium styling top accent line */
+.card {
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* Glassmorphic status badge styling */
+.status-badge {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18) !important;
 }
