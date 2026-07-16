@@ -1,7 +1,7 @@
 {
-  "openStatus": true,
+  "openStatus": false,
   "banner": {
-    "visible": true,
+    "visible": false,
     "text": "Willkommen im Spartenheim Naturfreunde! Die Woche nur am Sonntag geöffnet."
   },
   "openingHours": [
