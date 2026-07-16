@@ -297,17 +297,28 @@ function getStartOfWeek(d) {
   return new Date(date.setDate(diff));
 }
 
-function getEventForDate(dateObj) {
-  if (!appData.planner) return null;
+function getEventsForDate(dateObj) {
+  if (!appData.planner) return [];
   const checkTime = new Date(dateObj).setHours(0,0,0,0);
-  
-  return appData.planner.find(event => {
+
+  return appData.planner.filter(event => {
     const start = new Date(event.startDate || event.date);
     start.setHours(0,0,0,0);
     const end = new Date(event.endDate || event.startDate || event.date);
     end.setHours(23,59,59,999);
     return checkTime >= start.getTime() && checkTime <= end.getTime();
   });
+}
+
+const STATUS_PRIORITY = ['event', 'booked', 'holiday', 'closed', 'reservation', 'open', 'free'];
+
+function summarizeStatus(events) {
+  if (!events || events.length === 0) return 'free';
+  // Return the most "severe"/notable status present for the day border/badge
+  for (const s of STATUS_PRIORITY) {
+    if (events.some(e => e.status === s)) return s;
+  }
+  return events[0].status;
 }
 
 function renderMonthView() {
@@ -347,21 +358,27 @@ function renderMonthView() {
       dayDiv.classList.add('today');
     }
 
-    const event = getEventForDate(currentDateObj);
+    const events = getEventsForDate(currentDateObj);
     let statusClass = 'status-free';
-    if (event) {
-      statusClass = `status-${event.status}`;
+    if (events.length > 0) {
+      statusClass = `status-${summarizeStatus(events)}`;
       dayDiv.classList.add(statusClass);
+      if (events.length > 1) dayDiv.classList.add('has-multiple');
     }
     
+    const dots = events.length > 0
+      ? events.slice(0, 3).map(e => `<span class="calendar-day-status-indicator status-${e.status}"></span>`).join('')
+      : `<span class="calendar-day-status-indicator status-free"></span>`;
+
     dayDiv.innerHTML = `
       <div class="calendar-day-num">${d}</div>
       <div class="calendar-day-dots">
-        <span class="calendar-day-status-indicator ${statusClass}"></span>
+        ${dots}
+        ${events.length > 3 ? `<span class="calendar-day-more">+${events.length - 3}</span>` : ''}
       </div>
     `;
 
-    dayDiv.onclick = () => selectCalendarDay(currentDateObj, event);
+    dayDiv.onclick = () => selectCalendarDay(currentDateObj, events);
     daysContainer.appendChild(dayDiv);
   }
 }
@@ -383,8 +400,8 @@ function renderWeekView() {
     const currentDateObj = new Date(startOfWeek);
     currentDateObj.setDate(startOfWeek.getDate() + i);
 
-    const event = getEventForDate(currentDateObj);
-    const statusClass = event ? `status-${event.status}` : 'status-free';
+    const events = getEventsForDate(currentDateObj);
+    const statusClass = events.length > 0 ? `status-${summarizeStatus(events)}` : 'status-free';
 
     const row = document.createElement('div');
     row.className = `calendar-week-row ${statusClass}`;
@@ -396,28 +413,20 @@ function renderWeekView() {
     const dayName = GERMAN_DAY_LABELS[currentDateObj.getDay()];
     const dateStr = currentDateObj.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-    let statusText = 'Geöffnet / Reservierung möglich';
-    if (event) {
-      const statusTranslations = {
-        'open': 'Geöffnet',
-        'booked': 'Ausgebucht',
-        'closed': 'Geschlossen',
-        'holiday': 'Urlaub / Betriebsferien',
-        'reservation': 'Reservierung möglich',
-        'event': event.label
-      };
-      statusText = statusTranslations[event.status] || event.label;
-    }
+    const eventItems = events.length > 0
+      ? events.map(e => `<div class="week-event-item"><span class="week-event-dot status-${e.status}"></span>${escapeHTML(e.label)}</div>`).join('')
+      : `<div class="week-event-item week-event-free">Geöffnet / Reservierung möglich</div>`;
 
     row.innerHTML = `
       <div class="calendar-week-date-box">
         <span class="calendar-week-day-name">${dayName}</span>
         <span class="calendar-week-date-string">${dateStr}</span>
+        <div class="week-event-list">${eventItems}</div>
       </div>
-      <div class="calendar-week-status">${statusText}</div>
+      <div class="calendar-week-status">${events.length} ${events.length === 1 ? 'Eintrag' : 'Einträge'}</div>
     `;
 
-    row.onclick = () => selectCalendarDay(currentDateObj, event);
+    row.onclick = () => selectCalendarDay(currentDateObj, events);
     container.appendChild(row);
   }
 }
@@ -488,7 +497,7 @@ function renderYearView() {
       <div class="calendar-week-status">${badgeText}</div>
     `;
 
-    row.onclick = () => selectCalendarDay(start, event);
+    row.onclick = () => selectCalendarDay(start, [event]);
     container.appendChild(row);
   });
 }
@@ -501,10 +510,12 @@ function selectCalendarDay(dateObj, event) {
   
   let statusKey = 'free';
   let statusText = 'Geöffnet / Reservierung möglich';
+  if (!Array.isArray(event)) event = event ? [event] : [];
+
   let descText = 'Für diesen Tag liegen keine Belegungen vor. Rufen Sie uns gerne an, um eine Anfrage zu stellen.';
 
-  if (event) {
-    statusKey = event.status;
+  if (event.length > 0) {
+    statusKey = summarizeStatus(event);
     const statusTextTranslations = {
       'open': 'Geöffnet',
       'booked': 'Ausgebucht',
@@ -513,8 +524,7 @@ function selectCalendarDay(dateObj, event) {
       'reservation': 'Reservierung möglich',
       'event': 'Sonder-Event'
     };
-    statusText = statusTextTranslations[event.status] || event.status;
-    descText = event.label;
+    statusText = statusTextTranslations[statusKey] || statusKey;
   }
 
   const dayNameGerman = GERMAN_DAYS[dateObj.getDay()];
@@ -534,6 +544,30 @@ function selectCalendarDay(dateObj, event) {
 
   const phone = appData.contact ? appData.contact.phone : '+49 (0) 37755 12345';
 
+  // Build the list of events for this day
+  let eventsListHtml = '';
+  if (event.length > 0) {
+    const statusBadgeText = {
+      'open': 'Geöffnet',
+      'booked': 'Ausgebucht',
+      'closed': 'Geschlossen',
+      'holiday': 'Urlaub / Betriebsferien',
+      'reservation': 'Reservierung möglich',
+      'event': 'Event',
+      'free': 'Frei'
+    };
+    eventsListHtml = event.map(e => {
+      const sKey = e.status || 'free';
+      const badge = statusBadgeText[sKey] || sKey;
+      const label = escapeHTML(e.label || (e.status ? statusBadgeText[sKey] : 'Eintrag'));
+      return `<li class="details-event-item">
+        <span class="details-event-dot status-${sKey}"></span>
+        <span class="details-event-label">${label}</span>
+        <span class="details-status-badge ${sKey}">${badge}</span>
+      </li>`;
+    }).join('');
+  }
+
   let actionButtonHtml = '';
   if (statusKey === 'free' || statusKey === 'open' || statusKey === 'reservation') {
     actionButtonHtml = `
@@ -546,7 +580,9 @@ function selectCalendarDay(dateObj, event) {
       <span class="details-date">${dateStr}</span>
       <span class="details-status-badge ${statusKey}">${statusText}</span>
     </div>
-    <p class="details-desc">${descText}</p>
+    ${event.length > 0
+      ? `<ul class="details-events-list">${eventsListHtml}</ul>`
+      : `<p class="details-desc">${descText}</p>`}
     ${hoursText ? `<p class="details-hours">${hoursText}</p>` : ''}
     ${actionButtonHtml}
   `;
