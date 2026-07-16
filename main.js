@@ -38,41 +38,79 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Load data.json – tries GitHub API contents first for 100% fresh data, falls back to RAW/Local CDN
+// Load data.json – tries Gist Database first, then falls back to GitHub repository/CDN
 async function loadData() {
   try {
     let freshData = null;
+    let baseConfig = null;
 
+    // Step A: Load the base configuration from the local deployment or raw repository
+    // This tells us the linked gistId
     try {
-      // 1. Try GitHub API for instant, non-cached data (rate limits are per visitor IP)
-      const apiResponse = await fetch(GITHUB_API_URL, {
-        headers: { 'Accept': 'application/vnd.github.v3+json' }
-      });
-      if (apiResponse.ok) {
-        const apiJson = await apiResponse.json();
-        const decoded = decodeURIComponent(escape(atob(apiJson.content.replace(/\s/g, ''))));
-        freshData = JSON.parse(decoded);
+      const configResponse = await fetch(`data.json?t=${Date.now()}`);
+      if (configResponse.ok) {
+        baseConfig = await configResponse.json();
       }
-    } catch (apiErr) {
-      console.warn('GitHub API Rate Limit oder Netzwerkfehler, weiche auf CDN aus:', apiErr);
+    } catch (err) {
+      console.warn('Fehler beim Laden der lokalen data.json Konfiguration:', err);
     }
 
-    // 2. Fallback to raw.githubusercontent.com if API failed or rate-limited
+    if (!baseConfig) {
+      // Fallback: try raw repository data.json
+      try {
+        const rawConfigResponse = await fetch(`${RAW_DATA_URL}?t=${Date.now()}`, { cache: 'no-store' });
+        if (rawConfigResponse.ok) {
+          baseConfig = await rawConfigResponse.json();
+        }
+      } catch (err) {
+        console.warn('Fehler beim Laden der Repository data.json Konfiguration:', err);
+      }
+    }
+
+    // Step B: If baseConfig and gistId exist, fetch directly from Gist database for instant live state
+    if (baseConfig && baseConfig.gistId) {
+      try {
+        const gistResponse = await fetch(`https://api.github.com/gists/${baseConfig.gistId}`, {
+          headers: { 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (gistResponse.ok) {
+          const gistJson = await gistResponse.json();
+          if (gistJson.files && gistJson.files['spartenheim_data.json']) {
+            freshData = JSON.parse(gistJson.files['spartenheim_data.json'].content);
+          }
+        }
+      } catch (gistErr) {
+        console.warn('Gist-Abfrage fehlgeschlagen, weiche auf Repository aus:', gistErr);
+      }
+    }
+
+    // Step C: Fallback loading flow if Gist is not configured or failed
     if (!freshData) {
-      const rawResponse = await fetch(`${RAW_DATA_URL}?t=${Date.now()}`, {
-        cache: 'no-store'
-      });
+      try {
+        const apiResponse = await fetch(GITHUB_API_URL, {
+          headers: { 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (apiResponse.ok) {
+          const apiJson = await apiResponse.json();
+          const decoded = decodeURIComponent(escape(atob(apiJson.content.replace(/\s/g, ''))));
+          freshData = JSON.parse(decoded);
+        }
+      } catch (apiErr) {
+        console.warn('GitHub API-Abfrage fehlgeschlagen, weiche auf Raw-Datei aus:', apiErr);
+      }
+    }
+
+    // Step D: Fallback to raw CDN
+    if (!freshData) {
+      const rawResponse = await fetch(`${RAW_DATA_URL}?t=${Date.now()}`, { cache: 'no-store' });
       if (rawResponse.ok) {
         freshData = await rawResponse.json();
       }
     }
 
-    // 3. Local fallback for offline/local development
-    if (!freshData) {
-      const localResponse = await fetch(`data.json?t=${Date.now()}`);
-      if (localResponse.ok) {
-        freshData = await localResponse.json();
-      }
+    // Step E: Fallback to baseConfig if nothing else is available
+    if (!freshData && baseConfig) {
+      freshData = baseConfig;
     }
 
     if (!freshData) {

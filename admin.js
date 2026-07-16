@@ -84,6 +84,9 @@ async function connectToGitHub() {
     const decodedContent = decodeURIComponent(escape(atob(json.content.replace(/\s/g, ''))));
     pageData = JSON.parse(decodedContent);
 
+    // Bootstrap or link the Gist database
+    await resolveGistDatabase();
+
     // Save auth data if "remember me" is checked
     const rememberCheckbox = document.getElementById('remember-login');
     if (!rememberCheckbox || rememberCheckbox.checked) {
@@ -98,6 +101,117 @@ async function connectToGitHub() {
     errorEl.textContent = error.message;
     errorEl.style.display = 'block';
     showToast('❌ Anmeldung fehlgeschlagen', 'error');
+  }
+}
+
+// Resolve, create, or fetch from Gist database
+async function resolveGistDatabase() {
+  if (authData.isDemo) return;
+
+  try {
+    let gistId = pageData.gistId || '';
+
+    // If gistId is empty, search user's gists
+    if (!gistId) {
+      showToast('🔄 Suche Gist-Datenbank...', 'info');
+      const listResponse = await fetch('https://api.github.com/gists', {
+        headers: {
+          'Authorization': `token ${authData.token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      if (listResponse.ok) {
+        const gists = await listResponse.json();
+        const matchingGist = gists.find(g => g.files && g.files['spartenheim_data.json']);
+        if (matchingGist) {
+          gistId = matchingGist.id;
+          pageData.gistId = gistId;
+          showToast('✅ Gist-Datenbank gefunden!', 'success');
+        }
+      }
+    }
+
+    // If still empty, create a new secret Gist
+    if (!gistId) {
+      showToast('➕ Erstelle neue Gist-Datenbank...', 'info');
+      const createResponse = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: {
+          'Authorization': `token ${authData.token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        body: JSON.stringify({
+          description: 'Spartenheim Naturfreunde Live Data Storage',
+          public: false,
+          files: {
+            'spartenheim_data.json': {
+              'content': JSON.stringify(pageData, null, 2)
+            }
+          }
+        })
+      });
+
+      if (!createResponse.ok) {
+        throw new Error(`Fehler beim Erstellen des Gists: ${createResponse.statusText}`);
+      }
+
+      const createdGist = await createResponse.json();
+      gistId = createdGist.id;
+      pageData.gistId = gistId;
+      showToast('✅ Gist-Datenbank erstellt!', 'success');
+    }
+
+    // Write the linked gistId back to data.json in the main repository (one-time setup commit)
+    const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/data.json?ref=${GITHUB_BRANCH}`;
+    const getRepoResponse = await fetch(url, {
+      headers: {
+        'Authorization': `token ${authData.token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    if (getRepoResponse.ok) {
+      const getRepoJson = await getRepoResponse.json();
+      const decoded = decodeURIComponent(escape(atob(getRepoJson.content.replace(/\s/g, ''))));
+      const repoObj = JSON.parse(decoded);
+      if (!repoObj.gistId) {
+        showToast('💾 Verlinke Gist im Repository...', 'info');
+        // Add gistId to pageData and commit it
+        repoObj.gistId = gistId;
+        const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(repoObj, null, 2))));
+        await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data.json`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${authData.token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json'
+          },
+          body: JSON.stringify({
+            message: 'Admin Panel: Gist-Datenbank verlinkt [skip ci]',
+            content: encodedContent,
+            sha: getRepoJson.sha,
+            branch: GITHUB_BRANCH
+          })
+        });
+      }
+    }
+
+    // Now, fetch the freshest live data from the Gist database to overwrite pageData
+    showToast('🔄 Lade Live-Daten...', 'info');
+    const gistFetchResponse = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: {
+        'Authorization': `token ${authData.token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    if (gistFetchResponse.ok) {
+      const gistData = await gistFetchResponse.json();
+      const contentStr = gistData.files['spartenheim_data.json'].content;
+      pageData = JSON.parse(contentStr);
+    }
+  } catch (err) {
+    console.error('Fehler bei Gist-Initialisierung:', err);
+    showToast('⚠️ Gist-Fehler. Verwende Repository als Fallback.', 'error');
   }
 }
 
@@ -361,9 +475,9 @@ function populateGuestbookTab() {
 // SAVE ACTIONS
 // ----------------------------------------------------
 
-// Commit entire pageData back to GitHub
+// Commit entire pageData back to GitHub Gist
 async function commitDataChange(logMessage) {
-  showToast('💾 Speichere Änderungen auf GitHub...', 'info');
+  showToast('💾 Speichere Änderungen...', 'info');
 
   if (authData.isDemo) {
     // Demo mode: Write to local storage
@@ -373,35 +487,33 @@ async function commitDataChange(logMessage) {
   }
 
   try {
-    const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/data.json`;
-    
-    // UTF-8 safe base64 encoding
-    const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(pageData, null, 2))));
-    
-    const body = {
-      message: logMessage || 'Website verwalten: Daten aktualisiert',
-      content: encodedContent,
-      sha: currentFileSha,
-      branch: GITHUB_BRANCH
-    };
+    const gistId = pageData.gistId;
+    if (!gistId) {
+      throw new Error('Keine Gist-Datenbank verlinkt.');
+    }
 
-    const response = await fetch(url, {
-      method: 'PUT',
+    const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: 'PATCH',
       headers: {
         'Authorization': `token ${authData.token}`,
         'Content-Type': 'application/json',
         'Accept': 'application/vnd.github.v3+json'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        description: 'Spartenheim Naturfreunde Live Data Storage',
+        files: {
+          'spartenheim_data.json': {
+            'content': JSON.stringify(pageData, null, 2)
+          }
+        }
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`GitHub Save Error: ${response.statusText}`);
+      throw new Error(`Gist-Speicherungsfehler: ${response.statusText}`);
     }
 
-    const result = await response.json();
-    currentFileSha = result.content.sha; // Update SHA for consecutive saves
-    showToast('✅ Erfolgreich im GitHub-Repo gespeichert!', 'success');
+    showToast('✅ Änderungen live gespeichert!', 'success');
     return true;
   } catch (error) {
     console.error(error);
@@ -548,8 +660,9 @@ async function uploadGalleryImage() {
 
       // 2. Add path to pageData and save data.json
       if (!pageData.gallery) pageData.gallery = [];
+      const imageUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/${filePath}`;
       pageData.gallery.push({
-        src: filePath,
+        src: imageUrl,
         alt: altText
       });
 
