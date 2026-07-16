@@ -231,18 +231,44 @@ function setupStatusToggle() {
   const toggle = document.getElementById('admin-status-toggle');
   const label = document.getElementById('admin-status-label');
   
-  if (!toggle) return;
-  
-  toggle.addEventListener('change', async () => {
-    if (toggle.checked) {
-      label.textContent = 'Geöffnet';
-      label.style.color = 'var(--success)';
-    } else {
-      label.textContent = 'Geschlossen';
-      label.style.color = 'var(--danger)';
+  if (toggle) {
+    toggle.addEventListener('change', async () => {
+      if (toggle.checked) {
+        label.textContent = 'Geöffnet';
+        label.style.color = 'var(--success)';
+      } else {
+        label.textContent = 'Geschlossen';
+        label.style.color = 'var(--danger)';
+      }
+      // Auto-save the status immediately when toggled
+      await saveGeneralData();
+    });
+  }
+
+  // Auto-save banner toggle
+  const bannerToggle = document.getElementById('admin-banner-toggle');
+  if (bannerToggle) {
+    bannerToggle.addEventListener('change', async () => {
+      await saveGeneralData();
+    });
+  }
+
+  // Auto-save banner text on change or blur
+  const bannerText = document.getElementById('admin-banner-text');
+  if (bannerText) {
+    bannerText.addEventListener('change', async () => {
+      await saveGeneralData();
+    });
+  }
+
+  // Auto-save contact fields on change
+  ['admin-contact-phone', 'admin-contact-email', 'admin-contact-inhaber', 'admin-contact-web3forms'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', async () => {
+        await saveGeneralData();
+      });
     }
-    // Auto-save the status immediately when toggled
-    await saveGeneralData();
   });
 }
 
@@ -281,6 +307,14 @@ function populateHoursTab() {
       <input type="text" id="hour-day-${index}" class="form-control" value="${item.hours}">
     `;
     container.appendChild(row);
+
+    // Attach change listener for auto-saving opening hours
+    const input = row.querySelector('input');
+    if (input) {
+      input.addEventListener('change', async () => {
+        await saveHoursData();
+      });
+    }
   });
 }
 
@@ -479,7 +513,7 @@ async function saveCalendarData() {
   await commitDataChange('Admin Panel: Belegungsplan / Termine geändert');
 }
 
-function addNewCalendarEntry() {
+async function addNewCalendarEntry() {
   const dateInput = document.getElementById('new-event-date');
   const statusInput = document.getElementById('new-event-status');
   const labelInput = document.getElementById('new-event-label');
@@ -503,9 +537,11 @@ function addNewCalendarEntry() {
   // Clear inputs
   dateInput.value = '';
   labelInput.value = '';
+
+  await saveCalendarData();
 }
 
-function deleteCalendarEntry(index) {
+async function deleteCalendarEntry(index) {
   // Sort planner to match populated index representation
   const sortedIndices = [...pageData.planner]
     .map((item, origIndex) => ({ item, origIndex }))
@@ -515,6 +551,8 @@ function deleteCalendarEntry(index) {
   
   pageData.planner.splice(targetOrigIndex, 1);
   populateCalendarTab();
+
+  await saveCalendarData();
 }
 
 // Save Tab 4: Gallery Uploads
@@ -573,18 +611,20 @@ async function saveReviewsData() {
   await commitDataChange('Admin Panel: Gästebuch Einträge moderiert');
 }
 
-function toggleReviewApproval(index) {
+async function toggleReviewApproval(index) {
   pageData.guestbook[index].approved = !pageData.guestbook[index].approved;
   populateGuestbookTab();
+  await saveReviewsData();
 }
 
-function deleteReview(index) {
+async function deleteReview(index) {
   if (!confirm('Diesen Gästebucheintrag dauerhaft löschen?')) return;
   pageData.guestbook.splice(index, 1);
   populateGuestbookTab();
+  await saveReviewsData();
 }
 
-function addManualReview() {
+async function addManualReview() {
   const nameInput = document.getElementById('admin-gb-name');
   const ratingInput = document.getElementById('admin-gb-rating');
   const commentInput = document.getElementById('admin-gb-comment');
@@ -611,6 +651,8 @@ function addManualReview() {
   // Clear inputs
   nameInput.value = '';
   commentInput.value = '';
+
+  await saveReviewsData();
 }
 
 // ----------------------------------------------------
