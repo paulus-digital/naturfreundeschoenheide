@@ -43,6 +43,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Header turns solid once the user scrolls past the hero top
+  const siteHeader = document.querySelector('header');
+  function updateHeaderOnScroll() {
+    if (!siteHeader) return;
+    if (window.scrollY > 60) {
+      siteHeader.classList.add('scrolled');
+    } else {
+      siteHeader.classList.remove('scrolled');
+    }
+  }
+  window.addEventListener('scroll', updateHeaderOnScroll, { passive: true });
+  updateHeaderOnScroll();
+
   // Scroll Reveal Observer
   const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {

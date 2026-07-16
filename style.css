@@ -51,6 +51,11 @@ html {
   max-width: 100%;
 }
 
+/* Offset anchor targets so the fixed header doesn't cover section titles */
+section[id] {
+  scroll-margin-top: 90px;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-cream);
@@ -189,14 +194,22 @@ img {
 
 /* Navigation Header */
 header {
-  position: sticky;
+  position: fixed;
   top: 0;
-  background-color: rgba(240, 233, 218, 0.92);
+  left: 0;
+  right: 0;
+  background-color: transparent;
+  z-index: 1000;
+  border-bottom: 1px solid transparent;
+  transition: background-color 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+header.scrolled {
+  background-color: rgba(240, 233, 218, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  z-index: 1000;
-  border-bottom: 1px solid var(--border-warm);
-  transition: var(--transition);
+  border-bottom-color: var(--border-warm);
+  box-shadow: 0 4px 20px rgba(16, 29, 18, 0.08);
 }
 
 .header-container {
@@ -214,10 +227,17 @@ header {
   font-family: var(--font-serif);
   font-weight: 600;
   font-size: 1.15rem;
-  color: var(--primary-dark);
+  color: var(--text-light);
   white-space: nowrap;
   flex-shrink: 0;
   letter-spacing: 0.02em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+header.scrolled .logo-link {
+  color: var(--primary-dark);
+  text-shadow: none;
 }
 
 .logo-img {
@@ -245,10 +265,25 @@ nav a {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-dark);
+  color: rgba(255, 255, 255, 0.92);
   position: relative;
   padding: 6px 0;
   white-space: nowrap;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+nav a:hover {
+  color: var(--accent-light);
+}
+
+header.scrolled nav a {
+  color: var(--text-dark);
+  text-shadow: none;
+}
+
+header.scrolled nav a:hover {
+  color: var(--primary-dark);
 }
 
 nav a::after {
@@ -262,34 +297,59 @@ nav a::after {
   transition: var(--transition);
 }
 
-nav a:hover {
-  color: var(--primary-dark);
-}
-
 nav a:hover::after {
   width: 100%;
 }
 
 .cta-button {
-  background-color: var(--primary);
-  color: var(--bg-cream) !important;
+  background-color: var(--accent);
+  color: var(--bg-white) !important;
   padding: 9px 16px;
   border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 1px solid var(--primary);
-  box-shadow: none;
+  border: 1px solid var(--accent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
   white-space: nowrap;
   flex-shrink: 0;
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 .cta-button:hover {
   background-color: transparent;
-  color: var(--primary) !important;
+  color: var(--bg-cream) !important;
   transform: none;
   box-shadow: none;
+}
+
+header.scrolled .cta-button {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--bg-cream) !important;
+  box-shadow: none;
+}
+
+header.scrolled .cta-button:hover {
+  background-color: var(--primary-light);
+  color: var(--bg-cream) !important;
+}
+
+.mobile-nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.8rem;
+  color: var(--text-light);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+  transition: color 0.4s ease, text-shadow 0.4s ease;
+}
+
+header.scrolled .mobile-nav-toggle {
+  color: var(--primary);
+  text-shadow: none;
 }
 
 /* Mobile Nav Toggle */
@@ -313,7 +373,7 @@ nav a:hover::after {
   justify-content: center;
   text-align: center;
   overflow: visible;
-  padding: 120px 0 80px;
+  padding: 96px 0 70px;
 }
 
 .hero-slideshow-container {
@@ -355,12 +415,14 @@ nav a:hover::after {
   animation: kenBurnsSingle 30s ease-out forwards;
 }
 
-/* Darken the slideshow so text stays readable and the hero feels cohesive */
+/* Darken the slideshow just enough so text stays readable while the photo shows through */
 .hero-slideshow-container::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(16, 29, 18, 0.55) 0%, rgba(16, 29, 18, 0.65) 50%, rgba(16, 29, 18, 0.8) 100%);
+  background:
+    linear-gradient(180deg, rgba(16, 29, 18, 0.45) 0%, rgba(16, 29, 18, 0.30) 45%, rgba(16, 29, 18, 0.6) 100%),
+    radial-gradient(circle at 50% 40%, rgba(16, 29, 18, 0.0) 0%, rgba(16, 29, 18, 0.25) 100%);
   z-index: 1;
 }
 
@@ -1683,11 +1745,17 @@ input:checked + .slider:before {
     width: 100%;
     padding: 8px 0;
   }
+  /* Mobile drawer has a light background, so links must stay dark regardless of header state */
+  nav a,
+  header.scrolled nav a {
+    color: var(--text-dark);
+    text-shadow: none;
+  }
   .cta-button {
     text-align: center;
     margin-top: 10px;
   }
-  
+
   .logo-link {
     font-size: 1.2rem;
   }
