@@ -30,7 +30,7 @@ function checkSavedAuth() {
       
       // Auto connect if token exists
       if (authData.token && !authData.isDemo) {
-        connectToGitHub();
+        connectToFirebase();
       } else if (authData.isDemo) {
         startDemoMode();
       }
@@ -40,14 +40,28 @@ function checkSavedAuth() {
   }
 }
 
-// Login Handler – simplified: only password field
+// Login credentials configurations
+const FIREBASE_SECRET = 'jDSOjyHQcPsuglmrQZgUFXnhkAmN6FTyaO6ErTxv';
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'naturfreunde';
+
+// Login Handler
 function handleLogin(event) {
   event.preventDefault();
   
-  authData.token = document.getElementById('admin-password').value.trim();
-  authData.isDemo = false;
+  const userField = document.getElementById('admin-username').value.trim();
+  const passField = document.getElementById('admin-password').value.trim();
+  const errorEl = document.getElementById('login-error');
 
-  connectToFirebase();
+  if (userField.toLowerCase() === ADMIN_USER.toLowerCase() && passField === ADMIN_PASS) {
+    authData.token = FIREBASE_SECRET;
+    authData.isDemo = false;
+    connectToFirebase();
+  } else {
+    errorEl.textContent = 'Falscher Benutzername oder falsches Passwort.';
+    errorEl.style.display = 'block';
+    showToast('❌ Login fehlgeschlagen', 'error');
+  }
 }
 
 // Connect to Firebase Realtime Database
