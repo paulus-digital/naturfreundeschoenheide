@@ -307,18 +307,20 @@ nav a:hover::after {
   position: relative;
   background-color: var(--primary-dark);
   color: var(--bg-cream);
-  min-height: 85vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  overflow: hidden;
+  overflow: visible;
+  padding: 120px 0 80px;
 }
 
 .hero-slideshow-container {
   position: absolute;
   inset: 0;
   z-index: 1;
+  overflow: hidden;
 }
 
 .hero-slide {
@@ -353,39 +355,44 @@ nav a:hover::after {
   animation: kenBurnsSingle 30s ease-out forwards;
 }
 
-/* Add an elegant organic background overlay pattern if needed */
-.hero::before {
+/* Darken the slideshow so text stays readable and the hero feels cohesive */
+.hero-slideshow-container::after {
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.05;
-  background-image: radial-gradient(var(--accent) 1px, transparent 1px);
-  background-size: 20px 20px;
+  background: linear-gradient(180deg, rgba(16, 29, 18, 0.55) 0%, rgba(16, 29, 18, 0.65) 50%, rgba(16, 29, 18, 0.8) 100%);
+  z-index: 1;
 }
 
 .hero-content {
+  position: relative;
   z-index: 2;
-  max-width: 800px;
+  max-width: 820px;
+  width: 100%;
   padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
   animation: fadeInUp 1s ease-out;
 }
 
 .hero-subtitle {
   font-family: var(--font-serif);
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-style: italic;
   font-weight: 400;
   color: var(--accent-light);
   letter-spacing: 0.04em;
-  margin-bottom: 16px;
+  margin: 0;
 }
 
 .hero-title {
-  font-size: 4.2rem;
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
   font-weight: 600;
   color: var(--text-light);
-  margin-bottom: 24px;
-  line-height: 1.1;
+  margin: 0;
+  line-height: 1.08;
   letter-spacing: 0.015em;
   text-shadow: 0 2px 16px rgba(0,0,0,0.45);
 }
@@ -401,7 +408,6 @@ nav a:hover::after {
   font-size: 0.95rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 30px;
   box-shadow: var(--shadow-md);
   border: 1px solid rgba(255,255,255,0.1);
   animation: pulseBadge 2s infinite;
@@ -437,21 +443,21 @@ nav a:hover::after {
 }
 
 .hero-hours-preview {
-  margin-top: 30px;
-  font-size: 1.1rem;
-  opacity: 0.9;
-  background-color: rgba(255, 255, 255, 0.05);
+  font-size: 1.05rem;
+  opacity: 0.95;
+  background-color: rgba(255, 255, 255, 0.08);
   display: inline-block;
-  padding: 12px 24px;
+  padding: 10px 22px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .hero-cta {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
-  margin-top: 34px;
+  margin-top: 8px;
 }
 
 .hero-btn {
@@ -505,9 +511,16 @@ nav a:hover::after {
 }
 
 @media (max-width: 600px) {
+  .hero-content {
+    gap: 18px;
+    padding: 0 18px;
+  }
+
   .hero-cta {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
+    gap: 12px;
   }
 
   .hero-btn {
@@ -1725,9 +1738,8 @@ input:checked + .slider:before {
 @media (max-width: 768px) {
   .section-title { font-size: 2.4rem; }
   .section-padding { padding: 80px 0; }
-  .hero { min-height: 70vh; padding-top: 95px; }
-  .hero-title { font-size: 3rem; }
-  .hero-content { padding-top: 50px; }
+  .hero { min-height: auto; padding: 110px 0 64px; }
+  .hero-subtitle { font-size: 1.2rem; }
   .admin-main { padding: 20px 15px; }
 
   .info-grid, .contact-grid, .form-grid {
