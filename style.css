@@ -306,10 +306,24 @@ nav a:hover::after {
   transition: opacity 1.5s ease-in-out;
   background-size: cover;
   background-position: center;
+  transform: scale(1.02);
+}
+
+@keyframes kenBurnsLoop {
+  0% {
+    transform: scale(1.02) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.08) translate(-0.5%, -0.5%);
+  }
+  100% {
+    transform: scale(1.02) translate(0, 0);
+  }
 }
 
 .hero-slide.active {
   opacity: 1;
+  animation: kenBurnsLoop 24s ease-in-out infinite;
 }
 
 /* Add an elegant organic background overlay pattern if needed */
@@ -1673,4 +1687,18 @@ input:checked + .slider:before {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Site Preloader Spinner */
+.preloader-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(27, 59, 34, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

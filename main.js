@@ -207,6 +207,15 @@ function renderWebsite() {
 
   // 7. Contact Details & Forms
   renderContact();
+
+  // 8. Hide Preloader Overlay
+  const preloader = document.getElementById('site-preloader');
+  if (preloader) {
+    preloader.style.opacity = '0';
+    setTimeout(() => {
+      if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
+    }, 500);
+  }
 }
 
 // Helper: Translate Day Number to German Day Name
