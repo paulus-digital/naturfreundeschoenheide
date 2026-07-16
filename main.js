@@ -420,7 +420,7 @@ function renderWeekView() {
         <span class="calendar-week-day-name">${dayName}</span>
         <span class="calendar-week-date-string">${dateStr}</span>
       </div>
-      <div style="font-weight:600;">${statusText}</div>
+      <div class="calendar-week-status">${statusText}</div>
     `;
 
     row.onclick = () => selectCalendarDay(currentDateObj, event);
@@ -491,7 +491,7 @@ function renderYearView() {
         <span class="calendar-week-day-name">${event.label}</span>
         <span class="calendar-week-date-string">${dateRangeStr} ${start.getFullYear()}</span>
       </div>
-      <div style="font-weight:600;">${badgeText}</div>
+      <div class="calendar-week-status">${badgeText}</div>
     `;
 
     row.onclick = () => selectCalendarDay(start, event);
@@ -552,8 +552,8 @@ function selectCalendarDay(dateObj, event) {
       <span class="details-date">${dateStr}</span>
       <span class="details-status-badge ${statusKey}">${statusText}</span>
     </div>
-    <p style="font-size: 0.95rem; margin-top:8px; font-weight: 500;">${descText}</p>
-    ${hoursText ? `<p style="font-size: 0.85rem; color:var(--text-muted); margin-top:6px;">${hoursText}</p>` : ''}
+    <p class="details-desc">${descText}</p>
+    ${hoursText ? `<p class="details-hours">${hoursText}</p>` : ''}
     ${actionButtonHtml}
   `;
 
