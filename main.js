@@ -205,7 +205,7 @@ function renderWebsite() {
   renderOpeningHours();
 
   // 4. Planner / Calendar
-  renderPlanner();
+  renderCalendar();
 
   // 5. Gallery
   renderGallery();
