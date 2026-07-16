@@ -1,5 +1,7 @@
 {
-  "gistId": "",
+  "firebase": {
+    "url": "https://naturfreundeschoenheide-default-rtdb.europe-west1.firebasedatabase.app"
+  },
   "openStatus": true,
   "banner": {
     "visible": true,

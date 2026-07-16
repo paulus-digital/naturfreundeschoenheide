@@ -38,14 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Load data.json – tries Gist Database first, then falls back to GitHub repository/CDN
+// Load data.json – tries Firebase Realtime Database first, then falls back to GitHub repository/CDN
 async function loadData() {
   try {
     let freshData = null;
     let baseConfig = null;
 
     // Step A: Load the base configuration from the local deployment or raw repository
-    // This tells us the linked gistId
+    // This tells us the configured firebaseUrl
     try {
       const configResponse = await fetch(`data.json?t=${Date.now()}`);
       if (configResponse.ok) {
@@ -67,24 +67,23 @@ async function loadData() {
       }
     }
 
-    // Step B: If baseConfig and gistId exist, fetch directly from Gist database for instant live state
-    if (baseConfig && baseConfig.gistId) {
+    // Step B: If baseConfig and firebase exist, fetch directly from Firebase database for instant live state
+    if (baseConfig && baseConfig.firebase && baseConfig.firebase.url) {
       try {
-        const gistResponse = await fetch(`https://api.github.com/gists/${baseConfig.gistId}`, {
-          headers: { 'Accept': 'application/vnd.github.v3+json' }
-        });
-        if (gistResponse.ok) {
-          const gistJson = await gistResponse.json();
-          if (gistJson.files && gistJson.files['spartenheim_data.json']) {
-            freshData = JSON.parse(gistJson.files['spartenheim_data.json'].content);
-          }
+        let firebaseUrl = baseConfig.firebase.url;
+        if (firebaseUrl.endsWith('/')) firebaseUrl = firebaseUrl.slice(0, -1);
+        
+        // Fetch anonymously (public read must be allowed in database rules)
+        const dbResponse = await fetch(`${firebaseUrl}/data.json?t=${Date.now()}`);
+        if (dbResponse.ok) {
+          freshData = await dbResponse.json();
         }
-      } catch (gistErr) {
-        console.warn('Gist-Abfrage fehlgeschlagen, weiche auf Repository aus:', gistErr);
+      } catch (dbErr) {
+        console.warn('Firebase-Abfrage fehlgeschlagen, weiche auf Repository aus:', dbErr);
       }
     }
 
-    // Step C: Fallback loading flow if Gist is not configured or failed
+    // Step C: Fallback loading flow if Firebase failed or is not configured
     if (!freshData) {
       try {
         const apiResponse = await fetch(GITHUB_API_URL, {

@@ -34,14 +34,13 @@
       <p class="auth-desc">Geben Sie Ihr Zugangspasswort ein, um die Website-Inhalte zu bearbeiten.</p>
 
       <div class="auth-info-box">
-        <h5>💡 Live-Synchronisation mit GitHub</h5>
-        <p>Dieses Control Panel speichert Ihre Änderungen direkt im GitHub Repository. Dazu benötigen Sie einen <strong>GitHub Personal Access Token (PAT)</strong> mit Schreibzugriff für dieses Repository.</p>
+        <h5>💡 Echtzeit-Datenbank (Firebase)</h5>
+        <p>Dieses Control Panel speichert Ihre Änderungen direkt in einer <strong>Firebase Realtime Database</strong>. Die Aktualisierung erfolgt für Ihre Besucher augenblicklich (in Millisekunden) und ohne Neuladen.</p>
         <div style="font-size: 0.85rem; background: rgba(0,0,0,0.03); border-left: 3px solid var(--accent); padding: 8px 12px; margin-top: 10px; border-radius: 0 4px 4px 0;">
-          <strong>Kurzanleitung Token erstellen:</strong><br>
-          1. Öffnen Sie GitHub und navigieren Sie zu: <strong>Settings &rarr; Developer settings &rarr; Personal access tokens &rarr; Tokens (classic)</strong>.<br>
-          2. Klicken Sie auf <em>Generate new token (classic)</em>.<br>
-          3. Wählen Sie als Berechtigung (Scope) <strong>repo</strong> aus.<br>
-          4. Klicken Sie ganz unten auf <em>Generate token</em>, kopieren Sie den Code und fügen Sie ihn unten ein.
+          <strong>Kurzanleitung Secret finden:</strong><br>
+          1. Öffnen Sie Ihre <strong>Firebase Console</strong>.<br>
+          2. Gehen Sie zu <strong>Projekteinstellungen &rarr; Dienstkonten &rarr; Datenbank-Geheimnisse</strong>.<br>
+          3. Kopieren Sie das Secret und fügen Sie es unten als Passwort ein.
         </div>
       </div>
 
@@ -49,8 +48,8 @@
 
       <form id="login-form" onsubmit="handleLogin(event)">
         <div class="form-group" style="margin-bottom: 20px;">
-          <label for="admin-password">GitHub Personal Access Token (PAT) *</label>
-          <input type="password" id="admin-password" class="form-control" placeholder="ghp_..." required autocomplete="current-password" style="font-size: 1.1rem; padding: 14px 16px;">
+          <label for="admin-password">Firebase Database Secret *</label>
+          <input type="password" id="admin-password" class="form-control" placeholder="Datenbank-Geheimnis eingeben" required autocomplete="current-password" style="font-size: 1.1rem; padding: 14px 16px;">
         </div>
 
         <div class="form-group" style="margin-bottom: 24px;">

@@ -47,45 +47,64 @@ function handleLogin(event) {
   authData.token = document.getElementById('admin-password').value.trim();
   authData.isDemo = false;
 
-  connectToGitHub();
+  connectToFirebase();
 }
 
-// Connect to GitHub API
-async function connectToGitHub() {
-  showToast('🔄 Verbinde...', 'info');
+// Connect to Firebase Realtime Database
+async function connectToFirebase() {
+  showToast('🔄 Verbinde mit Datenbank...', 'info');
   const errorEl = document.getElementById('login-error');
   errorEl.style.display = 'none';
 
   try {
-    const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/data.json?ref=${GITHUB_BRANCH}`;
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `token ${authData.token}`,
-        'Accept': 'application/vnd.github.v3+json'
+    // 1. Fetch data.json configuration locally/raw to get firebaseUrl
+    let firebaseUrl = '';
+    try {
+      const configRes = await fetch('data.json');
+      if (configRes.ok) {
+        const config = await configRes.json();
+        firebaseUrl = config.firebase ? config.firebase.url : '';
       }
-    });
+    } catch (e) {
+      console.warn('Lokal config fetch failed, using fallback.');
+    }
+
+    if (!firebaseUrl) {
+      firebaseUrl = 'https://naturfreundeschoenheide-default-rtdb.europe-west1.firebasedatabase.app';
+    }
+
+    // Ensure URL has no trailing slash
+    if (firebaseUrl.endsWith('/')) firebaseUrl = firebaseUrl.slice(0, -1);
+
+    // 2. Fetch data from Firebase Realtime Database using Secret as auth
+    const response = await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`);
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error('Ungültiger GitHub-Token (401 Unauthorized). Bitte prüfen Sie, ob der Token korrekt eingegeben wurde.');
-      } else if (response.status === 403) {
-        throw new Error('Zugriff verweigert (403 Forbidden). Ihr Token besitzt eventuell keine ausreichenden Rechte. Stellen Sie sicher, dass "repo" aktiviert ist.');
-      } else if (response.status === 404) {
-        throw new Error('Die Website-Daten (data.json) konnten nicht gefunden werden. Prüfen Sie den Repository-Namen.');
+        throw new Error('Ungültiges Datenbank-Geheimnis (401 Unauthorized). Bitte prüfen Sie Ihre Eingabe.');
       } else {
         throw new Error(`Verbindungsfehler: ${response.statusText}`);
       }
     }
 
-    const json = await response.json();
-    currentFileSha = json.sha;
-    
-    // Decode base64 content
-    const decodedContent = decodeURIComponent(escape(atob(json.content.replace(/\s/g, ''))));
-    pageData = JSON.parse(decodedContent);
+    let dbData = await response.json();
 
-    // Bootstrap or link the Gist database
-    await resolveGistDatabase();
+    // 3. If database is brand new (returns null), initialize it with default data.json
+    if (!dbData) {
+      showToast('🆕 Initialisiere leere Datenbank...', 'info');
+      const localRes = await fetch('data.json');
+      if (localRes.ok) {
+        dbData = await localRes.json();
+        // Save to Firebase for the first time
+        await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dbData)
+        });
+      }
+    }
+
+    pageData = dbData;
 
     // Save auth data if "remember me" is checked
     const rememberCheckbox = document.getElementById('remember-login');
@@ -101,117 +120,6 @@ async function connectToGitHub() {
     errorEl.textContent = error.message;
     errorEl.style.display = 'block';
     showToast('❌ Anmeldung fehlgeschlagen', 'error');
-  }
-}
-
-// Resolve, create, or fetch from Gist database
-async function resolveGistDatabase() {
-  if (authData.isDemo) return;
-
-  try {
-    let gistId = pageData.gistId || '';
-
-    // If gistId is empty, search user's gists
-    if (!gistId) {
-      showToast('🔄 Suche Gist-Datenbank...', 'info');
-      const listResponse = await fetch('https://api.github.com/gists', {
-        headers: {
-          'Authorization': `token ${authData.token}`,
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
-      if (listResponse.ok) {
-        const gists = await listResponse.json();
-        const matchingGist = gists.find(g => g.files && g.files['spartenheim_data.json']);
-        if (matchingGist) {
-          gistId = matchingGist.id;
-          pageData.gistId = gistId;
-          showToast('✅ Gist-Datenbank gefunden!', 'success');
-        }
-      }
-    }
-
-    // If still empty, create a new secret Gist
-    if (!gistId) {
-      showToast('➕ Erstelle neue Gist-Datenbank...', 'info');
-      const createResponse = await fetch('https://api.github.com/gists', {
-        method: 'POST',
-        headers: {
-          'Authorization': `token ${authData.token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/vnd.github.v3+json'
-        },
-        body: JSON.stringify({
-          description: 'Spartenheim Naturfreunde Live Data Storage',
-          public: false,
-          files: {
-            'spartenheim_data.json': {
-              'content': JSON.stringify(pageData, null, 2)
-            }
-          }
-        })
-      });
-
-      if (!createResponse.ok) {
-        throw new Error(`Fehler beim Erstellen des Gists: ${createResponse.statusText}`);
-      }
-
-      const createdGist = await createResponse.json();
-      gistId = createdGist.id;
-      pageData.gistId = gistId;
-      showToast('✅ Gist-Datenbank erstellt!', 'success');
-    }
-
-    // Write the linked gistId back to data.json in the main repository (one-time setup commit)
-    const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/data.json?ref=${GITHUB_BRANCH}`;
-    const getRepoResponse = await fetch(url, {
-      headers: {
-        'Authorization': `token ${authData.token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
-    if (getRepoResponse.ok) {
-      const getRepoJson = await getRepoResponse.json();
-      const decoded = decodeURIComponent(escape(atob(getRepoJson.content.replace(/\s/g, ''))));
-      const repoObj = JSON.parse(decoded);
-      if (!repoObj.gistId) {
-        showToast('💾 Verlinke Gist im Repository...', 'info');
-        // Add gistId to pageData and commit it
-        repoObj.gistId = gistId;
-        const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(repoObj, null, 2))));
-        await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data.json`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${authData.token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/vnd.github.v3+json'
-          },
-          body: JSON.stringify({
-            message: 'Admin Panel: Gist-Datenbank verlinkt [skip ci]',
-            content: encodedContent,
-            sha: getRepoJson.sha,
-            branch: GITHUB_BRANCH
-          })
-        });
-      }
-    }
-
-    // Now, fetch the freshest live data from the Gist database to overwrite pageData
-    showToast('🔄 Lade Live-Daten...', 'info');
-    const gistFetchResponse = await fetch(`https://api.github.com/gists/${gistId}`, {
-      headers: {
-        'Authorization': `token ${authData.token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
-    if (gistFetchResponse.ok) {
-      const gistData = await gistFetchResponse.json();
-      const contentStr = gistData.files['spartenheim_data.json'].content;
-      pageData = JSON.parse(contentStr);
-    }
-  } catch (err) {
-    console.error('Fehler bei Gist-Initialisierung:', err);
-    showToast('⚠️ Gist-Fehler. Verwende Repository als Fallback.', 'error');
   }
 }
 
@@ -475,7 +383,7 @@ function populateGuestbookTab() {
 // SAVE ACTIONS
 // ----------------------------------------------------
 
-// Commit entire pageData back to GitHub Gist
+// Commit entire pageData back to Firebase Realtime Database
 async function commitDataChange(logMessage) {
   showToast('💾 Speichere Änderungen...', 'info');
 
@@ -487,30 +395,29 @@ async function commitDataChange(logMessage) {
   }
 
   try {
-    const gistId = pageData.gistId;
-    if (!gistId) {
-      throw new Error('Keine Gist-Datenbank verlinkt.');
+    let firebaseUrl = pageData.firebase ? pageData.firebase.url : '';
+    if (!firebaseUrl) {
+      const configRes = await fetch('data.json');
+      if (configRes.ok) {
+        const config = await configRes.json();
+        firebaseUrl = config.firebase ? config.firebase.url : '';
+      }
     }
+    if (!firebaseUrl) {
+      firebaseUrl = 'https://naturfreundeschoenheide-default-rtdb.europe-west1.firebasedatabase.app';
+    }
+    if (firebaseUrl.endsWith('/')) firebaseUrl = firebaseUrl.slice(0, -1);
 
-    const response = await fetch(`https://api.github.com/gists/${gistId}`, {
-      method: 'PATCH',
+    const response = await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`, {
+      method: 'PUT',
       headers: {
-        'Authorization': `token ${authData.token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github.v3+json'
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        description: 'Spartenheim Naturfreunde Live Data Storage',
-        files: {
-          'spartenheim_data.json': {
-            'content': JSON.stringify(pageData, null, 2)
-          }
-        }
-      })
+      body: JSON.stringify(pageData)
     });
 
     if (!response.ok) {
-      throw new Error(`Gist-Speicherungsfehler: ${response.statusText}`);
+      throw new Error(`Datenbank-Fehler: ${response.statusText}`);
     }
 
     showToast('✅ Änderungen live gespeichert!', 'success');
@@ -614,59 +521,14 @@ async function uploadGalleryImage() {
   const reader = new FileReader();
   reader.readAsDataURL(file);
   reader.onload = async () => {
-    const base64Data = reader.result.split(',')[1];
-    const fileExt = file.name.split('.').pop().toLowerCase();
-    const fileName = `img_${Date.now()}.${fileExt}`;
-    const filePath = `gallery/${fileName}`;
-
-    if (authData.isDemo) {
-      // Local storage mockup image path (save full dataUrl for demo viewing!)
+    try {
       if (!pageData.gallery) pageData.gallery = [];
       pageData.gallery.push({
         src: reader.result,
         alt: altText
       });
-      populateGalleryTab();
-      await commitDataChange('Admin Panel (Demo): Bild lokal hinzugefügt');
-      
-      // Reset inputs
-      fileInput.value = '';
-      altInput.value = '';
-      return;
-    }
 
-    try {
-      // 1. Upload binary file to GitHub repo
-      const uploadUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}`;
-      const body = {
-        message: `Upload gallery image: ${fileName}`,
-        content: base64Data,
-        branch: GITHUB_BRANCH
-      };
-
-      const response = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `token ${authData.token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/vnd.github.v3+json'
-        },
-        body: JSON.stringify(body)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Fehler beim Hochladen der Bilddatei: ${response.statusText}`);
-      }
-
-      // 2. Add path to pageData and save data.json
-      if (!pageData.gallery) pageData.gallery = [];
-      const imageUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/${filePath}`;
-      pageData.gallery.push({
-        src: imageUrl,
-        alt: altText
-      });
-
-      const dataSaved = await commitDataChange(`Admin Panel: Galerie um Bild ${fileName} erweitert`);
+      const dataSaved = await commitDataChange('Admin Panel: Bild hochgeladen');
       if (dataSaved) {
         populateGalleryTab();
         fileInput.value = '';
