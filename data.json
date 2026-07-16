@@ -1,6 +1,7 @@
 {
   "firebase": {
-    "url": "https://naturfreundeschoenheide-default-rtdb.europe-west1.firebasedatabase.app"
+    "url": "https://naturfreundeschoenheide-default-rtdb.europe-west1.firebasedatabase.app",
+    "apiKey": "AIzaSyAMH7xsRU0XxI7IVyI3iULUcfsIo6DNbpA"
   },
   "openStatus": true,
   "banner": {

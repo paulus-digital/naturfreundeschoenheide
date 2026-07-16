@@ -20,64 +20,47 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Check if credentials exist in localStorage
-function checkSavedAuth() {
-  const saved = localStorage.getItem('spartenheim_auth');
+async function checkSavedAuth() {
+  const saved = localStorage.getItem('spartenheim_auth_secure');
   if (saved) {
     try {
-      const parsed = JSON.parse(saved);
-      authData.token = parsed.token || '';
-      authData.isDemo = parsed.isDemo || false;
-      
-      // Auto connect if token exists
-      if (authData.token && !authData.isDemo) {
-        connectToFirebase();
-      } else if (authData.isDemo) {
-        startDemoMode();
+      const decoded = decodeURIComponent(escape(atob(saved)));
+      const parsed = JSON.parse(decoded);
+      if (parsed.u && parsed.p) {
+        // Auto fill and authenticate
+        document.getElementById('admin-username').value = parsed.u;
+        document.getElementById('admin-password').value = parsed.p;
+        const mockEvent = { preventDefault: () => {} };
+        await handleLogin(mockEvent);
       }
     } catch (e) {
-      localStorage.removeItem('spartenheim_auth');
+      localStorage.removeItem('spartenheim_auth_secure');
     }
   }
 }
 
-// Login credentials configurations
-const FIREBASE_SECRET = 'jDSOjyHQcPsuglmrQZgUFXnhkAmN6FTyaO6ErTxv';
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'naturfreunde';
-
-// Login Handler
-function handleLogin(event) {
+// Login Handler using Firebase Authentication API
+async function handleLogin(event) {
   event.preventDefault();
   
   const userField = document.getElementById('admin-username').value.trim();
   const passField = document.getElementById('admin-password').value.trim();
   const errorEl = document.getElementById('login-error');
-
-  if (userField.toLowerCase() === ADMIN_USER.toLowerCase() && passField === ADMIN_PASS) {
-    authData.token = FIREBASE_SECRET;
-    authData.isDemo = false;
-    connectToFirebase();
-  } else {
-    errorEl.textContent = 'Falscher Benutzername oder falsches Passwort.';
-    errorEl.style.display = 'block';
-    showToast('❌ Login fehlgeschlagen', 'error');
-  }
-}
-
-// Connect to Firebase Realtime Database
-async function connectToFirebase() {
-  showToast('🔄 Verbinde mit Datenbank...', 'info');
-  const errorEl = document.getElementById('login-error');
   errorEl.style.display = 'none';
 
+  showToast('🔑 Melde an...', 'info');
+  authData.isDemo = false;
+
   try {
-    // 1. Fetch data.json configuration locally/raw to get firebaseUrl
+    // 1. Fetch config locally/raw to get firebaseUrl & apiKey
     let firebaseUrl = '';
+    let apiKey = '';
     try {
       const configRes = await fetch('data.json');
       if (configRes.ok) {
         const config = await configRes.json();
         firebaseUrl = config.firebase ? config.firebase.url : '';
+        apiKey = config.firebase ? config.firebase.apiKey : '';
       }
     } catch (e) {
       console.warn('Lokal config fetch failed, using fallback.');
@@ -86,24 +69,76 @@ async function connectToFirebase() {
     if (!firebaseUrl) {
       firebaseUrl = 'https://naturfreundeschoenheide-default-rtdb.europe-west1.firebasedatabase.app';
     }
+    if (!apiKey) {
+      apiKey = 'AIzaSyAMH7xsRU0XxI7IVyI3iULUcfsIo6DNbpA';
+    }
 
     // Ensure URL has no trailing slash
     if (firebaseUrl.endsWith('/')) firebaseUrl = firebaseUrl.slice(0, -1);
 
-    // 2. Fetch data from Firebase Realtime Database using Secret as auth
+    // 2. Map simple username to email
+    let email = userField;
+    if (!email.includes('@')) {
+      email = `${email.toLowerCase()}@naturfreundeschoenheide.de`;
+    }
+
+    // 3. Authenticate with Firebase Authentication API
+    const authResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        password: passField,
+        returnSecureToken: true
+      })
+    });
+
+    if (!authResponse.ok) {
+      const authErrJson = await authResponse.json();
+      const code = authErrJson.error ? authErrJson.error.message : '';
+      if (code === 'EMAIL_NOT_FOUND' || code === 'INVALID_PASSWORD' || code === 'INVALID_LOGIN_ATTEMPT') {
+        throw new Error('Falscher Benutzername/E-Mail oder falsches Passwort.');
+      } else {
+        throw new Error(`Login-Fehler: ${code || authResponse.statusText}`);
+      }
+    }
+
+    const authJson = await authResponse.json();
+    authData.token = authJson.idToken;
+
+    // Save auth data if "remember me" is checked
+    const rememberCheckbox = document.getElementById('remember-login');
+    if (!rememberCheckbox || rememberCheckbox.checked) {
+      const creds = btoa(unescape(encodeURIComponent(JSON.stringify({ u: userField, p: passField }))));
+      localStorage.setItem('spartenheim_auth_secure', creds);
+    } else {
+      localStorage.removeItem('spartenheim_auth_secure');
+    }
+    
+    // Now fetch database records
+    await connectToFirebase(firebaseUrl);
+  } catch (error) {
+    console.error(error);
+    errorEl.textContent = error.message;
+    errorEl.style.display = 'block';
+    showToast('❌ Anmeldung fehlgeschlagen', 'error');
+  }
+}
+
+// Connect to Firebase Realtime Database
+async function connectToFirebase(firebaseUrl) {
+  showToast('🔄 Verbinde mit Datenbank...', 'info');
+  
+  try {
     const response = await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`);
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Ungültiges Datenbank-Geheimnis (401 Unauthorized). Bitte prüfen Sie Ihre Eingabe.');
-      } else {
-        throw new Error(`Verbindungsfehler: ${response.statusText}`);
-      }
+      throw new Error(`Datenbank-Verbindungsfehler: ${response.statusText}`);
     }
 
     let dbData = await response.json();
 
-    // 3. If database is brand new (returns null), initialize it with default data.json
+    // If database is empty, initialize it with default data.json
     if (!dbData) {
       showToast('🆕 Initialisiere leere Datenbank...', 'info');
       const localRes = await fetch('data.json');
@@ -119,21 +154,16 @@ async function connectToFirebase() {
     }
 
     pageData = dbData;
-
-    // Save auth data if "remember me" is checked
-    const rememberCheckbox = document.getElementById('remember-login');
-    if (!rememberCheckbox || rememberCheckbox.checked) {
-      localStorage.setItem('spartenheim_auth', JSON.stringify(authData));
-    }
     
     // Show Dashboard
     showDashboard();
     showToast('✅ Erfolgreich angemeldet!', 'success');
   } catch (error) {
     console.error(error);
+    const errorEl = document.getElementById('login-error');
     errorEl.textContent = error.message;
     errorEl.style.display = 'block';
-    showToast('❌ Anmeldung fehlgeschlagen', 'error');
+    showToast('❌ Datenbank-Verbindung fehlgeschlagen', 'error');
   }
 }
 
@@ -456,13 +486,60 @@ async function commitDataChange(logMessage) {
     }
     if (firebaseUrl.endsWith('/')) firebaseUrl = firebaseUrl.slice(0, -1);
 
-    const response = await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`, {
+    let response = await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(pageData)
     });
+
+    if (response.status === 401) {
+      // Token might be expired (Firebase ID tokens expire after 1 hour).
+      // Attempt silent re-authentication if credentials are saved.
+      const saved = localStorage.getItem('spartenheim_auth_secure');
+      if (saved) {
+        showToast('🔄 Erneuere Verbindung...', 'info');
+        const decoded = decodeURIComponent(escape(atob(saved)));
+        const parsed = JSON.parse(decoded);
+        
+        let apiKey = 'AIzaSyAMH7xsRU0XxI7IVyI3iULUcfsIo6DNbpA';
+        try {
+          const configRes = await fetch('data.json');
+          if (configRes.ok) {
+            const config = await configRes.json();
+            apiKey = config.firebase ? config.firebase.apiKey : apiKey;
+          }
+        } catch (e) {}
+
+        let email = parsed.u;
+        if (!email.includes('@')) {
+          email = `${email.toLowerCase()}@naturfreundeschoenheide.de`;
+        }
+
+        const authResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email,
+            password: parsed.p,
+            returnSecureToken: true
+          })
+        });
+
+        if (authResponse.ok) {
+          const authJson = await authResponse.json();
+          authData.token = authJson.idToken;
+          
+          // Retry the write request with the new token
+          response = await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pageData)
+          });
+        }
+      }
+    }
 
     if (!response.ok) {
       throw new Error(`Datenbank-Fehler: ${response.statusText}`);
