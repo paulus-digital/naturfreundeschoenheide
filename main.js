@@ -43,19 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Header turns solid once the user scrolls past the hero top
-  const siteHeader = document.querySelector('header');
-  function updateHeaderOnScroll() {
-    if (!siteHeader) return;
-    if (window.scrollY > 60) {
-      siteHeader.classList.add('scrolled');
-    } else {
-      siteHeader.classList.remove('scrolled');
-    }
-  }
-  window.addEventListener('scroll', updateHeaderOnScroll, { passive: true });
-  updateHeaderOnScroll();
-
   // Scroll Reveal Observer
   const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -277,7 +264,7 @@ function renderLiveStatus() {
   };
 
   const label = STATUS_LABEL[dayStatus] || 'Geschlossen';
-  liveStatus.className = `status-badge ${dayStatus === 'free' ? 'open' : dayStatus}`;
+  liveStatus.className = `status-banner ${dayStatus === 'free' ? 'open' : dayStatus}`;
   liveStatus.querySelector('.status-dot').className = 'status-dot';
   statusText.textContent = `Heute: ${label}`;
 
@@ -958,16 +945,15 @@ function renderHeroSlideshow() {
   }
 
   // Create slide divs
-  const singleSlide = slides.length <= 1;
   slides.forEach((src, idx) => {
     const slide = document.createElement('div');
-    slide.className = `hero-slide ${singleSlide ? 'single' : ''} ${idx === 0 ? 'active' : ''}`;
+    slide.className = `hero-slide ${idx === 0 ? 'active' : ''}`;
     slide.style.backgroundImage = `linear-gradient(rgba(15, 36, 21, 0.55), rgba(15, 36, 21, 0.85)), url('${src}')`;
     container.appendChild(slide);
   });
 
-  // If only 1 slide, no looping interval needed (single slide uses a smooth, non-repeating zoom)
-  if (singleSlide) return;
+  // If only 1 slide, no looping interval needed
+  if (slides.length <= 1) return;
 
   // Start fading slideshow loop
   let currentSlideIdx = 0;

@@ -198,18 +198,13 @@ header {
   top: 0;
   left: 0;
   right: 0;
-  background-color: transparent;
-  z-index: 1000;
-  border-bottom: 1px solid transparent;
-  transition: background-color 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
-}
-
-header.scrolled {
-  background-color: rgba(240, 233, 218, 0.94);
+  background-color: rgba(240, 233,218, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-bottom-color: var(--border-warm);
+  z-index: 1000;
+  border-bottom: 1px solid var(--border-warm);
   box-shadow: 0 4px 20px rgba(16, 29, 18, 0.08);
+  transition: background-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 .header-container {
@@ -227,17 +222,10 @@ header.scrolled {
   font-family: var(--font-serif);
   font-weight: 600;
   font-size: 1.15rem;
-  color: var(--text-light);
+  color: var(--primary-dark);
   white-space: nowrap;
   flex-shrink: 0;
   letter-spacing: 0.02em;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
-  transition: color 0.4s ease, text-shadow 0.4s ease;
-}
-
-header.scrolled .logo-link {
-  color: var(--primary-dark);
-  text-shadow: none;
 }
 
 .logo-img {
@@ -265,24 +253,14 @@ nav a {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text-dark);
   position: relative;
   padding: 6px 0;
   white-space: nowrap;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
-  transition: color 0.4s ease, text-shadow 0.4s ease;
+  transition: var(--transition);
 }
 
 nav a:hover {
-  color: var(--accent-light);
-}
-
-header.scrolled nav a {
-  color: var(--text-dark);
-  text-shadow: none;
-}
-
-header.scrolled nav a:hover {
   color: var(--primary-dark);
 }
 
@@ -302,57 +280,28 @@ nav a:hover::after {
 }
 
 .cta-button {
-  background-color: var(--accent);
-  color: var(--bg-white) !important;
+  background-color: var(--primary);
+  color: var(--bg-cream) !important;
   padding: 9px 16px;
   border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border: 1px solid var(--accent);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--primary);
+  box-shadow: none;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+  transition: var(--transition);
 }
 
 .cta-button:hover {
   background-color: transparent;
-  color: var(--bg-cream) !important;
+  color: var(--primary) !important;
   transform: none;
   box-shadow: none;
 }
 
-header.scrolled .cta-button {
-  background-color: var(--primary);
-  border-color: var(--primary);
-  color: var(--bg-cream) !important;
-  box-shadow: none;
-}
-
-header.scrolled .cta-button:hover {
-  background-color: var(--primary-light);
-  color: var(--bg-cream) !important;
-}
-
-.mobile-nav-toggle {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.8rem;
-  color: var(--text-light);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
-  transition: color 0.4s ease, text-shadow 0.4s ease;
-}
-
-header.scrolled .mobile-nav-toggle {
-  color: var(--primary);
-  text-shadow: none;
-}
-
-/* Mobile Nav Toggle */
 .mobile-nav-toggle {
   display: none;
   background: none;
@@ -390,29 +339,10 @@ header.scrolled .mobile-nav-toggle {
   transition: opacity 1.5s ease-in-out;
   background-size: cover;
   background-position: center;
-  transform: scale(1.02);
-}
-
-@keyframes kenBurnsLoop {
-  0%   { transform: scale(1.03) translate(0%,    0%);    }
-  25%  { transform: scale(1.07) translate(-0.4%, -0.3%); }
-  50%  { transform: scale(1.09) translate(-0.2%, 0.3%);  }
-  75%  { transform: scale(1.06) translate(0.3%,  -0.2%); }
-  100% { transform: scale(1.03) translate(0%,    0%);    }
 }
 
 .hero-slide.active {
   opacity: 1;
-  animation: kenBurnsLoop 28s linear infinite;
-}
-
-@keyframes kenBurnsSingle {
-  0%   { transform: scale(1.02) translate(0%,    0%);   }
-  100% { transform: scale(1.1)  translate(-0.3%, -0.3%); }
-}
-
-.hero-slide.single.active {
-  animation: kenBurnsSingle 30s ease-out forwards;
 }
 
 /* Darken the slideshow just enough so text stays readable while the photo shows through */
@@ -459,50 +389,78 @@ header.scrolled .mobile-nav-toggle {
   text-shadow: 0 2px 16px rgba(0,0,0,0.45);
 }
 
-/* Status Badge */
-.status-badge {
+/* Live Status Banner – prominent, color-coded, impossible to miss */
+.status-banner {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 18px;
+  gap: 12px;
+  padding: 14px 28px;
   border-radius: 50px;
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid rgba(255,255,255,0.1);
-  animation: pulseBadge 2s infinite;
+  color: #fff;
+  cursor: default;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  animation: pulseBadge 2.4s infinite;
 }
 
-.status-badge.open {
-  background-color: rgba(46, 125, 50, 0.2);
-  color: #81c784;
-  border-color: rgba(129, 199, 132, 0.4);
+.status-banner.open {
+  background-color: #2e7d32;
+  border-color: #66bb6a;
 }
 
-.status-badge.closed {
-  background-color: rgba(179, 57, 57, 0.2);
-  color: #e57373;
-  border-color: rgba(229, 115, 115, 0.4);
+.status-banner.closed {
+  background-color: #c62828;
+  border-color: #ef5350;
+}
+
+.status-banner.booked {
+  background-color: #b71c1c;
+  border-color: #ef5350;
+}
+
+.status-banner.holiday {
+  background-color: #e65100;
+  border-color: #ffa726;
+}
+
+.status-banner.event {
+  background-color: #6a1b9a;
+  border-color: #ab47bc;
+}
+
+.status-banner.reservation {
+  background-color: #9a7325;
+  border-color: #c49a3c;
+}
+
+.status-banner.clickable {
+  cursor: pointer;
+}
+
+.status-banner.clickable:hover {
+  filter: brightness(1.08);
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   display: inline-block;
+  background-color: #fff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
 }
 
-.status-badge.open .status-dot {
-  background-color: #4caf50;
-  box-shadow: 0 0 10px #4caf50;
-}
-
-.status-badge.closed .status-dot {
-  background-color: #f44336;
-  box-shadow: 0 0 10px #f44336;
-}
+.status-banner.open .status-dot { background-color: #a5ffb0; box-shadow: 0 0 12px #4caf50; }
+.status-banner.closed .status-dot,
+.status-banner.booked .status-dot { background-color: #ffb3b3; box-shadow: 0 0 12px #f44336; }
+.status-banner.holiday .status-dot { background-color: #ffd0a0; box-shadow: 0 0 12px #ff9800; }
+.status-banner.event .status-dot { background-color: #e9b8ff; box-shadow: 0 0 12px #ab47bc; }
+.status-banner.reservation .status-dot { background-color: #ffe6a8; box-shadow: 0 0 12px #c49a3c; }
 
 .hero-cta {
   display: flex;
@@ -1745,9 +1703,8 @@ input:checked + .slider:before {
     width: 100%;
     padding: 8px 0;
   }
-  /* Mobile drawer has a light background, so links must stay dark regardless of header state */
-  nav a,
-  header.scrolled nav a {
+  /* Mobile drawer has a light background, so links must stay dark */
+  nav a {
     color: var(--text-dark);
     text-shadow: none;
   }
@@ -1796,7 +1753,11 @@ input:checked + .slider:before {
 @media (max-width: 768px) {
   .section-title { font-size: 2.4rem; }
   .section-padding { padding: 80px 0; }
-  .hero { min-height: auto; padding: 110px 0 64px; }
+  .hero {
+    min-height: 100svh;
+    height: 100svh;
+    padding: 90px 0 56px;
+  }
   .hero-subtitle { font-size: 1.2rem; }
   .admin-main { padding: 20px 15px; }
 
