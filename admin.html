@@ -72,13 +72,7 @@
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
         </svg>
-        Öffnungszeiten
-      </button>
-      <button class="admin-tab-btn" onclick="switchTab('calendar')">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"></path>
-        </svg>
-        Termine &amp; Planner
+        Öffnungszeiten &amp; Termine
       </button>
       <button class="admin-tab-btn" onclick="switchTab('gallery')">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -364,52 +358,7 @@
 
       </section>
 
-      <!-- 3. CALENDAR TAB PANEL -->
-      <section id="panel-calendar" class="panel-section">
-        <div class="panel-header">
-          <h2 class="panel-title">Termine &amp; Belegungsplaner</h2>
-        </div>
 
-        <div class="easy-help-box">
-          <span>💡</span> <strong>Einfach erklärt:</strong> Trage hier Feste, Familienfeiern, Buffets oder Urlaubszeiten ein. Deine Termine erscheinen automatisch im Kalender auf deiner Website.
-        </div>
-
-        <div class="card" style="margin-bottom: 30px; border-color: var(--primary-light);">
-          <h4 style="margin-bottom: 16px;">Neuen Eintrag hinzufügen</h4>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="new-event-start-date">Startdatum (von)</label>
-              <input type="date" id="new-event-start-date" class="form-control">
-            </div>
-            <div class="form-group">
-              <label for="new-event-end-date">Enddatum (bis, optional)</label>
-              <input type="date" id="new-event-end-date" class="form-control" placeholder="Nur für Zeitspannen">
-            </div>
-            <div class="form-group span-full">
-              <label for="new-event-status">Status / Belegung</label>
-              <select id="new-event-status" class="form-control">
-                <option value="open">Geöffnet</option>
-                <option value="reservation">Reservierung möglich</option>
-                <option value="booked">Ausgebucht</option>
-                <option value="closed">Geschlossen (Feier o.ä.)</option>
-                <option value="holiday">Betriebsferien / Feiertag</option>
-                <option value="event">Besonderes Event</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group" style="margin: 16px 0;">
-            <label for="new-event-label">Beschreibung / Zusatzinfo</label>
-            <input type="text" id="new-event-label" class="form-control" placeholder="z.B. Schlachtfest ab 17:00, Betriebsferien etc.">
-          </div>
-          <button class="admin-btn admin-btn-primary" style="width: auto;" onclick="addNewCalendarEntry()">Eintrag hinzufügen</button>
-        </div>
-
-        <h4>Aktuelle Einträge</h4>
-        <div id="admin-calendar-list" style="margin-top: 15px;">
-          <!-- Populated dynamically via JS -->
-        </div>
-
-      </section>
 
       <!-- 4. GALLERY TAB PANEL -->
       <section id="panel-gallery" class="panel-section">

@@ -183,7 +183,6 @@ function showDashboard() {
   // Fill Forms
   populateGeneralTab();
   populateHoursTab();
-  populateCalendarTab();
   populateGalleryTab();
   populateGuestbookTab();
   populateSettingsTab();
@@ -191,6 +190,7 @@ function showDashboard() {
 
 // Switch Sidebar Tabs
 function switchTab(tabId) {
+  if (tabId === 'calendar') tabId = 'hours';
   activeTab = tabId;
   
   // Update Buttons
@@ -199,7 +199,7 @@ function switchTab(tabId) {
   });
   
   const activeBtn = Array.from(document.querySelectorAll('.admin-tab-btn')).find(btn => 
-    btn.getAttribute('onclick').includes(tabId)
+    btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabId)
   );
   if (activeBtn) activeBtn.classList.add('active');
 
@@ -207,7 +207,8 @@ function switchTab(tabId) {
   document.querySelectorAll('.panel-section').forEach(sec => {
     sec.classList.remove('active');
   });
-  document.getElementById(`panel-${tabId}`).classList.add('active');
+  const sec = document.getElementById(`panel-${tabId}`);
+  if (sec) sec.classList.add('active');
 }
 
 // Setup Event Listeners for controls
