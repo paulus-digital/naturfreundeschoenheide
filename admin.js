@@ -471,19 +471,37 @@ function updateSocialGraphic(isUserOverride = false) {
     ctx.lineWidth = 2;
     ctx.strokeRect(48, 48, width - 96, height - 96);
 
-    // 4. Header / Branding Logo
+    // 4. Header / Branding Logo (transparent white background removal)
     const logoImg = new Image();
     logoImg.src = 'logo.png';
     const drawContent = () => {
       if (logoImg.complete && logoImg.naturalWidth > 0) {
-        ctx.drawImage(logoImg, width / 2 - 60, 90, 120, 120);
+        try {
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = logoImg.naturalWidth || 120;
+          tempCanvas.height = logoImg.naturalHeight || 120;
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCtx.drawImage(logoImg, 0, 0);
+          const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+          const data = imgData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            // If pixel is near white, make transparent
+            if (data[i] > 220 && data[i + 1] > 220 && data[i + 2] > 220) {
+              data[i + 3] = 0;
+            }
+          }
+          tempCtx.putImageData(imgData, 0, 0);
+          ctx.drawImage(tempCanvas, width / 2 - 65, 80, 130, 130);
+        } catch (e) {
+          ctx.drawImage(logoImg, width / 2 - 65, 80, 130, 130);
+        }
       }
 
       // Title & Subtitle
       ctx.textAlign = 'center';
       ctx.fillStyle = '#c59f2d';
-      ctx.font = 'bold 38px sans-serif';
-      ctx.fillText('GASTSTÄTTE & SPARTENHEIM', width / 2, 260);
+      ctx.font = 'bold 40px sans-serif';
+      ctx.fillText('GASTSTÄTTE', width / 2, 260);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 64px serif';
@@ -510,44 +528,57 @@ function updateSocialGraphic(isUserOverride = false) {
       ctx.fillStyle = boxBg;
       if (ctx.roundRect) {
         ctx.beginPath();
-        ctx.roundRect(100, 520, width - 200, 320, 24);
+        ctx.roundRect(80, 520, width - 160, 320, 24);
         ctx.fill();
         ctx.strokeStyle = boxBorder;
         ctx.lineWidth = 4;
         ctx.stroke();
       } else {
-        ctx.fillRect(100, 520, width - 200, 320);
+        ctx.fillRect(80, 520, width - 160, 320);
         ctx.strokeStyle = boxBorder;
         ctx.lineWidth = 4;
-        ctx.strokeRect(100, 520, width - 200, 320);
+        ctx.strokeRect(80, 520, width - 160, 320);
       }
 
-      // Status Text Inside Box
+      // Status Text Inside Box with Auto-font-scaling to keep times on single line
+      const maxTextWidth = width - 200; // 880px max
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 48px sans-serif';
 
-      const words = displayText.split(' ');
-      let line1 = '';
-      let line2 = '';
-      for (let w of words) {
-        if ((line1 + ' ' + w).length > 25) {
-          line2 += w + ' ';
-        } else {
-          line1 += w + ' ';
+      if (displayText.includes('(') && displayText.includes(')')) {
+        const mainPart = displayText.substring(0, displayText.indexOf('(')).trim();
+        const subPart = displayText.substring(displayText.indexOf('(')).trim();
+
+        let fSize1 = 48;
+        ctx.font = `bold ${fSize1}px sans-serif`;
+        while (ctx.measureText(mainPart).width > maxTextWidth && fSize1 > 26) {
+          fSize1 -= 2;
+          ctx.font = `bold ${fSize1}px sans-serif`;
         }
-      }
+        ctx.fillText(mainPart, width / 2, 635);
 
-      if (line2.trim()) {
-        ctx.fillText(line1.trim(), width / 2, 640);
-        ctx.fillText(line2.trim(), width / 2, 720);
+        let fSize2 = 38;
+        ctx.font = `600 ${fSize2}px sans-serif`;
+        while (ctx.measureText(subPart).width > maxTextWidth && fSize2 > 24) {
+          fSize2 -= 2;
+          ctx.font = `600 ${fSize2}px sans-serif`;
+        }
+        ctx.fillStyle = '#f0e9da';
+        ctx.fillText(subPart, width / 2, 725);
       } else {
+        let fSize = 48;
+        ctx.font = `bold ${fSize}px sans-serif`;
+        while (ctx.measureText(displayText).width > maxTextWidth && fSize > 24) {
+          fSize -= 2;
+          ctx.font = `bold ${fSize}px sans-serif`;
+        }
         ctx.fillText(displayText, width / 2, 685);
       }
 
       // Footer Info
+      const correctAddress = (pageData.contact && pageData.contact.address) ? pageData.contact.address : 'Gartenweg 5, 08304 Schönheide';
       ctx.fillStyle = '#d0c8b5';
       ctx.font = '400 32px sans-serif';
-      ctx.fillText('📍 Gartenweg 12 | 08304 Schönheide', width / 2, 940);
+      ctx.fillText(`📍 ${correctAddress}`, width / 2, 940);
 
       ctx.fillStyle = '#c59f2d';
       ctx.font = 'bold 34px sans-serif';
@@ -559,7 +590,7 @@ function updateSocialGraphic(isUserOverride = false) {
         downloadBtn.href = canvas.toDataURL('image/png');
       }
 
-      const textVal = `🌲 Gaststätte Spartenheim Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}:\n${displayText}\n\n📍 Gartenweg 12, 08304 Schönheide\n🌐 Öffnungszeiten & Termine: https://paulus-digital.github.io/naturfreundeschoenheide/`;
+      const textVal = `🌲 Gaststätte Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}:\n${displayText}\n\n📍 ${correctAddress}\n🌐 Öffnungszeiten & Termine: https://paulus-digital.github.io/naturfreundeschoenheide/`;
       const textArea = document.getElementById('social-gen-text');
       if (textArea) textArea.value = textVal;
 
