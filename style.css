@@ -2069,10 +2069,17 @@ input:checked + .slider:before {
 }
 
 .calendar-day.past {
-  opacity: 0.5;
+  opacity: 0.4;
   background-color: var(--bg-cream);
   border-left-width: 2px;
-  filter: grayscale(30%);
+  filter: grayscale(40%);
+  cursor: default;
+  pointer-events: none;
+}
+
+.calendar-day.past:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .calendar-day.today {

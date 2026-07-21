@@ -559,7 +559,9 @@ function renderMonthView() {
       </div>
     `;
 
-    dayDiv.onclick = () => selectCalendarDay(currentDateObj, events);
+    if (!isPast) {
+      dayDiv.onclick = () => selectCalendarDay(currentDateObj, events);
+    }
     daysContainer.appendChild(dayDiv);
   }
 }
