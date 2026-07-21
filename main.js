@@ -401,16 +401,56 @@ function getStartOfWeek(d) {
 }
 
 function getEventsForDate(dateObj) {
-  if (!appData.planner) return [];
+  const events = [];
   const checkTime = new Date(dateObj).setHours(0,0,0,0);
+  const dateStr = formatDateToYYYYMMDD(dateObj);
 
-  return appData.planner.filter(event => {
-    const start = new Date(event.startDate || event.date);
-    start.setHours(0,0,0,0);
-    const end = new Date(event.endDate || event.startDate || event.date);
-    end.setHours(23,59,59,999);
-    return checkTime >= start.getTime() && checkTime <= end.getTime();
-  });
+  // 1. Planner events
+  if (appData.planner) {
+    appData.planner.forEach(event => {
+      const start = new Date(event.startDate || event.date);
+      start.setHours(0,0,0,0);
+      const end = new Date(event.endDate || event.startDate || event.date);
+      end.setHours(23,59,59,999);
+      if (checkTime >= start.getTime() && checkTime <= end.getTime()) {
+        events.push({
+          ...event,
+          isPlanner: true
+        });
+      }
+    });
+  }
+
+  // 2. Special Opening Hours (Sonderöffnungszeiten)
+  if (appData.specialHours) {
+    const specialMatch = appData.specialHours.find(h => h.date === dateStr);
+    if (specialMatch) {
+      const hLower = (specialMatch.hours || '').toLowerCase();
+      let status = 'event';
+      if (hLower.includes('ruhetag') || hLower.includes('geschlossen')) {
+        status = 'closed';
+      } else if (hLower.includes('urlaub') || hLower.includes('betriebsferien')) {
+        status = 'holiday';
+      }
+
+      const displayTitle = specialMatch.label 
+        ? `${specialMatch.label}: ${specialMatch.hours}`
+        : `Sonderzeit: ${specialMatch.hours}`;
+
+      events.push({
+        date: dateStr,
+        startDate: dateStr,
+        endDate: dateStr,
+        status: status,
+        label: displayTitle,
+        hours: specialMatch.hours,
+        specialLabel: specialMatch.label,
+        isSpecial: true
+      });
+    }
+  }
+
+  return events;
 }
 
 const STATUS_PRIORITY = ['event', 'booked', 'holiday', 'closed', 'reservation', 'open', 'free'];

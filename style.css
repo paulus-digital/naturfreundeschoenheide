@@ -566,9 +566,18 @@ nav a:hover::after {
 /* Cards & Info Grid */
 .info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  margin-top: 50px;
+  grid-template-columns: 380px 1fr;
+  gap: 32px;
+  margin-top: 40px;
+  align-items: start;
+  width: 100%;
+}
+
+@media (max-width: 1023px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
 }
 
 .card {
@@ -1902,7 +1911,7 @@ input:checked + .slider:before {
 
 /* Calendar Widget Styles */
 .planner-card {
-  grid-column: span 2;
+  grid-column: auto;
 }
 
 .calendar-widget {
