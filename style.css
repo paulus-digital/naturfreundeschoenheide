@@ -2068,8 +2068,11 @@ input:checked + .slider:before {
   box-shadow: none;
 }
 
-.calendar-day.empty.past-hidden {
-  display: none;
+.calendar-day.past {
+  opacity: 0.5;
+  background-color: var(--bg-cream);
+  border-left-width: 2px;
+  filter: grayscale(30%);
 }
 
 .calendar-day.today {

@@ -516,18 +516,14 @@ function renderMonthView() {
 
   for (let d = 1; d <= numDays; d++) {
     const currentDateObj = new Date(year, month, d);
-
-    // Keep the grid aligned: render past days as empty, non-interactive cells
-    // so the month layout stays correct but doesn't get cluttered.
-    if (currentDateObj < yesterday) {
-      const emptyDiv = document.createElement('div');
-      emptyDiv.className = 'calendar-day empty past-hidden';
-      daysContainer.appendChild(emptyDiv);
-      continue;
-    }
+    currentDateObj.setHours(0,0,0,0);
 
     const dayDiv = document.createElement('div');
     dayDiv.className = 'calendar-day';
+
+    if (currentDateObj < today) {
+      dayDiv.classList.add('past');
+    }
 
     if (currentDateObj.getTime() === today.getTime()) {
       dayDiv.classList.add('today');

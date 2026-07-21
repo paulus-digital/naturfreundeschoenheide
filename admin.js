@@ -276,13 +276,20 @@ function isDatePast(dateStr) {
 }
 
 function populateGeneralTab() {
-  document.getElementById('admin-status-toggle').checked = pageData.openStatus;
+  const statusToggle = document.getElementById('admin-status-toggle');
+  if (statusToggle) statusToggle.checked = pageData.openStatus;
+  
   const label = document.getElementById('admin-status-label');
-  label.textContent = pageData.openStatus ? 'Geöffnet' : 'Geschlossen';
-  label.style.color = pageData.openStatus ? 'var(--success)' : 'var(--danger)';
+  if (label) {
+    label.textContent = pageData.openStatus ? 'Geöffnet' : 'Geschlossen';
+    label.style.color = pageData.openStatus ? 'var(--success)' : 'var(--danger)';
+  }
 
-  document.getElementById('admin-banner-toggle').checked = pageData.banner ? pageData.banner.visible : false;
-  document.getElementById('admin-banner-text').value = pageData.banner ? pageData.banner.text : '';
+  const bannerToggle = document.getElementById('admin-banner-toggle');
+  if (bannerToggle) bannerToggle.checked = pageData.banner ? pageData.banner.visible : false;
+
+  const bannerText = document.getElementById('admin-banner-text');
+  if (bannerText) bannerText.value = pageData.banner ? pageData.banner.text : '';
 
   // Initialize Social Media Generator canvas & preview
   initSocialGenerator();
@@ -392,15 +399,16 @@ function updateSocialGraphic(isUserOverride = false) {
 
   if (!isUserOverride && statusInput) {
     let autoText = '';
-    if (info.hours.toLowerCase().includes('ruhetag') || info.hours.toLowerCase().includes('geschlossen')) {
-      autoText = `Heute geschlossen (${info.label || info.hours})`;
+    const hLower = (info.hours || '').toLowerCase();
+    if (hLower.includes('ruhetag') || hLower.includes('geschlossen')) {
+      autoText = info.label ? `Geschlossen: ${info.label}` : `Geschlossen (${info.hours})`;
     } else {
-      autoText = `Heute geöffnet: ${info.hours} ${info.label ? '(' + info.label + ')' : ''}`;
+      autoText = info.label ? `Öffnungszeit: ${info.hours} (${info.label})` : `Öffnungszeit: ${info.hours}`;
     }
     statusInput.value = autoText;
   }
 
-  const displayText = statusInput ? statusInput.value.trim() : `Heute geöffnet: ${info.hours}`;
+  const displayText = statusInput ? statusInput.value.trim() : `Öffnungszeit: ${info.hours}`;
 
   // Formatted German Date
   let formattedDate = dateStr;
