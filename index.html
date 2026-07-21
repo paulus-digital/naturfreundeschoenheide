@@ -63,6 +63,7 @@
           <li><a href="#galerie">Galerie</a></li>
           <li><a href="#gaestebuch">Gästebuch</a></li>
           <li><a href="#kontakt" class="cta-button">Jetzt Anrufen</a></li>
+          <li><button type="button" onclick="sharePage()" class="nav-share-btn">🔗 Teilen</button></li>
         </ul>
       </nav>
 
@@ -104,6 +105,15 @@
           </svg>
           Anfrage &amp; Anrufen
         </a>
+        <button type="button" class="hero-btn hero-btn-share" onclick="sharePage()">
+          <svg class="hero-btn-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z">
+            </path>
+          </svg>
+          Seite teilen
+        </button>
       </div>
     </div>
   </section>
@@ -465,6 +475,28 @@
         <p>Diese Seite nutzt zur Darstellung der Anfahrt eine Karte von Google Maps (API). Um die Datenschutzrichtlinien
           einzuhalten, wird die Karte erst geladen oder ist in einem Iframe eingebunden. Dabei kann Ihre IP-Adresse an
           Server von Google übertragen werden.</p>
+  <!-- Share Modal Dialog -->
+  <div id="share-modal" class="lightbox" onclick="if(event.target === this) closeShareModal()">
+    <div class="share-modal-content">
+      <button class="lightbox-close" onclick="closeShareModal()" aria-label="Schließen">&times;</button>
+      <h3 style="margin-bottom: 12px; color: var(--primary-dark);">🔗 Website teilen</h3>
+      <p class="text-muted" style="margin-bottom: 20px; font-size: 0.95rem;">Teilen Sie die Gaststätte Spartenheim Naturfreunde mit Bekannten, Freunden oder Familie:</p>
+      
+      <div class="share-preview-box" style="background-color: var(--bg-cream); border-left: 4px solid var(--accent); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+        <strong style="display: block; font-size: 1.05rem; margin-bottom: 6px; color: var(--primary-dark);">Gaststätte Spartenheim Naturfreunde Schönheide</strong>
+        <p id="share-modal-text" style="font-size: 0.9rem; margin-bottom: 0; color: var(--text-dark);">Gemütliche Gaststätte, Biergarten &amp; Events in Schönheide. Alle Infos &amp; Öffnungszeiten ansehen!</p>
+      </div>
+
+      <div class="share-actions-grid" style="display: flex; flex-direction: column; gap: 12px;">
+        <button type="button" onclick="copyShareLink()" class="admin-btn admin-btn-primary" style="padding: 14px; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <span>📋 Link &amp; Text kopieren</span>
+        </button>
+        <a id="share-wa-btn" href="#" target="_blank" class="admin-btn" style="background-color: #25D366; color: white; padding: 14px; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; border-radius: var(--radius-sm); font-weight: 600;">
+          <span>💬 Auf WhatsApp teilen</span>
+        </a>
+        <a id="share-fb-btn" href="#" target="_blank" class="admin-btn" style="background-color: #1877F2; color: white; padding: 14px; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; border-radius: var(--radius-sm); font-weight: 600;">
+          <span>📘 Auf Facebook teilen</span>
+        </a>
       </div>
     </div>
   </div>

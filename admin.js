@@ -260,6 +260,21 @@ function setupStatusToggle() {
 // TAB FILLING LOGIC
 // ----------------------------------------------------
 
+function isDatePast(dateStr) {
+  if (!dateStr) return false;
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return false;
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  
+  // Set date to end of that day (23:59:59) so event is active all day on the date itself
+  const eventDateEnd = new Date(year, month, day, 23, 59, 59, 999);
+  const now = new Date();
+  
+  return eventDateEnd < now;
+}
+
 function populateGeneralTab() {
   document.getElementById('admin-status-toggle').checked = pageData.openStatus;
   const label = document.getElementById('admin-status-label');
@@ -269,10 +284,311 @@ function populateGeneralTab() {
   document.getElementById('admin-banner-toggle').checked = pageData.banner ? pageData.banner.visible : false;
   document.getElementById('admin-banner-text').value = pageData.banner ? pageData.banner.text : '';
 
-  if (pageData.contact) {
-    document.getElementById('admin-contact-phone').value = pageData.contact.phone || '';
-    document.getElementById('admin-contact-email').value = pageData.contact.email || '';
-    document.getElementById('admin-contact-inhaber').value = pageData.contact.inhaber || '';
+  // Initialize Social Media Generator canvas & preview
+  initSocialGenerator();
+}
+
+// ----------------------------------------------------
+// SOCIAL MEDIA GRAPHIC & SHARE TEXT GENERATOR LOGIC
+// ----------------------------------------------------
+function initSocialGenerator() {
+  const dateInput = document.getElementById('social-gen-date');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+
+  // Populate hero images dropdown options
+  const bgSelect = document.getElementById('social-gen-bg');
+  if (bgSelect) {
+    bgSelect.innerHTML = `
+      <option value="default">Standard (Gaststätte &amp; Naturfreunde)</option>
+      <option value="logo">Naturfreunde Wappen &amp; Logo</option>
+    `;
+    if (pageData.heroImages && pageData.heroImages.length > 0) {
+      pageData.heroImages.forEach((imgSrc, idx) => {
+        if (imgSrc) {
+          const opt = document.createElement('option');
+          opt.value = imgSrc;
+          opt.textContent = `Slideshow Bild ${idx + 1}`;
+          bgSelect.appendChild(opt);
+        }
+      });
+    }
+  }
+
+  updateSocialGraphic(false);
+}
+
+function getOpeningInfoForDate(dateStr) {
+  if (!dateStr) dateStr = new Date().toISOString().split('T')[0];
+  
+  // 1. Check special hours
+  if (pageData.specialHours) {
+    const special = pageData.specialHours.find(h => h.date === dateStr);
+    if (special) {
+      return {
+        hours: special.hours,
+        label: special.label || '',
+        type: 'special'
+      };
+    }
+  }
+
+  // 2. Check planner
+  if (pageData.planner) {
+    const event = pageData.planner.find(p => {
+      const s = p.startDate || p.date;
+      const e = p.endDate || p.startDate || p.date;
+      return dateStr >= s && dateStr <= e;
+    });
+    if (event) {
+      const statusNames = {
+        'open': 'Geöffnet',
+        'reservation': 'Reservierung möglich',
+        'booked': 'Ausgebucht',
+        'closed': 'Geschlossen',
+        'holiday': 'Betriebsferien / Urlaub',
+        'event': 'Besonderes Event'
+      };
+      return {
+        hours: event.label || statusNames[event.status] || 'Geändert',
+        label: statusNames[event.status] || '',
+        type: 'planner'
+      };
+    }
+  }
+
+  // 3. Fallback: regular day of week
+  const dateParts = dateStr.split('-');
+  if (dateParts.length === 3) {
+    const d = new Date(parseInt(dateParts[0], 10), parseInt(dateParts[1], 10) - 1, parseInt(dateParts[2], 10));
+    const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    const germanDay = dayNames[d.getDay()];
+
+    if (pageData.openingHours) {
+      const match = pageData.openingHours.find(h => h.day.toLowerCase() === germanDay.toLowerCase());
+      if (match) {
+        return {
+          hours: match.hours,
+          label: '',
+          type: 'regular'
+        };
+      }
+    }
+  }
+
+  return { hours: '11:30 - 21:00 Uhr', label: '', type: 'default' };
+}
+
+function updateSocialGraphic(isUserOverride = false) {
+  const dateInput = document.getElementById('social-gen-date');
+  const bgSelect = document.getElementById('social-gen-bg');
+  const statusInput = document.getElementById('social-gen-status-text');
+  const canvas = document.getElementById('social-graphic-canvas');
+  if (!canvas) return;
+
+  const dateStr = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+  const info = getOpeningInfoForDate(dateStr);
+
+  if (!isUserOverride && statusInput) {
+    let autoText = '';
+    if (info.hours.toLowerCase().includes('ruhetag') || info.hours.toLowerCase().includes('geschlossen')) {
+      autoText = `Heute geschlossen (${info.label || info.hours})`;
+    } else {
+      autoText = `Heute geöffnet: ${info.hours} ${info.label ? '(' + info.label + ')' : ''}`;
+    }
+    statusInput.value = autoText;
+  }
+
+  const displayText = statusInput ? statusInput.value.trim() : `Heute geöffnet: ${info.hours}`;
+
+  // Formatted German Date
+  let formattedDate = dateStr;
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    formattedDate = d.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+
+  // Background Image selection
+  let bgSource = 'hero_cabin.png';
+  const selectedBg = bgSelect ? bgSelect.value : 'default';
+  if (selectedBg === 'logo') {
+    bgSource = 'logo.png';
+  } else if (selectedBg !== 'default' && selectedBg) {
+    bgSource = selectedBg;
+  }
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = bgSource;
+
+  const renderCanvas = () => {
+    // 1. Draw Background Image
+    if (img.complete && img.naturalWidth > 0) {
+      const imgAspect = img.naturalWidth / img.naturalHeight;
+      let drawWidth = width;
+      let drawHeight = width / imgAspect;
+      if (drawHeight < height) {
+        drawHeight = height;
+        drawWidth = height * imgAspect;
+      }
+      ctx.drawImage(img, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+    } else {
+      const grad = ctx.createLinearGradient(0, 0, 0, height);
+      grad.addColorStop(0, '#1c3a19');
+      grad.addColorStop(1, '#0e1f0c');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    // 2. Dark Overlay Gradient for contrast
+    const overlayGrad = ctx.createLinearGradient(0, 0, 0, height);
+    overlayGrad.addColorStop(0, 'rgba(15, 30, 15, 0.70)');
+    overlayGrad.addColorStop(0.5, 'rgba(10, 20, 10, 0.82)');
+    overlayGrad.addColorStop(1, 'rgba(5, 10, 5, 0.94)');
+    ctx.fillStyle = overlayGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // 3. Decorative Frame
+    ctx.strokeStyle = '#c59f2d';
+    ctx.lineWidth = 10;
+    ctx.strokeRect(36, 36, width - 72, height - 72);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(48, 48, width - 96, height - 96);
+
+    // 4. Header / Branding Logo
+    const logoImg = new Image();
+    logoImg.src = 'logo.png';
+    const drawContent = () => {
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        ctx.drawImage(logoImg, width / 2 - 60, 90, 120, 120);
+      }
+
+      // Title & Subtitle
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#c59f2d';
+      ctx.font = 'bold 38px sans-serif';
+      ctx.fillText('GASTSTÄTTE & SPARTENHEIM', width / 2, 260);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 64px serif';
+      ctx.fillText('Naturfreunde Schönheide', width / 2, 335);
+
+      // Divider Line
+      ctx.strokeStyle = '#c59f2d';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(width / 2 - 150, 365);
+      ctx.lineTo(width / 2 + 150, 365);
+      ctx.stroke();
+
+      // Date Badge
+      ctx.fillStyle = '#f0e9da';
+      ctx.font = '600 42px sans-serif';
+      ctx.fillText(`📅 ${formattedDate}`, width / 2, 440);
+
+      // Main Status Card Box
+      const isClosed = displayText.toLowerCase().includes('geschlossen') || displayText.toLowerCase().includes('ruhetag');
+      const boxBg = isClosed ? 'rgba(180, 40, 40, 0.88)' : 'rgba(30, 75, 30, 0.90)';
+      const boxBorder = isClosed ? '#e74c3c' : '#c59f2d';
+
+      ctx.fillStyle = boxBg;
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(100, 520, width - 200, 320, 24);
+        ctx.fill();
+        ctx.strokeStyle = boxBorder;
+        ctx.lineWidth = 4;
+        ctx.stroke();
+      } else {
+        ctx.fillRect(100, 520, width - 200, 320);
+        ctx.strokeStyle = boxBorder;
+        ctx.lineWidth = 4;
+        ctx.strokeRect(100, 520, width - 200, 320);
+      }
+
+      // Status Text Inside Box
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 48px sans-serif';
+
+      const words = displayText.split(' ');
+      let line1 = '';
+      let line2 = '';
+      for (let w of words) {
+        if ((line1 + ' ' + w).length > 25) {
+          line2 += w + ' ';
+        } else {
+          line1 += w + ' ';
+        }
+      }
+
+      if (line2.trim()) {
+        ctx.fillText(line1.trim(), width / 2, 640);
+        ctx.fillText(line2.trim(), width / 2, 720);
+      } else {
+        ctx.fillText(displayText, width / 2, 685);
+      }
+
+      // Footer Info
+      ctx.fillStyle = '#d0c8b5';
+      ctx.font = '400 32px sans-serif';
+      ctx.fillText('📍 Gartenweg 12 | 08304 Schönheide', width / 2, 940);
+
+      ctx.fillStyle = '#c59f2d';
+      ctx.font = 'bold 34px sans-serif';
+      ctx.fillText('🌐 www.naturfreundeschoenheide.de', width / 2, 990);
+
+      // Update Download Link & Share Text
+      const downloadBtn = document.getElementById('social-gen-download');
+      if (downloadBtn) {
+        downloadBtn.href = canvas.toDataURL('image/png');
+      }
+
+      const textVal = `🌲 Gaststätte Spartenheim Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}:\n${displayText}\n\n📍 Gartenweg 12, 08304 Schönheide\n🌐 Öffnungszeiten & Termine: https://paulus-digital.github.io/naturfreundeschoenheide/`;
+      const textArea = document.getElementById('social-gen-text');
+      if (textArea) textArea.value = textVal;
+
+      const waBtn = document.getElementById('social-gen-wa-link');
+      if (waBtn) {
+        waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(textVal)}`;
+      }
+    };
+
+    if (logoImg.complete) {
+      drawContent();
+    } else {
+      logoImg.onload = drawContent;
+      logoImg.onerror = drawContent;
+    }
+  };
+
+  if (img.complete) {
+    renderCanvas();
+  } else {
+    img.onload = renderCanvas;
+    img.onerror = renderCanvas;
+  }
+}
+
+function copySocialGenText() {
+  const textArea = document.getElementById('social-gen-text');
+  if (!textArea || !textArea.value) return;
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(textArea.value).then(() => {
+      showToast('✅ Text in Zwischenablage kopiert!', 'success');
+    });
+  } else {
+    textArea.select();
+    document.execCommand('copy');
+    showToast('✅ Text in Zwischenablage kopiert!', 'success');
   }
 }
 
@@ -301,13 +617,18 @@ function populateHoursTab() {
     });
   }
 
-  // 2. Special/Deviating hours list
+  // 2. Special/Deviating hours list (filter out past dates)
   const specialList = document.getElementById('admin-special-hours-list');
   if (specialList) {
     specialList.innerHTML = '';
 
-    if (!pageData.specialHours || pageData.specialHours.length === 0) {
-      specialList.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine Sonderöffnungszeiten geplant.</p>';
+    if (!pageData.specialHours) pageData.specialHours = [];
+
+    // Automatically remove past special hours so stored list does not grow infinitely
+    pageData.specialHours = pageData.specialHours.filter(item => !isDatePast(item.date));
+
+    if (pageData.specialHours.length === 0) {
+      specialList.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine anstehenden Sonderöffnungszeiten geplant.</p>';
       return;
     }
 
@@ -315,15 +636,27 @@ function populateHoursTab() {
       const row = document.createElement('div');
       row.className = 'admin-item-row';
 
-      const date = new Date(item.date);
-      const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const dateParts = item.date ? item.date.split('-') : [];
+      let dateStr = item.date;
+      if (dateParts.length === 3) {
+        const d = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        dateStr = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      }
+
+      const isClosed = item.hours && (item.hours.toLowerCase().includes('ruhetag') || item.hours.toLowerCase().includes('geschlossen'));
+      const badgeStyle = isClosed 
+        ? 'background: rgba(217, 83, 79, 0.15); color: #d9534f; border: 1px solid rgba(217,83,79,0.3);' 
+        : 'background: rgba(197, 159, 45, 0.15); color: var(--primary-dark); border: 1px solid rgba(197, 159, 45, 0.3);';
 
       row.innerHTML = `
         <div class="admin-item-details">
-          <span class="admin-item-date" style="font-size:0.9rem; font-weight:700;">${dateStr}</span>
-          <span class="admin-item-label">${escapeHTML(item.hours)} ${item.label ? '(' + escapeHTML(item.label) + ')' : ''}</span>
+          <span class="admin-item-date" style="font-size:0.9rem; font-weight:700; white-space: nowrap;">${dateStr}</span>
+          <span class="admin-item-label">
+            <strong>${escapeHTML(item.hours)}</strong>
+            ${item.label ? `<span class="special-hours-badge-inline" style="margin-left: 6px; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; ${badgeStyle}">${escapeHTML(item.label)}</span>` : ''}
+          </span>
         </div>
-        <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem;" onclick="deleteSpecialHours(${index})">Löschen</button>
+        <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem; flex-shrink: 0;" onclick="deleteSpecialHours(${index})">Löschen</button>
       `;
       specialList.appendChild(row);
     });
@@ -336,8 +669,16 @@ function populateCalendarTab() {
 
   list.innerHTML = '';
   
-  if (!pageData.planner || pageData.planner.length === 0) {
-    list.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine Einträge vorhanden.</p>';
+  if (!pageData.planner) pageData.planner = [];
+
+  // Filter out past entries so list stays clean
+  pageData.planner = pageData.planner.filter(item => {
+    const endStr = item.endDate || item.startDate || item.date;
+    return !isDatePast(endStr);
+  });
+
+  if (pageData.planner.length === 0) {
+    list.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine anstehenden Termine vorhanden.</p>';
     return;
   }
 
@@ -723,6 +1064,15 @@ async function addManualReview() {
 }
 
 function populateSettingsTab() {
+  if (pageData.contact) {
+    const phoneEl = document.getElementById('admin-contact-phone');
+    const emailEl = document.getElementById('admin-contact-email');
+    const inhaberEl = document.getElementById('admin-contact-inhaber');
+    if (phoneEl) phoneEl.value = pageData.contact.phone || '';
+    if (emailEl) emailEl.value = pageData.contact.email || '';
+    if (inhaberEl) inhaberEl.value = pageData.contact.inhaber || '';
+  }
+
   const container = document.getElementById('hero-slides-admin');
   if (!container) return;
 
@@ -878,25 +1228,116 @@ function escapeHTML(str) {
   );
 }
 
+// Special hours type switcher & checkbox handlers
+function handleSpecialTypeChange() {
+  const selectedType = document.querySelector('input[name="special-type-radio"]:checked')?.value || 'hours';
+  const timePickerGroup = document.getElementById('special-time-picker-group');
+  const customTextGroup = document.getElementById('special-custom-text-group');
+  const closedChk = document.getElementById('special-is-closed-chk');
+  const eventChk = document.getElementById('special-is-event-chk');
+  const labelInput = document.getElementById('new-special-label');
+
+  if (selectedType === 'closed') {
+    if (timePickerGroup) timePickerGroup.style.display = 'none';
+    if (customTextGroup) customTextGroup.style.display = 'none';
+    if (closedChk) closedChk.checked = true;
+    if (eventChk) eventChk.checked = false;
+  } else if (selectedType === 'event') {
+    if (timePickerGroup) timePickerGroup.style.display = 'block';
+    if (customTextGroup) customTextGroup.style.display = 'none';
+    if (closedChk) closedChk.checked = false;
+    if (eventChk) eventChk.checked = true;
+    if (labelInput && !labelInput.value.trim()) {
+      labelInput.placeholder = 'z.B. Sommerevent, Live-Musik, Feiertag';
+    }
+  } else if (selectedType === 'custom') {
+    if (timePickerGroup) timePickerGroup.style.display = 'none';
+    if (customTextGroup) customTextGroup.style.display = 'block';
+    if (closedChk) closedChk.checked = false;
+    if (eventChk) eventChk.checked = false;
+  } else {
+    // 'hours'
+    if (timePickerGroup) timePickerGroup.style.display = 'block';
+    if (customTextGroup) customTextGroup.style.display = 'none';
+    if (closedChk) closedChk.checked = false;
+    if (eventChk) eventChk.checked = false;
+  }
+}
+
+function handleSpecialCheckboxChange(type) {
+  const closedChk = document.getElementById('special-is-closed-chk');
+  const eventChk = document.getElementById('special-is-event-chk');
+  const radioClosed = document.getElementById('type-radio-closed');
+  const radioEvent = document.getElementById('type-radio-event');
+  const radioHours = document.getElementById('type-radio-hours');
+
+  if (type === 'closed') {
+    if (closedChk && closedChk.checked) {
+      if (eventChk) eventChk.checked = false;
+      if (radioClosed) radioClosed.checked = true;
+    } else {
+      if (radioHours) radioHours.checked = true;
+    }
+  } else if (type === 'event') {
+    if (eventChk && eventChk.checked) {
+      if (closedChk) closedChk.checked = false;
+      if (radioEvent) radioEvent.checked = true;
+    } else {
+      if (radioHours) radioHours.checked = true;
+    }
+  }
+  handleSpecialTypeChange();
+}
+
 // Special hours additions & deletions
 async function addNewSpecialHours() {
   const dateInput = document.getElementById('new-special-date');
-  const hoursInput = document.getElementById('new-special-hours');
   const labelInput = document.getElementById('new-special-label');
+  const selectedType = document.querySelector('input[name="special-type-radio"]:checked')?.value || 'hours';
+  const closedChk = document.getElementById('special-is-closed-chk');
+  const eventChk = document.getElementById('special-is-event-chk');
 
-  if (!dateInput || !hoursInput) return;
-
-  if (!dateInput.value || !hoursInput.value.trim()) {
-    alert('Bitte wählen Sie ein Datum und tragen Sie die abweichende Öffnungszeit ein.');
+  if (!dateInput || !dateInput.value) {
+    alert('Bitte wählen Sie ein Datum aus.');
     return;
+  }
+
+  let finalHours = '';
+
+  if ((closedChk && closedChk.checked) || selectedType === 'closed') {
+    finalHours = 'Ruhetag';
+  } else if (selectedType === 'custom') {
+    const customVal = document.getElementById('new-special-hours-custom')?.value.trim();
+    if (!customVal) {
+      alert('Bitte geben Sie die abweichende Öffnungszeit ein.');
+      return;
+    }
+    finalHours = customVal;
+  } else {
+    // hours or event mode
+    const startTime = document.getElementById('new-special-time-start')?.value;
+    const endTime = document.getElementById('new-special-time-end')?.value;
+
+    if (startTime && endTime) {
+      finalHours = `${startTime} - ${endTime}`;
+    } else if (startTime) {
+      finalHours = `ab ${startTime} Uhr`;
+    } else {
+      finalHours = 'Ruhetag';
+    }
+  }
+
+  let finalLabel = labelInput ? labelInput.value.trim() : '';
+  if (!finalLabel && ((eventChk && eventChk.checked) || selectedType === 'event')) {
+    finalLabel = 'Besonderes Event';
   }
 
   if (!pageData.specialHours) pageData.specialHours = [];
 
   const newEntry = {
     date: dateInput.value,
-    hours: hoursInput.value.trim(),
-    label: labelInput ? labelInput.value.trim() : ''
+    hours: finalHours,
+    label: finalLabel
   };
 
   pageData.specialHours.push(newEntry);
@@ -906,9 +1347,15 @@ async function addNewSpecialHours() {
 
   // Reset input fields
   dateInput.value = '';
-  hoursInput.value = '';
   if (labelInput) labelInput.value = '';
+  const radioHours = document.getElementById('type-radio-hours');
+  if (radioHours) radioHours.checked = true;
+  if (closedChk) closedChk.checked = false;
+  if (eventChk) eventChk.checked = false;
+  const customInput = document.getElementById('new-special-hours-custom');
+  if (customInput) customInput.value = '';
 
+  handleSpecialTypeChange();
   populateHoursTab();
   await commitDataChange('Admin Panel: Sonderöffnungszeit geplant');
 }

@@ -578,16 +578,18 @@ function renderYearView() {
     return;
   }
 
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const now = new Date();
 
   const events = appData.planner
     .filter(event => {
-      const end = new Date(event.endDate || event.startDate || event.date);
-      end.setHours(0,0,0,0);
-      return end >= yesterday;
+      const endStr = event.endDate || event.startDate || event.date;
+      if (!endStr) return true;
+      const parts = endStr.split('-');
+      if (parts.length === 3) {
+        const end = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 23, 59, 59, 999);
+        return end >= now;
+      }
+      return true;
     })
     .sort((a, b) => new Date(a.startDate || a.date) - new Date(b.startDate || b.date));
 
@@ -1069,4 +1071,66 @@ function escapeHTML(str) {
       '"': '&quot;'
     }[tag] || tag)
   );
+}
+
+// ----------------------------------------------------
+// FRONTEND PAGE SHARE FEATURE
+// ----------------------------------------------------
+async function sharePage() {
+  const title = 'Gaststätte Spartenheim Naturfreunde Schönheide';
+  const text = 'Besucht das Spartenheim Naturfreunde in Schönheide! Hier findet ihr aktuelle Öffnungszeiten & Termine:';
+  const url = window.location.href;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, text, url });
+      return;
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        openShareModal();
+      }
+    }
+  } else {
+    openShareModal();
+  }
+}
+
+function openShareModal() {
+  const modal = document.getElementById('share-modal');
+  if (!modal) return;
+  
+  const text = 'Besucht das Spartenheim Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + window.location.href;
+  const modalText = document.getElementById('share-modal-text');
+  if (modalText) modalText.textContent = text;
+
+  const waBtn = document.getElementById('share-wa-btn');
+  if (waBtn) waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+
+  const fbBtn = document.getElementById('share-fb-btn');
+  if (fbBtn) fbBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+
+  modal.classList.add('active');
+}
+
+function closeShareModal() {
+  const modal = document.getElementById('share-modal');
+  if (modal) modal.classList.remove('active');
+}
+
+function copyShareLink() {
+  const text = 'Besucht das Spartenheim Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + window.location.href;
+  
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('✅ Link & Text erfolgreich in die Zwischenablage kopiert!');
+    });
+  } else {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    alert('✅ Link & Text erfolgreich in die Zwischenablage kopiert!');
+  }
 }

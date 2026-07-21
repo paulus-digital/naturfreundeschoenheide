@@ -2568,6 +2568,114 @@ input:checked + .slider:before {
   gap: 2px;
 }
 
+/* Special Opening Hours Admin Responsive Styles */
+.special-hours-card {
+  width: 100%;
+  max-width: 600px;
+  box-sizing: border-box;
+  margin-bottom: 30px;
+  border-color: var(--accent);
+}
+
+.special-hours-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group.span-full {
+  grid-column: 1 / -1;
+}
+
+.time-picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.special-type-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.type-pill-btn {
+  flex: 1 1 calc(50% - 6px);
+  min-width: 130px;
+  position: relative;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.type-pill-btn input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.type-pill-btn span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  background-color: var(--bg-cream);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  text-align: center;
+  transition: all 0.2s ease;
+  user-select: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.type-pill-btn input[type="radio"]:checked + span {
+  background-color: var(--primary);
+  color: var(--bg-cream);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.type-pill-btn:hover span {
+  border-color: var(--accent);
+}
+
+.special-checkbox-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--text-dark);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
 /* Mobile optimizations for Admin Header and listings */
 @media (max-width: 600px) {
   .admin-logo {
@@ -2590,20 +2698,111 @@ input:checked + .slider:before {
     padding: 10px 0 !important;
   }
   
+  .time-picker-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .type-pill-btn {
+    flex: 1 1 100%;
+  }
+
   /* Stack list rows in admin list on small screens */
   .admin-item-row {
     flex-direction: column;
     align-items: stretch !important;
-    gap: 12px;
-    padding: 16px;
+    gap: 10px;
+    padding: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
   .admin-item-details {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
+    width: 100%;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
   .admin-item-row button {
     align-self: flex-end;
     width: auto;
   }
+}
+
+@media (max-width: 480px) {
+  .admin-main {
+    padding: 16px 12px !important;
+  }
+  .card {
+    padding: 20px 14px !important;
+  }
+}
+
+/* Social Media Generator Admin Canvas Styles */
+.social-gen-card {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 30px;
+}
+
+.social-canvas-wrapper {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border: 2px solid var(--accent);
+  background-color: #0e1f0c;
+}
+
+#social-graphic-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Share Modal & Frontend Share Buttons */
+.share-modal-content {
+  background-color: var(--bg-white);
+  border-radius: var(--radius-md);
+  padding: 32px 24px;
+  max-width: 520px;
+  width: 92%;
+  position: relative;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+.hero-btn-share {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-light);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+
+.hero-btn-share:hover {
+  background-color: rgba(255, 255, 255, 0.28);
+  border-color: var(--bg-cream);
+  color: var(--text-light);
+}
+
+.nav-share-btn {
+  background: none;
+  border: 1px solid var(--accent);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--primary-dark);
+  transition: var(--transition);
+  font-size: 0.9rem;
+}
+
+.nav-share-btn:hover {
+  background-color: var(--accent);
+  color: var(--text-light);
 }

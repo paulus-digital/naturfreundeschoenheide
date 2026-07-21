@@ -129,23 +129,65 @@
             </label>
             <span>Banner auf Website einblenden</span>
           </div>
-          <label for="admin-banner-text">Meldungstext</label>
-          <textarea id="admin-banner-text" class="form-control" placeholder="z.B. Urlaub vom 01.08. bis 14.08."></textarea>
-        </div>
+        <hr style="border: 0; border-top: 1px solid var(--border-warm); margin: 35px 0;">
 
-        <h3 style="margin-top: 30px; margin-bottom: 16px;">Kontaktdaten</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="admin-contact-phone">Telefonnummer</label>
-            <input type="text" id="admin-contact-phone" class="form-control">
+        <!-- SOCIAL MEDIA GRAPHIC & SHARE TEXT GENERATOR -->
+        <div class="card social-gen-card">
+          <h3 style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--primary-dark);">
+            <span>📱</span> Social-Media Grafik &amp; Share-Text Generator
+          </h3>
+          <p class="text-muted" style="margin-bottom: 20px; font-size: 0.9rem;">
+            Erstellen Sie mit einem Klick ein fertiges Status-Bild (für WhatsApp, Instagram, Facebook) und den passenden Einladungstext für ein beliebiges Datum.
+          </p>
+
+          <div class="special-hours-grid">
+            <div class="form-group">
+              <label for="social-gen-date">Datum wählen *</label>
+              <input type="date" id="social-gen-date" class="form-control" onchange="updateSocialGraphic()">
+            </div>
+
+            <div class="form-group">
+              <label for="social-gen-bg">Hintergrundbild</label>
+              <select id="social-gen-bg" class="form-control" onchange="updateSocialGraphic()">
+                <option value="default">Standard (Gaststätte &amp; Naturfreunde)</option>
+                <option value="logo">Naturfreunde Wappen &amp; Logo</option>
+                <!-- Slideshow images dynamically added -->
+              </select>
+            </div>
+
+            <div class="form-group span-full">
+              <label for="social-gen-status-text">Angezeigter Status / Öffnungszeit (automatisch ermittelt, anpassbar)</label>
+              <input type="text" id="social-gen-status-text" class="form-control" placeholder="z.B. Heute geöffnet: 11:30 - 21:00 Uhr" oninput="updateSocialGraphic(true)">
+            </div>
           </div>
-          <div class="form-group">
-            <label for="admin-contact-email">E-Mail Adresse</label>
-            <input type="email" id="admin-contact-email" class="form-control">
+
+          <!-- Vorschau Canvas -->
+          <div style="margin-top: 24px; text-align: center;">
+            <h5 style="margin-bottom: 12px; text-align: left; color: var(--primary-dark);">Grafik-Vorschau (HD Quadrat 1:1)</h5>
+            <div class="social-canvas-wrapper">
+              <canvas id="social-graphic-canvas" width="1080" height="1080"></canvas>
+            </div>
+            
+            <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <a id="social-gen-download" download="naturfreunde_status.png" href="#" class="admin-btn admin-btn-primary" style="display: flex; align-items: center; gap: 8px; text-decoration: none; padding: 12px 20px;">
+                <span>📷 Grafik als Bild herunterladen</span>
+              </a>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="admin-contact-inhaber">Inhaber/in</label>
-            <input type="text" id="admin-contact-inhaber" class="form-control">
+
+          <!-- Share Text & Buttons -->
+          <div style="margin-top: 28px; border-top: 1px solid var(--border); padding-top: 20px;">
+            <h5 style="margin-bottom: 10px; color: var(--primary-dark);">Passender Text für WhatsApp &amp; Social Media</h5>
+            <textarea id="social-gen-text" class="form-control" rows="5" style="font-family: monospace; font-size: 0.9rem; margin-bottom: 16px; background-color: var(--bg-cream);"></textarea>
+            
+            <div class="social-gen-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <button type="button" onclick="copySocialGenText()" class="admin-btn admin-btn-primary" style="display: flex; align-items: center; gap: 8px; padding: 12px 20px;">
+                <span>📋 Text in Zwischenablage kopieren</span>
+              </button>
+              <a id="social-gen-wa-link" target="_blank" href="#" class="admin-btn" style="background-color: #25D366; color: white; display: flex; align-items: center; gap: 8px; text-decoration: none; padding: 12px 20px; font-weight: 600;">
+                <span>💬 Auf WhatsApp teilen</span>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -175,23 +217,81 @@
           Diese überschreiben an dem jeweiligen Datum die Standard-Öffnungszeiten und werden im Live-Status sowie bei den Öffnungszeiten angezeigt.
         </p>
 
-        <div class="card" style="margin-bottom: 30px; border-color: var(--accent); max-width: 600px;">
-          <h4 style="margin-bottom: 16px;">Sonderöffnungszeit hinzufügen</h4>
-          <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
-            <div class="form-group">
-              <label for="new-special-date">Datum</label>
-              <input type="date" id="new-special-date" class="form-control">
+        <div class="card special-hours-card">
+          <h4 style="margin-bottom: 16px; color: var(--primary-dark);">Sonderöffnungszeit hinzufügen</h4>
+          
+          <div class="special-hours-grid">
+            <!-- 1. Datum Picker -->
+            <div class="form-group span-full">
+              <label for="new-special-date">Datum *</label>
+              <input type="date" id="new-special-date" class="form-control" required>
             </div>
-            <div class="form-group">
-              <label for="new-special-hours">Öffnungszeit / Status</label>
-              <input type="text" id="new-special-hours" class="form-control" placeholder="z.B. 11:30 - 21:00 oder Ruhetag">
+
+            <!-- 2. Art / Status Radio Pills -->
+            <div class="form-group span-full">
+              <label style="margin-bottom: 8px;">Art der Regelung *</label>
+              <div class="special-type-pills">
+                <label class="type-pill-btn">
+                  <input type="radio" name="special-type-radio" id="type-radio-hours" value="hours" checked onchange="handleSpecialTypeChange()">
+                  <span>🕒 Uhrzeiten (Geöffnet)</span>
+                </label>
+                <label class="type-pill-btn">
+                  <input type="radio" name="special-type-radio" id="type-radio-closed" value="closed" onchange="handleSpecialTypeChange()">
+                  <span>🚫 Ruhetag / Geschlossen</span>
+                </label>
+                <label class="type-pill-btn">
+                  <input type="radio" name="special-type-radio" id="type-radio-event" value="event" onchange="handleSpecialTypeChange()">
+                  <span>🎉 Event / Veranstaltung</span>
+                </label>
+                <label class="type-pill-btn">
+                  <input type="radio" name="special-type-radio" id="type-radio-custom" value="custom" onchange="handleSpecialTypeChange()">
+                  <span>✍️ Manuelle Eingabe</span>
+                </label>
+              </div>
             </div>
-            <div class="form-group" style="grid-column: span 2;">
+
+            <!-- 3. Time Pickers (Von / Bis) -->
+            <div id="special-time-picker-group" class="form-group span-full">
+              <div class="time-picker-grid">
+                <div class="form-group">
+                  <label for="new-special-time-start">Von (Uhrzeit)</label>
+                  <input type="time" id="new-special-time-start" class="form-control" value="11:30">
+                </div>
+                <div class="form-group">
+                  <label for="new-special-time-end">Bis (Uhrzeit)</label>
+                  <input type="time" id="new-special-time-end" class="form-control" value="21:00">
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Custom Freitext Input (hidden unless 'custom' mode selected) -->
+            <div id="special-custom-text-group" class="form-group span-full" style="display: none;">
+              <label for="new-special-hours-custom">Abweichende Öffnungszeit (Text)</label>
+              <input type="text" id="new-special-hours-custom" class="form-control" placeholder="z.B. 11:30 - 14:30 &amp; 17:00 - 22:00">
+            </div>
+
+            <!-- 5. Direct Checkboxes for Ruhetag and Event -->
+            <div class="form-group span-full">
+              <div class="special-checkbox-row">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="special-is-closed-chk" onchange="handleSpecialCheckboxChange('closed')">
+                  <span>Als Ruhetag markieren (Geschlossen)</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="special-is-event-chk" onchange="handleSpecialCheckboxChange('event')">
+                  <span>Als besonderes Event markieren</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 6. Zusatzinfo / Anlass -->
+            <div class="form-group span-full">
               <label for="new-special-label">Zusatzinfo / Anlass (optional)</label>
               <input type="text" id="new-special-label" class="form-control" placeholder="z.B. Karfreitag, Betriebsferien, Private Feier">
             </div>
           </div>
-          <button class="admin-btn admin-btn-primary" style="width: auto; margin-top: 16px;" onclick="addNewSpecialHours()">Sonderzeit speichern</button>
+
+          <button class="admin-btn admin-btn-primary" style="width: 100%; margin-top: 20px; font-size: 1rem; padding: 12px 20px;" onclick="addNewSpecialHours()">Sonderzeit speichern</button>
         </div>
 
         <h4 style="margin-top: 30px; margin-bottom: 12px;">Geplante Sonderöffnungszeiten</h4>
@@ -218,7 +318,7 @@
               <label for="new-event-end-date">Enddatum (bis, optional)</label>
               <input type="date" id="new-event-end-date" class="form-control" placeholder="Nur für Zeitspannen">
             </div>
-            <div class="form-group" style="grid-column: span 2;">
+            <div class="form-group span-full">
               <label for="new-event-status">Status / Belegung</label>
               <select id="new-event-status" class="form-control">
                 <option value="open">Geöffnet</option>
@@ -317,6 +417,26 @@
       <section id="panel-settings" class="panel-section">
         <div class="panel-header">
           <h2 class="panel-title">Website-Einstellungen</h2>
+        </div>
+
+        <!-- Kontaktdaten Card -->
+        <div class="card" style="margin-bottom: 30px;">
+          <h4 style="margin-bottom: 12px;">Kontaktdaten</h4>
+          <p class="text-muted" style="margin-bottom: 16px; font-size: 0.9rem;">Verwalten Sie Ihre Telefonnummer, E-Mail-Adresse und den Inhabernamen.</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="admin-contact-phone">Telefonnummer</label>
+              <input type="text" id="admin-contact-phone" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="admin-contact-email">E-Mail Adresse</label>
+              <input type="email" id="admin-contact-email" class="form-control">
+            </div>
+            <div class="form-group span-full">
+              <label for="admin-contact-inhaber">Inhaber/in</label>
+              <input type="text" id="admin-contact-inhaber" class="form-control">
+            </div>
+          </div>
         </div>
 
         <div class="card" style="margin-bottom: 30px;">
