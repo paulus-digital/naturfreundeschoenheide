@@ -355,7 +355,7 @@ function applySpecialPreset(presetType) {
   }
 
   handleSpecialTypeChange();
-  showToast('⚡ Vorlage übernommen! Prüfen Sie das Datum und klicken Sie auf Speichern.', 'info');
+  showToast('⚡ Vorlage übernommen! Prüfe das Datum und klicke auf Speichern.', 'info');
 }
 
 // ----------------------------------------------------
