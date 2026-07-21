@@ -276,10 +276,18 @@
           </div>
 
           <div class="special-hours-grid">
-            <!-- 1. Datum Picker -->
+            <!-- 1. Datum Picker (Von & Bis für Zeiträume/Urlaub) -->
             <div class="form-group span-full">
-              <label for="new-special-date">Datum *</label>
-              <input type="date" id="new-special-date" class="form-control" required>
+              <div class="time-picker-grid">
+                <div class="form-group">
+                  <label for="new-special-date">Von Datum (Start) *</label>
+                  <input type="date" id="new-special-date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label for="new-special-date-end">Bis Datum (Ende, z.B. für Urlaub)</label>
+                  <input type="date" id="new-special-date-end" class="form-control" placeholder="Nur für Zeitraum">
+                </div>
+              </div>
             </div>
 
             <!-- 2. Art / Status Radio Pills -->

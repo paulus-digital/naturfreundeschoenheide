@@ -1394,13 +1394,22 @@ function handleSpecialCheckboxChange(type) {
 // Special hours additions & deletions
 async function addNewSpecialHours() {
   const dateInput = document.getElementById('new-special-date');
+  const dateEndInput = document.getElementById('new-special-date-end');
   const labelInput = document.getElementById('new-special-label');
   const selectedType = document.querySelector('input[name="special-type-radio"]:checked')?.value || 'hours';
   const closedChk = document.getElementById('special-is-closed-chk');
   const eventChk = document.getElementById('special-is-event-chk');
 
   if (!dateInput || !dateInput.value) {
-    alert('Bitte wählen Sie ein Datum aus.');
+    alert('Bitte wähle ein Startdatum aus.');
+    return;
+  }
+
+  const startDateStr = dateInput.value;
+  const endDateStr = dateEndInput ? dateEndInput.value : '';
+
+  if (endDateStr && new Date(endDateStr) < new Date(startDateStr)) {
+    alert('Das Bis-Datum darf nicht vor dem Von-Datum liegen.');
     return;
   }
 
@@ -1411,7 +1420,7 @@ async function addNewSpecialHours() {
   } else if (selectedType === 'custom') {
     const customVal = document.getElementById('new-special-hours-custom')?.value.trim();
     if (!customVal) {
-      alert('Bitte geben Sie die abweichende Öffnungszeit ein.');
+      alert('Bitte gib die abweichende Öffnungszeit ein.');
       return;
     }
     finalHours = customVal;
@@ -1436,19 +1445,43 @@ async function addNewSpecialHours() {
 
   if (!pageData.specialHours) pageData.specialHours = [];
 
-  const newEntry = {
-    date: dateInput.value,
-    hours: finalHours,
-    label: finalLabel
-  };
-
-  pageData.specialHours.push(newEntry);
+  if (endDateStr && endDateStr > startDateStr) {
+    // Range selected (e.g. Betriebsferien / Urlaub vom 01.08. bis 14.08.)
+    const curr = new Date(startDateStr);
+    const stop = new Date(endDateStr);
+    while (curr <= stop) {
+      const formattedCurr = curr.toISOString().split('T')[0];
+      // Avoid duplicate for same date
+      const existingIdx = pageData.specialHours.findIndex(h => h.date === formattedCurr);
+      if (existingIdx !== -1) {
+        pageData.specialHours.splice(existingIdx, 1);
+      }
+      pageData.specialHours.push({
+        date: formattedCurr,
+        hours: finalHours,
+        label: finalLabel
+      });
+      curr.setDate(curr.getDate() + 1);
+    }
+  } else {
+    // Single date
+    const existingIdx = pageData.specialHours.findIndex(h => h.date === startDateStr);
+    if (existingIdx !== -1) {
+      pageData.specialHours.splice(existingIdx, 1);
+    }
+    pageData.specialHours.push({
+      date: startDateStr,
+      hours: finalHours,
+      label: finalLabel
+    });
+  }
 
   // Sort by date (chronological order)
   pageData.specialHours.sort((a, b) => new Date(a.date) - new Date(b.date));
 
   // Reset input fields
   dateInput.value = '';
+  if (dateEndInput) dateEndInput.value = '';
   if (labelInput) labelInput.value = '';
   const radioHours = document.getElementById('type-radio-hours');
   if (radioHours) radioHours.checked = true;
