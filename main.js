@@ -760,9 +760,12 @@ function selectCalendarDay(dateObj, event) {
   }
 
   let actionButtonHtml = '';
-  if (statusKey === 'free' || statusKey === 'open' || statusKey === 'reservation') {
+  if (statusKey === 'free' || statusKey === 'open' || statusKey === 'reservation' || statusKey === 'request') {
     actionButtonHtml = `
-      <a href="tel:${phone.replace(/\s+/g, '')}" class="details-action-btn">Jetzt Tisch anfragen (Anrufen: ${phone})</a>
+      <a href="tel:${phone.replace(/\s+/g, '')}" class="details-action-btn">
+        <span class="details-btn-title">Tisch &amp; Feier anfragen</span>
+        <span class="details-btn-phone">📞 Anrufen: ${phone}</span>
+      </a>
     `;
   }
 
