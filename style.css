@@ -2088,6 +2088,7 @@ input:checked + .slider:before {
 
 /* Day statuses inside grid */
 .calendar-day.status-free { border-left-color: var(--success); }
+.calendar-day.status-request { border-left-color: #0288d1; background-color: rgba(2, 136, 209, 0.04); }
 .calendar-day.status-booked { border-left-color: var(--danger); background-color: rgba(220, 38, 38, 0.03); }
 .calendar-day.status-closed { border-left-color: #6b7280; background-color: rgba(107, 114, 128, 0.03); }
 .calendar-day.status-holiday { border-left-color: var(--warning); background-color: rgba(234, 88, 12, 0.03); }
@@ -2175,10 +2176,13 @@ input:checked + .slider:before {
 }
 
 .legend-dot.status-free { background-color: var(--success); }
+.legend-dot.status-request { background-color: #0288d1; }
 .legend-dot.status-booked { background-color: var(--danger); }
 .legend-dot.status-closed { background-color: #6b7280; }
 .legend-dot.status-holiday { background-color: var(--warning); }
 .legend-dot.status-event { background-color: #6a1b9a; }
+.calendar-day-status-indicator.status-request { background-color: #0288d1; }
+.details-status-badge.request { background-color: rgba(2, 136, 209, 0.15); color: #0288d1; }
 
 .calendar-details-box {
   margin-top: 20px;
@@ -2817,4 +2821,159 @@ input:checked + .slider:before {
 .nav-share-btn:hover {
   background-color: var(--accent);
   color: var(--text-light);
+}
+
+/* ====================================================
+   SENIOR-FRIENDLY & EASY ADMIN UI STYLES
+   ==================================================== */
+
+/* Easy Help Box */
+.easy-help-box {
+  background-color: #fffde7;
+  border: 1px solid #ffe082;
+  border-left: 5px solid #ffb300;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 24px;
+  font-size: 0.98rem;
+  color: #424242;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.easy-help-box span {
+  font-size: 1.4rem;
+  flex: 0 0 auto;
+}
+
+/* Quick Action Grid & Cards */
+.easy-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.easy-quick-card {
+  background-color: var(--bg-white);
+  border: 2px solid var(--border-warm);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: var(--shadow-sm);
+}
+
+.easy-quick-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  background-color: #faf7f2;
+}
+
+.quick-card-icon {
+  font-size: 2rem;
+  flex: 0 0 auto;
+}
+
+.quick-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.quick-card-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--primary-dark);
+}
+
+.quick-card-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.quick-card-status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-card-btn {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--primary);
+}
+
+/* 1-Click Presets Box */
+.easy-presets-box {
+  background-color: #f5f7f4;
+  border: 1px dashed var(--primary-light);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 22px;
+}
+
+.presets-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--primary-dark);
+  margin-bottom: 10px;
+}
+
+.presets-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.btn-preset {
+  background-color: var(--bg-white);
+  border: 1.5px solid var(--border);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-preset:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-preset-closed:hover {
+  background-color: #ffebee;
+  border-color: #e57373;
+}
+
+.btn-preset-open:hover {
+  background-color: #e8f5e9;
+  border-color: #81c784;
+}
+
+.btn-preset-event:hover {
+  background-color: #fff8e1;
+  border-color: #ffd54f;
+}
+
+.btn-preset-holiday:hover {
+  background-color: #e0f7fa;
+  border-color: #4dd0e1;
 }

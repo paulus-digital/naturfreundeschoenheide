@@ -453,7 +453,7 @@ function getEventsForDate(dateObj) {
   return events;
 }
 
-const STATUS_PRIORITY = ['event', 'booked', 'holiday', 'closed', 'reservation', 'open', 'free'];
+const STATUS_PRIORITY = ['event', 'booked', 'holiday', 'closed', 'request', 'reservation', 'open', 'free'];
 
 function summarizeStatus(events) {
   if (!events || events.length === 0) return 'free';
@@ -466,15 +466,18 @@ function summarizeStatus(events) {
 
 // Determine whether a given date is an "open" day based on configured opening hours.
 // Returns the status key used when there is NO planner event for that day:
-// 'free' (open / reservation possible) or 'closed' (Ruhetag).
+// 'free' (open / reservation possible), 'request' (Nur auf Anfrage), or 'closed' (Ruhetag).
 function getOpenStatusForDate(dateObj) {
   if (appData.specialHours) {
     const dateStr = formatDateToYYYYMMDD(dateObj);
     const specialMatch = appData.specialHours.find(h => h.date === dateStr);
     if (specialMatch) {
-      const hLower = specialMatch.hours.toLowerCase();
+      const hLower = (specialMatch.hours || '').toLowerCase();
       if (hLower.includes('ruhetag') || hLower.includes('geschlossen') || hLower.includes('nicht geöffnet')) {
         return 'closed';
+      }
+      if (hLower.includes('anfrage')) {
+        return 'request';
       }
       return 'free';
     }
@@ -483,8 +486,10 @@ function getOpenStatusForDate(dateObj) {
   if (!appData.openingHours) return 'free';
   const dayName = GERMAN_DAYS[dateObj.getDay()];
   const match = appData.openingHours.find(h => h.day && h.day.toLowerCase() === dayName.toLowerCase());
-  if (match && match.hours && match.hours.toLowerCase().includes('ruhetag')) {
-    return 'closed';
+  if (match && match.hours) {
+    const hLower = match.hours.toLowerCase();
+    if (hLower.includes('ruhetag')) return 'closed';
+    if (hLower.includes('anfrage')) return 'request';
   }
   return 'free';
 }
@@ -699,15 +704,19 @@ function selectCalendarDay(dateObj, event) {
       'closed': 'Geschlossen',
       'holiday': 'Urlaub / Betriebsferien',
       'reservation': 'Reservierung möglich',
+      'request': 'Nur auf Anfrage',
       'event': 'Sonder-Event'
     };
     statusText = statusTextTranslations[statusKey] || statusKey;
   } else {
-    // No planner event: status follows the configured opening hours (Ruhetag -> closed)
+    // No planner event: status follows the configured opening hours
     statusKey = getOpenStatusForDate(dateObj);
     if (statusKey === 'closed') {
       statusText = 'Ruhetag';
       descText = 'An diesem Tag haben wir Ruhetag und sind geschlossen.';
+    } else if (statusKey === 'request') {
+      statusText = 'Nur auf Anfrage';
+      descText = 'An diesem Tag haben wir nicht regulär geöffnet. Wir stehen jedoch nach Absprache sehr gerne für Feiern, Gruppen & Veranstaltungen zur Verfügung. Rufen Sie uns einfach an!';
     } else {
       statusText = 'Geöffnet / Reservierung möglich';
     }
@@ -732,6 +741,7 @@ function selectCalendarDay(dateObj, event) {
       'closed': 'Geschlossen',
       'holiday': 'Urlaub / Betriebsferien',
       'reservation': 'Reservierung möglich',
+      'request': 'Nur auf Anfrage',
       'event': 'Event',
       'free': 'Frei'
     };

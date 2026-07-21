@@ -106,17 +106,55 @@
       <!-- 1. GENERAL TAB PANEL -->
       <section id="panel-general" class="panel-section active">
         <div class="panel-header">
-          <h2 class="panel-title">Allgemeine Einstellungen</h2>
+          <h2 class="panel-title">Übersicht &amp; Schnell-Aktionen</h2>
         </div>
 
-        <div class="form-group">
-          <div class="switch-group">
-            <span class="switch-label">Live-Status Gaststätte:</span>
-            <label class="switch">
-              <input type="checkbox" id="admin-status-toggle">
-              <span class="slider"></span>
-            </label>
-            <span id="admin-status-label" style="font-weight: 600;">Geöffnet</span>
+        <!-- Easy Help Box -->
+        <div class="easy-help-box">
+          <span>💡</span> <strong>Einfach erklärt:</strong> Hier sehen und ändern Sie mit 1 Klick den Live-Status der Gaststätte oder erstellen ein WhatsApp-Statusbild für Ihre Gäste.
+        </div>
+
+        <!-- Quick Action Cards Grid -->
+        <div class="easy-quick-grid">
+          <div class="easy-quick-card" onclick="toggleQuickStatus()">
+            <div class="quick-card-icon">🟢</div>
+            <div class="quick-card-content">
+              <span class="quick-card-title">Website Status ändern</span>
+              <span class="quick-card-desc">1-Klick Umschalten für Gäste</span>
+            </div>
+            <div class="quick-card-status-badge" id="quick-status-badge">GEÖFFNET</div>
+          </div>
+
+          <div class="easy-quick-card" onclick="switchTab('hours')">
+            <div class="quick-card-icon">📅</div>
+            <div class="quick-card-content">
+              <span class="quick-card-title">Ruhetag / Sonderzeit</span>
+              <span class="quick-card-desc">Feiertag oder Event eintragen</span>
+            </div>
+            <div class="quick-card-btn">Öffnen &rarr;</div>
+          </div>
+
+          <div class="easy-quick-card" onclick="scrollToSocialGen()">
+            <div class="quick-card-icon">📱</div>
+            <div class="quick-card-content">
+              <span class="quick-card-title">WhatsApp Grafik</span>
+              <span class="quick-card-desc">Status-Bild für Gäste erstellen</span>
+            </div>
+            <div class="quick-card-btn">Erstellen &rarr;</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <h3 style="margin-bottom: 16px; color: var(--primary-dark);">Live-Status Gaststätte (Manuell)</h3>
+          <div class="form-group">
+            <div class="switch-group">
+              <span class="switch-label">Live-Status Gaststätte:</span>
+              <label class="switch">
+                <input type="checkbox" id="admin-status-toggle">
+                <span class="slider"></span>
+              </label>
+              <span id="admin-status-label" style="font-weight: 600;">Geöffnet</span>
+            </div>
           </div>
         </div>
 
@@ -202,6 +240,10 @@
           <h2 class="panel-title">Öffnungszeiten verwalten</h2>
         </div>
 
+        <div class="easy-help-box">
+          <span>💡</span> <strong>Einfach erklärt:</strong> Stellen Sie hier Ihre regulären Öffnungszeiten pro Wochentag ein. Unten können Sie Ausnahmen (Ruhetage, Events) für bestimmte Tage festlegen.
+        </div>
+
         <p class="text-muted" style="margin-bottom: 24px;">Geben Sie die Zeiten ein. Für Ruhetage tragen Sie bitte "Ruhetag" ein.</p>
 
         <form id="admin-hours-form">
@@ -217,12 +259,22 @@
         </div>
         <p class="text-muted" style="margin-bottom: 24px;">
           Planen Sie Tage mit abweichenden Öffnungszeiten (z. B. Feiertage, geschlossene Gesellschaften oder Betriebsferien).
-          Diese überschreiben an dem jeweiligen Datum die Standard-Öffnungszeiten und werden im Live-Status sowie bei den Öffnungszeiten angezeigt.
         </p>
 
         <div class="card special-hours-card">
-          <h4 style="margin-bottom: 16px; color: var(--primary-dark);">Sonderöffnungszeit hinzufügen</h4>
+          <h4 style="margin-bottom: 12px; color: var(--primary-dark);">Sonderöffnungszeit hinzufügen</h4>
           
+          <!-- 1-Click Presets Box -->
+          <div class="easy-presets-box">
+            <span class="presets-label">⚡ 1-Klick Schnell-Auswahl:</span>
+            <div class="presets-buttons-grid">
+              <button type="button" class="btn-preset btn-preset-closed" onclick="applySpecialPreset('closed')">🔴 Ruhetag / Geschlossen</button>
+              <button type="button" class="btn-preset btn-preset-open" onclick="applySpecialPreset('regular')">🟢 Regulär (11:30 - 21:00)</button>
+              <button type="button" class="btn-preset btn-preset-event" onclick="applySpecialPreset('event')">🎉 Sonder-Event / Feier</button>
+              <button type="button" class="btn-preset btn-preset-holiday" onclick="applySpecialPreset('holiday')">🏖️ Betriebsferien</button>
+            </div>
+          </div>
+
           <div class="special-hours-grid">
             <!-- 1. Datum Picker -->
             <div class="form-group span-full">
@@ -310,6 +362,10 @@
           <h2 class="panel-title">Termine &amp; Belegungsplaner</h2>
         </div>
 
+        <div class="easy-help-box">
+          <span>💡</span> <strong>Einfach erklärt:</strong> Tragen Sie hier Feste, Familienfeiern, Buffets oder Urlaubszeiten ein. Die Termine erscheinen automatisch im Kalender auf der Website.
+        </div>
+
         <div class="card" style="margin-bottom: 30px; border-color: var(--primary-light);">
           <h4 style="margin-bottom: 16px;">Neuen Eintrag hinzufügen</h4>
           <div class="form-grid">
@@ -351,6 +407,10 @@
       <section id="panel-gallery" class="panel-section">
         <div class="panel-header">
           <h2 class="panel-title">Bilder-Galerie verwalten</h2>
+        </div>
+
+        <div class="easy-help-box">
+          <span>💡</span> <strong>Einfach erklärt:</strong> Laden Sie hier Fotos der Gaststätte, von Gerichten oder dem Biergarten hoch.
         </div>
 
         <div class="card" style="margin-bottom: 30px;">

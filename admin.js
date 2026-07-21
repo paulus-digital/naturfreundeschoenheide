@@ -285,6 +285,12 @@ function populateGeneralTab() {
     label.style.color = pageData.openStatus ? 'var(--success)' : 'var(--danger)';
   }
 
+  const quickBadge = document.getElementById('quick-status-badge');
+  if (quickBadge) {
+    quickBadge.textContent = pageData.openStatus ? 'GEÖFFNET' : 'GESCHLOSSEN';
+    quickBadge.style.backgroundColor = pageData.openStatus ? '#2e7d32' : '#c62828';
+  }
+
   const bannerToggle = document.getElementById('admin-banner-toggle');
   if (bannerToggle) bannerToggle.checked = pageData.banner ? pageData.banner.visible : false;
 
@@ -293,6 +299,63 @@ function populateGeneralTab() {
 
   // Initialize Social Media Generator canvas & preview
   initSocialGenerator();
+}
+
+function toggleQuickStatus() {
+  pageData.openStatus = !pageData.openStatus;
+  populateGeneralTab();
+  commitDataChange(pageData.openStatus ? 'Live-Status auf Geöffnet geändert' : 'Live-Status auf Geschlossen geändert');
+  showToast(pageData.openStatus ? '🟢 Website-Status: GEÖFFNET' : '🔴 Website-Status: GESCHLOSSEN', 'success');
+}
+
+function scrollToSocialGen() {
+  const el = document.querySelector('.social-gen-card');
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+
+function applySpecialPreset(presetType) {
+  const dateInput = document.getElementById('new-special-date');
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+
+  const hoursRadio = document.getElementById('type-radio-hours');
+  const closedRadio = document.getElementById('type-radio-closed');
+  const eventRadio = document.getElementById('type-radio-event');
+  const closedChk = document.getElementById('special-is-closed-chk');
+  const eventChk = document.getElementById('special-is-event-chk');
+  const startInput = document.getElementById('new-special-time-start');
+  const endInput = document.getElementById('new-special-time-end');
+  const labelInput = document.getElementById('new-special-label');
+
+  if (presetType === 'closed') {
+    if (closedRadio) closedRadio.checked = true;
+    if (closedChk) closedChk.checked = true;
+    if (eventChk) eventChk.checked = false;
+    if (labelInput) labelInput.value = 'Ruhetag';
+  } else if (presetType === 'regular') {
+    if (hoursRadio) hoursRadio.checked = true;
+    if (closedChk) closedChk.checked = false;
+    if (eventChk) eventChk.checked = false;
+    if (startInput) startInput.value = '11:30';
+    if (endInput) endInput.value = '21:00';
+    if (labelInput) labelInput.value = 'Regulär geöffnet';
+  } else if (presetType === 'event') {
+    if (eventRadio) eventRadio.checked = true;
+    if (closedChk) closedChk.checked = false;
+    if (eventChk) eventChk.checked = true;
+    if (startInput) startInput.value = '11:30';
+    if (endInput) endInput.value = '21:00';
+    if (labelInput) labelInput.value = 'Sonder-Event / Feier';
+  } else if (presetType === 'holiday') {
+    if (closedRadio) closedRadio.checked = true;
+    if (closedChk) closedChk.checked = true;
+    if (eventChk) eventChk.checked = false;
+    if (labelInput) labelInput.value = 'Betriebsferien / Urlaub';
+  }
+
+  handleSpecialTypeChange();
+  showToast('⚡ Vorlage übernommen! Prüfen Sie das Datum und klicken Sie auf Speichern.', 'info');
 }
 
 // ----------------------------------------------------
