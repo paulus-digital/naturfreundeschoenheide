@@ -541,7 +541,7 @@ function updateSocialGraphic(isUserOverride = false) {
     const drawContent = () => {
       let logoHeight = 240;
       if (logoImg.complete && logoImg.naturalWidth > 0) {
-        const logoWidth = 760;
+        const logoWidth = 600;
         logoHeight = logoImg.naturalHeight * (logoWidth / logoImg.naturalWidth);
         ctx.drawImage(logoImg, (width - logoWidth) / 2, 120, logoWidth, logoHeight);
       }
@@ -552,7 +552,7 @@ function updateSocialGraphic(isUserOverride = false) {
       ctx.strokeStyle = '#c59f2d';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      const dividerY = 120 + logoHeight + 30;
+      const dividerY = 120 + logoHeight + 25;
       ctx.moveTo(width / 2 - 150, dividerY);
       ctx.lineTo(width / 2 + 150, dividerY);
       ctx.stroke();
@@ -561,7 +561,7 @@ function updateSocialGraphic(isUserOverride = false) {
       ctx.textAlign = 'center';
       ctx.fillStyle = '#faf6ef';
       ctx.font = '500 38px sans-serif';
-      const dateY = dividerY + 70;
+      const dateY = dividerY + 65;
       ctx.fillText(formattedDate, width / 2, dateY);
 
       // Main Status Card Box (Beautiful rounded soft card instead of warn warning block)
@@ -569,9 +569,9 @@ function updateSocialGraphic(isUserOverride = false) {
       const boxBg = isClosed ? 'rgba(128, 32, 32, 0.9)' : 'rgba(32, 80, 37, 0.9)';
       const boxBorder = isClosed ? '#ef5350' : '#c59f2d';
 
-      const boxY = dateY + 60;
-      const boxHeight = 220;
-      const boxWidth = 800;
+      const boxY = dateY + 45;
+      const boxHeight = 200;
+      const boxWidth = 760;
       ctx.fillStyle = boxBg;
       if (ctx.roundRect) {
         ctx.beginPath();
@@ -588,7 +588,7 @@ function updateSocialGraphic(isUserOverride = false) {
       }
 
       // Status Text Inside Box
-      const maxTextWidth = boxWidth - 100; // 700px max
+      const maxTextWidth = boxWidth - 100; // 660px max
       ctx.fillStyle = '#ffffff';
       const textCenterY = boxY + boxHeight / 2;
 
@@ -602,7 +602,7 @@ function updateSocialGraphic(isUserOverride = false) {
           fSize1 -= 2;
           ctx.font = `bold ${fSize1}px sans-serif`;
         }
-        ctx.fillText(mainPart, width / 2, textCenterY - 20);
+        ctx.fillText(mainPart, width / 2, textCenterY - 18);
 
         let fSize2 = 38;
         ctx.font = `600 ${fSize2}px sans-serif`;
@@ -611,7 +611,7 @@ function updateSocialGraphic(isUserOverride = false) {
           ctx.font = `600 ${fSize2}px sans-serif`;
         }
         ctx.fillStyle = '#e8dcc8';
-        ctx.fillText(subPart, width / 2, textCenterY + 45);
+        ctx.fillText(subPart, width / 2, textCenterY + 40);
       } else {
         let fSize = 54;
         ctx.font = `bold ${fSize}px sans-serif`;
@@ -622,15 +622,17 @@ function updateSocialGraphic(isUserOverride = false) {
         ctx.fillText(displayText, width / 2, textCenterY + 18);
       }
 
-      // Footer Info (clean sans-serif font, no emojis for classic elegance)
+      // Footer Info (calculated dynamically relative to the box bottom)
       const correctAddress = (pageData.contact && pageData.contact.address) ? pageData.contact.address : 'Gartenweg 5, 08304 Schönheide';
+      const addressY = boxY + boxHeight + 75;
       ctx.fillStyle = '#d0c8b5';
       ctx.font = '400 32px sans-serif';
-      ctx.fillText(correctAddress, width / 2, 880);
+      ctx.fillText(correctAddress, width / 2, addressY);
 
+      const websiteY = addressY + 50;
       ctx.fillStyle = '#c59f2d';
       ctx.font = 'bold 34px sans-serif';
-      ctx.fillText('www.naturfreundeschoenheide.de', width / 2, 935);
+      ctx.fillText('www.naturfreundeschoenheide.de', width / 2, websiteY);
 
       // Update Download Link & Share Text
       const downloadBtn = document.getElementById('social-gen-download');
