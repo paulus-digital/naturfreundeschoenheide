@@ -183,6 +183,11 @@ function renderWebsite() {
   } else {
     liveBanner.classList.add('hidden');
   }
+  
+  // Update header positioning immediately
+  if (typeof handleScroll === 'function') {
+    handleScroll();
+  }
 
   // 2. Live Open/Closed Status (derived from today's planner + opening hours)
   renderLiveStatus();
@@ -945,6 +950,36 @@ function closeBanner() {
     if (bannerText) {
       sessionStorage.setItem('bannerDismissedText', bannerText.textContent);
     }
+    // Update layout offset immediately after closing the banner
+    if (typeof handleScroll === 'function') {
+      handleScroll();
+    }
+  }
+}
+
+// Scroll, banner offset and Hero parallax handler
+function handleScroll() {
+  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+  // 1. Update banner offset CSS variable for fixed header positioning and hero padding-top
+  const liveBanner = document.getElementById('live-banner');
+  if (liveBanner) {
+    const isBannerVisible = !liveBanner.classList.contains('hidden');
+    if (isBannerVisible) {
+      const bannerHeight = liveBanner.offsetHeight || 45;
+      const offset = Math.max(0, bannerHeight - scrollTop);
+      document.documentElement.style.setProperty('--banner-offset', `${offset}px`);
+    } else {
+      document.documentElement.style.setProperty('--banner-offset', '0px');
+    }
+  } else {
+    document.documentElement.style.setProperty('--banner-offset', '0px');
+  }
+
+  // 2. Parallax effect for Hero background slideshow
+  const slideshow = document.getElementById('hero-slideshow');
+  if (slideshow && scrollTop < window.innerHeight) {
+    slideshow.style.transform = `translateY(${scrollTop * 0.4}px)`;
   }
 }
 
@@ -1073,6 +1108,13 @@ function setupEventListeners() {
       }
     });
   });
+
+  // Scroll and Resize handlers for Parallax and Header positioning
+  window.addEventListener('scroll', handleScroll);
+  window.addEventListener('resize', handleScroll);
+  
+  // Call once immediately to set initial values
+  handleScroll();
 }
 
 function renderHeroSlideshow() {

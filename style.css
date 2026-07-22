@@ -21,6 +21,8 @@
   --danger: #a83232;
   --success: #2e6b3a;
   --warning: #b05c1a;
+  --header-height: 76px;
+  --banner-offset: 0px;
 
   /* Typography */
   --font-serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
@@ -192,18 +194,11 @@ img {
   transform: scale(1.1);
 }
 
-.fixed-header-wrapper {
+header {
   position: fixed;
-  top: 0;
+  top: var(--banner-offset, 0px);
   left: 0;
   right: 0;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-}
-
-header {
-  position: relative;
   background-color: rgba(240, 233,218, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -352,8 +347,8 @@ nav a:hover::after {
   align-items: center;
   justify-content: center;
   text-align: center;
-  overflow: visible;
-  padding: 96px 0 70px;
+  overflow: hidden;
+  padding: calc(var(--header-height, 76px) + var(--banner-offset, 0px) + 20px) 0 70px;
 }
 
 .hero-slideshow-container {
@@ -2597,7 +2592,7 @@ input:checked + .slider:before {
   }
 
   .hero {
-    padding: 78px 0 48px;
+    padding: calc(var(--header-height, 64px) + var(--banner-offset, 0px) + 20px) 0 48px;
   }
 }
 
@@ -3109,4 +3104,9 @@ input:checked + .slider:before {
 .btn-preset-holiday:hover {
   background-color: #e0f7fa;
   border-color: #4dd0e1;
+}
+
+/* Admin Logo image filter to convert white/gold logo to dark green in the admin header */
+.admin-logo img {
+  filter: brightness(0.2) sepia(1) hue-rotate(85deg) saturate(3.5);
 }
