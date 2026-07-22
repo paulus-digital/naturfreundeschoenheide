@@ -1023,6 +1023,8 @@ nav a:hover::after {
 }
 
 .form-control {
+  width: 100%;
+  box-sizing: border-box;
   padding: 12px 16px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);

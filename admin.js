@@ -541,68 +541,68 @@ function updateSocialGraphic(isUserOverride = false) {
     const drawContent = () => {
       let logoHeight = 240;
       if (logoImg.complete && logoImg.naturalWidth > 0) {
-        const logoWidth = 720;
+        const logoWidth = 760;
         logoHeight = logoImg.naturalHeight * (logoWidth / logoImg.naturalWidth);
-        ctx.drawImage(logoImg, (width - logoWidth) / 2, 90, logoWidth, logoHeight);
+        ctx.drawImage(logoImg, (width - logoWidth) / 2, 120, logoWidth, logoHeight);
       }
 
-      // Title & Subtitle are now fully represented in the image logo, so we skip text drawing
+      // Title & Subtitle are fully represented in the image logo, so we skip text drawing
 
       // Divider Line
       ctx.strokeStyle = '#c59f2d';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      const dividerY = Math.max(340, 90 + logoHeight + 20);
-      ctx.moveTo(width / 2 - 180, dividerY);
-      ctx.lineTo(width / 2 + 180, dividerY);
+      const dividerY = 120 + logoHeight + 30;
+      ctx.moveTo(width / 2 - 150, dividerY);
+      ctx.lineTo(width / 2 + 150, dividerY);
       ctx.stroke();
 
       // Date Badge
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#f0e9da';
-      ctx.font = '600 42px sans-serif';
+      ctx.fillStyle = '#faf6ef';
+      ctx.font = '500 38px sans-serif';
       const dateY = dividerY + 70;
-      ctx.fillText(`📅 ${formattedDate}`, width / 2, dateY);
+      ctx.fillText(formattedDate, width / 2, dateY);
 
-      // Main Status Card Box
+      // Main Status Card Box (Beautiful rounded soft card instead of warn warning block)
       const isClosed = displayText.toLowerCase().includes('geschlossen') || displayText.toLowerCase().includes('ruhetag');
-      const boxBg = isClosed ? 'rgba(180, 40, 40, 0.88)' : 'rgba(30, 75, 30, 0.90)';
-      const boxBorder = isClosed ? '#e74c3c' : '#c59f2d';
+      const boxBg = isClosed ? 'rgba(128, 32, 32, 0.9)' : 'rgba(32, 80, 37, 0.9)';
+      const boxBorder = isClosed ? '#ef5350' : '#c59f2d';
 
-      const boxY = dateY + 75;
-      const boxHeight = 330;
+      const boxY = dateY + 60;
+      const boxHeight = 220;
+      const boxWidth = 800;
       ctx.fillStyle = boxBg;
       if (ctx.roundRect) {
         ctx.beginPath();
-        ctx.roundRect(80, boxY, width - 160, boxHeight, 24);
+        ctx.roundRect((width - boxWidth) / 2, boxY, boxWidth, boxHeight, 28);
         ctx.fill();
         ctx.strokeStyle = boxBorder;
         ctx.lineWidth = 4;
         ctx.stroke();
       } else {
-        ctx.fillRect(80, boxY, width - 160, boxHeight);
+        ctx.fillRect((width - boxWidth) / 2, boxY, boxWidth, boxHeight);
         ctx.strokeStyle = boxBorder;
         ctx.lineWidth = 4;
-        ctx.strokeRect(80, boxY, width - 160, boxHeight);
+        ctx.strokeRect((width - boxWidth) / 2, boxY, boxWidth, boxHeight);
       }
 
-      // Status Text Inside Box with Auto-font-scaling to keep times on single line
-      const maxTextWidth = width - 200; // 880px max
+      // Status Text Inside Box
+      const maxTextWidth = boxWidth - 100; // 700px max
       ctx.fillStyle = '#ffffff';
-
       const textCenterY = boxY + boxHeight / 2;
 
       if (displayText.includes('(') && displayText.includes(')')) {
         const mainPart = displayText.substring(0, displayText.indexOf('(')).trim();
         const subPart = displayText.substring(displayText.indexOf('(')).trim();
 
-        let fSize1 = 48;
+        let fSize1 = 54;
         ctx.font = `bold ${fSize1}px sans-serif`;
-        while (ctx.measureText(mainPart).width > maxTextWidth && fSize1 > 26) {
+        while (ctx.measureText(mainPart).width > maxTextWidth && fSize1 > 28) {
           fSize1 -= 2;
           ctx.font = `bold ${fSize1}px sans-serif`;
         }
-        ctx.fillText(mainPart, width / 2, textCenterY - 25);
+        ctx.fillText(mainPart, width / 2, textCenterY - 20);
 
         let fSize2 = 38;
         ctx.font = `600 ${fSize2}px sans-serif`;
@@ -610,27 +610,27 @@ function updateSocialGraphic(isUserOverride = false) {
           fSize2 -= 2;
           ctx.font = `600 ${fSize2}px sans-serif`;
         }
-        ctx.fillStyle = '#f0e9da';
+        ctx.fillStyle = '#e8dcc8';
         ctx.fillText(subPart, width / 2, textCenterY + 45);
       } else {
-        let fSize = 48;
+        let fSize = 54;
         ctx.font = `bold ${fSize}px sans-serif`;
-        while (ctx.measureText(displayText).width > maxTextWidth && fSize > 24) {
+        while (ctx.measureText(displayText).width > maxTextWidth && fSize > 28) {
           fSize -= 2;
           ctx.font = `bold ${fSize}px sans-serif`;
         }
-        ctx.fillText(displayText, width / 2, textCenterY + 15);
+        ctx.fillText(displayText, width / 2, textCenterY + 18);
       }
 
-      // Footer Info
+      // Footer Info (clean sans-serif font, no emojis for classic elegance)
       const correctAddress = (pageData.contact && pageData.contact.address) ? pageData.contact.address : 'Gartenweg 5, 08304 Schönheide';
       ctx.fillStyle = '#d0c8b5';
       ctx.font = '400 32px sans-serif';
-      ctx.fillText(`📍 ${correctAddress}`, width / 2, 940);
+      ctx.fillText(correctAddress, width / 2, 880);
 
       ctx.fillStyle = '#c59f2d';
       ctx.font = 'bold 34px sans-serif';
-      ctx.fillText('🌐 www.naturfreundeschoenheide.de', width / 2, 990);
+      ctx.fillText('www.naturfreundeschoenheide.de', width / 2, 935);
 
       // Update Download Link & Share Text
       const downloadBtn = document.getElementById('social-gen-download');
@@ -640,7 +640,12 @@ function updateSocialGraphic(isUserOverride = false) {
 
       const textVal = `🌲 Gaststätte Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}:\n${displayText}\n\n📍 ${correctAddress}\n🌐 Öffnungszeiten & Termine: https://paulus-digital.github.io/naturfreundeschoenheide/`;
       const textArea = document.getElementById('social-gen-text');
-      if (textArea) textArea.value = textVal;
+      if (textArea) {
+        textArea.value = textVal;
+        // Dynamically auto-resize height to display all text cleanly without scrollbars
+        textArea.style.height = 'auto';
+        textArea.style.height = (textArea.scrollHeight + 8) + 'px';
+      }
 
       const waBtn = document.getElementById('social-gen-wa-link');
       if (waBtn) {
