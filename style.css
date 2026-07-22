@@ -1843,12 +1843,19 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 768px) {
+  :root {
+    --header-height: 64px;
+  }
   .section-title { font-size: 2.4rem; }
   .section-padding { padding: 80px 0; }
   .hero {
     min-height: 100svh;
     height: 100svh;
-    padding: 90px 0 56px;
+    align-items: flex-start;
+    padding: calc(var(--header-height) + var(--banner-offset, 0px) + 20px) 0 40px;
+  }
+  .hero-content {
+    gap: 12px;
   }
   .hero-subtitle { font-size: 1.2rem; }
   .admin-main { padding: 20px 15px; }
@@ -2767,6 +2774,22 @@ input:checked + .slider:before {
     z-index: 1000;
     background-color: var(--bg-white);
     box-shadow: var(--shadow-sm);
+    color: var(--text-dark);
+  }
+
+  .admin-header .admin-logo {
+    color: var(--text-dark);
+  }
+
+  .admin-header .admin-logout {
+    color: var(--text-dark);
+    border-color: var(--border);
+  }
+
+  .admin-header .admin-logout:hover {
+    background-color: var(--primary-dark);
+    color: var(--bg-cream);
+    border-color: var(--primary-dark);
   }
 
   /* Sticky Horizontal Tab Navigation */
