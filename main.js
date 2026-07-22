@@ -526,7 +526,8 @@ function renderMonthView() {
     const dayDiv = document.createElement('div');
     dayDiv.className = 'calendar-day';
 
-    if (currentDateObj < today) {
+    const isPast = currentDateObj < today;
+    if (isPast) {
       dayDiv.classList.add('past');
     }
 
