@@ -17,11 +17,11 @@
   "openingHours": [
     {
       "day": "Montag",
-      "hours": "Ruhetag"
+      "hours": "Geschlossen"
     },
     {
       "day": "Dienstag",
-      "hours": "Ruhetag"
+      "hours": "Geschlossen"
     },
     {
       "day": "Mittwoch",

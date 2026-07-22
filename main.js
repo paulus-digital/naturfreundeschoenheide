@@ -335,7 +335,7 @@ function renderLiveStatus() {
     if (specialToday) {
       detailHtml = `Heute geschlossen: ${escapeHTML(specialToday.label || 'Sonderregelung')} (${escapeHTML(specialToday.hours)})`;
     } else {
-      detailHtml = 'Heute haben wir Ruhetag. Schauen Sie auf die Öffnungszeiten für unsere nächsten geöffneten Tage.';
+      detailHtml = 'Heute bleibt die Gaststätte geschlossen. Schauen Sie auf die Öffnungszeiten für unsere nächsten geöffneten Tage.';
     }
   } else {
     const specialToday = appData.specialHours && appData.specialHours.find(h => h.date === formatDateToYYYYMMDD(today));
@@ -601,7 +601,7 @@ function renderWeekView() {
 
     const eventItems = events.length > 0
       ? events.map(e => `<div class="week-event-item"><span class="week-event-dot status-${e.status}"></span>${escapeHTML(e.label)}</div>`).join('')
-      : `<div class="week-event-item week-event-free">${getOpenStatusForDate(currentDateObj) === 'closed' ? 'Ruhetag – geschlossen' : 'Geöffnet / Reservierung möglich'}</div>`;
+      : `<div class="week-event-item week-event-free">${getOpenStatusForDate(currentDateObj) === 'closed' ? 'Geschlossen' : 'Geöffnet / Reservierung möglich'}</div>`;
 
     row.innerHTML = `
       <div class="calendar-week-date-box">
@@ -720,7 +720,7 @@ function selectCalendarDay(dateObj, event) {
     // No planner event: status follows the configured opening hours
     statusKey = getOpenStatusForDate(dateObj);
     if (statusKey === 'closed') {
-      statusText = 'Ruhetag';
+      statusText = 'Geschlossen';
       descText = 'An diesem Tag bleibt die Gaststätte geschlossen.';
     } else if (statusKey === 'request') {
       statusText = 'Nur auf Anfrage';
@@ -749,7 +749,7 @@ function selectCalendarDay(dateObj, event) {
       actualHours = mainEvent.hours;
     } else {
       const statusHoursMap = {
-        'closed': 'Ruhetag',
+        'closed': 'Geschlossen',
         'holiday': 'Betriebsferien',
         'request': 'Nur auf Anfrage'
       };

@@ -333,7 +333,7 @@ function applySpecialPreset(presetType) {
     if (closedRadio) closedRadio.checked = true;
     if (closedChk) closedChk.checked = true;
     if (eventChk) eventChk.checked = false;
-    if (labelInput) labelInput.value = 'Ruhetag';
+    if (labelInput) labelInput.value = 'Geschlossen';
   } else if (presetType === 'regular') {
     if (hoursRadio) hoursRadio.checked = true;
     if (closedChk) closedChk.checked = false;
@@ -465,7 +465,7 @@ function updateSocialGraphic(isUserOverride = false) {
     let autoText = '';
     const hLower = (info.hours || '').toLowerCase();
     if (hLower.includes('ruhetag') || hLower.includes('geschlossen')) {
-      autoText = info.label ? `Geschlossen: ${info.label}` : `Geschlossen (${info.hours})`;
+      autoText = info.label ? `Geschlossen: ${info.label}` : `Geschlossen`;
     } else {
       autoText = info.label ? `Öffnungszeit: ${info.hours} (${info.label})` : `Öffnungszeit: ${info.hours}`;
     }
