@@ -535,78 +535,62 @@ function updateSocialGraphic(isUserOverride = false) {
     ctx.lineWidth = 2;
     ctx.strokeRect(48, 48, width - 96, height - 96);
 
-    // 4. Header / Branding Logo (transparent white background removal)
+    // 4. Header / Branding Logo (draw the high-quality logo.png directly)
     const logoImg = new Image();
     logoImg.src = 'logo.png';
     const drawContent = () => {
+      let logoHeight = 240;
       if (logoImg.complete && logoImg.naturalWidth > 0) {
-        try {
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = logoImg.naturalWidth || 120;
-          tempCanvas.height = logoImg.naturalHeight || 120;
-          const tempCtx = tempCanvas.getContext('2d');
-          tempCtx.drawImage(logoImg, 0, 0);
-          const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-          const data = imgData.data;
-          for (let i = 0; i < data.length; i += 4) {
-            // If pixel is near white, make transparent
-            if (data[i] > 220 && data[i + 1] > 220 && data[i + 2] > 220) {
-              data[i + 3] = 0;
-            }
-          }
-          tempCtx.putImageData(imgData, 0, 0);
-          ctx.drawImage(tempCanvas, width / 2 - 65, 80, 130, 130);
-        } catch (e) {
-          ctx.drawImage(logoImg, width / 2 - 65, 80, 130, 130);
-        }
+        const logoWidth = 720;
+        logoHeight = logoImg.naturalHeight * (logoWidth / logoImg.naturalWidth);
+        ctx.drawImage(logoImg, (width - logoWidth) / 2, 90, logoWidth, logoHeight);
       }
 
-      // Title & Subtitle
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#c59f2d';
-      ctx.font = 'bold 40px sans-serif';
-      ctx.fillText('GASTSTÄTTE', width / 2, 260);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 64px serif';
-      ctx.fillText('Naturfreunde Schönheide', width / 2, 335);
+      // Title & Subtitle are now fully represented in the image logo, so we skip text drawing
 
       // Divider Line
       ctx.strokeStyle = '#c59f2d';
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(width / 2 - 150, 365);
-      ctx.lineTo(width / 2 + 150, 365);
+      const dividerY = Math.max(340, 90 + logoHeight + 20);
+      ctx.moveTo(width / 2 - 180, dividerY);
+      ctx.lineTo(width / 2 + 180, dividerY);
       ctx.stroke();
 
       // Date Badge
+      ctx.textAlign = 'center';
       ctx.fillStyle = '#f0e9da';
       ctx.font = '600 42px sans-serif';
-      ctx.fillText(`📅 ${formattedDate}`, width / 2, 440);
+      const dateY = dividerY + 70;
+      ctx.fillText(`📅 ${formattedDate}`, width / 2, dateY);
 
       // Main Status Card Box
       const isClosed = displayText.toLowerCase().includes('geschlossen') || displayText.toLowerCase().includes('ruhetag');
       const boxBg = isClosed ? 'rgba(180, 40, 40, 0.88)' : 'rgba(30, 75, 30, 0.90)';
       const boxBorder = isClosed ? '#e74c3c' : '#c59f2d';
 
+      const boxY = dateY + 75;
+      const boxHeight = 330;
       ctx.fillStyle = boxBg;
       if (ctx.roundRect) {
         ctx.beginPath();
-        ctx.roundRect(80, 520, width - 160, 320, 24);
+        ctx.roundRect(80, boxY, width - 160, boxHeight, 24);
         ctx.fill();
         ctx.strokeStyle = boxBorder;
         ctx.lineWidth = 4;
         ctx.stroke();
       } else {
-        ctx.fillRect(80, 520, width - 160, 320);
+        ctx.fillRect(80, boxY, width - 160, boxHeight);
         ctx.strokeStyle = boxBorder;
         ctx.lineWidth = 4;
-        ctx.strokeRect(80, 520, width - 160, 320);
+        ctx.strokeRect(80, boxY, width - 160, boxHeight);
       }
 
       // Status Text Inside Box with Auto-font-scaling to keep times on single line
       const maxTextWidth = width - 200; // 880px max
       ctx.fillStyle = '#ffffff';
+
+      const textCenterY = boxY + boxHeight / 2;
 
       if (displayText.includes('(') && displayText.includes(')')) {
         const mainPart = displayText.substring(0, displayText.indexOf('(')).trim();
@@ -618,7 +602,7 @@ function updateSocialGraphic(isUserOverride = false) {
           fSize1 -= 2;
           ctx.font = `bold ${fSize1}px sans-serif`;
         }
-        ctx.fillText(mainPart, width / 2, 635);
+        ctx.fillText(mainPart, width / 2, textCenterY - 25);
 
         let fSize2 = 38;
         ctx.font = `600 ${fSize2}px sans-serif`;
@@ -627,7 +611,7 @@ function updateSocialGraphic(isUserOverride = false) {
           ctx.font = `600 ${fSize2}px sans-serif`;
         }
         ctx.fillStyle = '#f0e9da';
-        ctx.fillText(subPart, width / 2, 725);
+        ctx.fillText(subPart, width / 2, textCenterY + 45);
       } else {
         let fSize = 48;
         ctx.font = `bold ${fSize}px sans-serif`;
@@ -635,7 +619,7 @@ function updateSocialGraphic(isUserOverride = false) {
           fSize -= 2;
           ctx.font = `bold ${fSize}px sans-serif`;
         }
-        ctx.fillText(displayText, width / 2, 685);
+        ctx.fillText(displayText, width / 2, textCenterY + 15);
       }
 
       // Footer Info
