@@ -3105,8 +3105,3 @@ input:checked + .slider:before {
   background-color: #e0f7fa;
   border-color: #4dd0e1;
 }
-
-/* Admin Logo image filter to convert white/gold logo to dark green in the admin header */
-.admin-logo img {
-  filter: brightness(0.2) sepia(1) hue-rotate(85deg) saturate(3.5);
-}
