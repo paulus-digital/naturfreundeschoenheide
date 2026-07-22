@@ -238,15 +238,21 @@ header {
   min-width: 0;
 }
 
-.header-leaf-icon {
+.header-leaf-icon,
+.header-logo-icon {
   width: 28px;
   height: 28px;
-  color: var(--accent);
+  object-fit: contain;
   flex-shrink: 0;
   transition: transform 0.3s ease;
 }
 
-.logo-link:hover .header-leaf-icon {
+.header-leaf-icon {
+  color: var(--accent);
+}
+
+.logo-link:hover .header-leaf-icon,
+.logo-link:hover .header-logo-icon {
   transform: rotate(-10deg) scale(1.1);
 }
 
