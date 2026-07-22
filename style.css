@@ -2274,16 +2274,18 @@ input:checked + .slider:before {
 }
 
 .details-btn-title {
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, 3.8vw, 0.9rem);
   font-weight: 600;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .details-btn-phone {
-  font-size: 1.05rem;
+  font-size: clamp(0.85rem, 4vw, 0.95rem);
   font-weight: 800;
   color: var(--accent-light);
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Day cell: multiple events indicator */
