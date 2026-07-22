@@ -550,27 +550,54 @@ function updateSocialGraphic(isUserOverride = false) {
       ctx.fillRect(0, 0, width, height);
     }
 
-    // 2. Dark Overlay Gradient for contrast
+// 2. Light overlay for subtle contrast
     const overlayGrad = ctx.createLinearGradient(0, 0, 0, height);
-    overlayGrad.addColorStop(0, 'rgba(15, 30, 15, 0.70)');
-    overlayGrad.addColorStop(0.5, 'rgba(10, 20, 10, 0.82)');
-    overlayGrad.addColorStop(1, 'rgba(5, 10, 5, 0.94)');
+    overlayGrad.addColorStop(0, 'rgba(15, 30, 15, 0.40)');
+    overlayGrad.addColorStop(1, 'rgba(5, 10, 5, 0.60)');
     ctx.fillStyle = overlayGrad;
     ctx.fillRect(0, 0, width, height);
 
-    // 3. Decorative Frame
-    ctx.strokeStyle = '#c59f2d';
-    ctx.lineWidth = 10;
-    ctx.strokeRect(36, 36, width - 72, height - 72);
-
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(48, 48, width - 96, height - 96);
-
-    // 4. Header / Branding Logo (draw the high-quality logo.png directly)
+    // 3. Header / Branding Logo (draw the high-quality logo.png directly)
     const logoImg = new Image();
     logoImg.src = 'logo.png';
     const drawContent = () => {
+      let logoHeight = 240;
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        const logoWidth = 600;
+        logoHeight = logoImg.naturalHeight * (logoWidth / logoImg.naturalWidth);
+        ctx.drawImage(logoImg, (width - logoWidth) / 2, 120, logoWidth, logoHeight);
+      }
+
+      // Divider line – subtle gray
+      ctx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      const dividerY = 120 + logoHeight + 25;
+      ctx.moveTo(width / 2 - 120, dividerY);
+      ctx.lineTo(width / 2 + 120, dividerY);
+      ctx.stroke();
+
+      // Date badge
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#faf6ef';
+      ctx.font = '500 38px sans-serif';
+      const dateY = dividerY + 55;
+      ctx.fillText(formattedDate, width / 2, dateY);
+
+      // Status text – no background box, color‑coded
+      const statusY = dateY + 45;
+      const isClosed = displayText.toLowerCase().includes('geschlossen') || displayText.toLowerCase().includes('ruhetag');
+      ctx.fillStyle = isClosed ? '#ff6b6b' : '#4caf50';
+      ctx.font = 'bold 48px sans-serif';
+      ctx.fillText(displayText, width / 2, statusY);
+
+      // Footer info (address)
+      const addressY = statusY + 70;
+      const correctAddress = (pageData.contact && pageData.contact.address) ? pageData.contact.address : 'Gartenweg 5, 08304 Schönheide';
+      ctx.fillStyle = '#d0c8b5';
+      ctx.font = '400 30px sans-serif';
+      ctx.fillText(correctAddress, width / 2, addressY);
+    };
       let logoHeight = 240;
       if (logoImg.complete && logoImg.naturalWidth > 0) {
         const logoWidth = 600;
