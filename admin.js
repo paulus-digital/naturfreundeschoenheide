@@ -258,6 +258,38 @@ function setupStatusToggle() {
 }
 
 // ----------------------------------------------------
+// ISO WEEK UTILITIES & STATE
+// ----------------------------------------------------
+let plannerSelectedMonday = getMonday(new Date());
+
+function getMonday(d) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+  return new Date(date.setDate(diff));
+}
+
+function getWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  return weekNo;
+}
+
+function formatDateToYYYYMMDD(date) {
+  const d = new Date(date);
+  let month = '' + (d.getMonth() + 1);
+  let day = '' + d.getDate();
+  const year = d.getFullYear();
+
+  if (month.length < 2) month = '0' + month;
+  if (day.length < 2) day = '0' + day;
+
+  return [year, month, day].join('-');
+}
+
+// ----------------------------------------------------
 // TAB FILLING LOGIC
 // ----------------------------------------------------
 
@@ -686,30 +718,197 @@ function copySocialGenText() {
   }
 }
 
-function populateHoursTab() {
-  // 1. Standard opening hours fields
-  const container = document.getElementById('admin-hours-fields');
-  if (container && pageData.openingHours) {
-    container.innerHTML = '';
-    pageData.openingHours.forEach((item, index) => {
-      const row = document.createElement('div');
-      row.className = 'form-group';
-      row.style.marginBottom = '12px';
-      row.innerHTML = `
-        <label style="font-weight: 600;">${item.day}</label>
-        <input type="text" id="hour-day-${index}" class="form-control" value="${item.hours}">
-      `;
-      container.appendChild(row);
+function navigateWeek(offset) {
+  plannerSelectedMonday.setDate(plannerSelectedMonday.getDate() + offset * 7);
+  renderWeekPlanner();
+}
 
-      // Attach change listener for auto-saving opening hours
-      const input = row.querySelector('input');
-      if (input) {
-        input.addEventListener('change', async () => {
-          await saveHoursData();
-        });
-      }
-    });
+function renderWeekPlanner() {
+  const titleEl = document.getElementById('week-planner-title');
+  const container = document.getElementById('admin-week-planner-fields');
+  if (!container) return;
+
+  const monday = new Date(plannerSelectedMonday);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const kwNum = getWeekNumber(monday);
+  const mondayFormatted = monday.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const sundayFormatted = sunday.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  if (titleEl) {
+    titleEl.textContent = `Kalenderwoche ${kwNum} (${mondayFormatted} - ${sundayFormatted})`;
   }
+
+  container.innerHTML = '';
+
+  const GERMAN_WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+
+  for (let i = 0; i < 7; i++) {
+    const dayDate = new Date(monday);
+    dayDate.setDate(monday.getDate() + i);
+    const dateStr = formatDateToYYYYMMDD(dayDate);
+    const dateLabel = dayDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+
+    // Look for specialHours exception
+    const specialMatch = pageData.specialHours ? pageData.specialHours.find(h => h.date === dateStr) : null;
+
+    // Standard hours template for this weekday
+    const weekdayName = GERMAN_WEEKDAYS[i];
+    const defaultItem = pageData.openingHours ? pageData.openingHours.find(h => h.day.toLowerCase() === weekdayName.toLowerCase()) : null;
+    const defaultHours = defaultItem ? defaultItem.hours : 'Geschlossen';
+
+    let hoursVal = defaultHours;
+    let selectedType = 'standard';
+    let labelVal = '';
+
+    if (specialMatch) {
+      hoursVal = specialMatch.hours;
+      selectedType = specialMatch.type || 'custom';
+      labelVal = specialMatch.label || '';
+    }
+
+    const row = document.createElement('div');
+    row.className = 'week-day-row';
+    row.style.display = 'flex';
+    row.style.flexDirection = 'row';
+    row.style.alignItems = 'center';
+    row.style.justifyContent = 'space-between';
+    row.style.gap = '15px';
+    row.style.padding = '14px 20px';
+    row.style.borderBottom = '1px solid var(--border-warm)';
+    row.style.flexWrap = 'wrap';
+
+    const statusBadgeStyle = specialMatch 
+      ? 'background: rgba(217, 83, 79, 0.1); color: #d9534f; border: 1px solid rgba(217,83,79,0.25);'
+      : 'background: rgba(92, 184, 92, 0.1); color: #5cb85c; border: 1px solid rgba(92,184,92,0.25);';
+
+    const statusBadgeText = specialMatch ? 'Manuelle Ausnahme' : 'Grundeinstellung';
+
+    row.innerHTML = `
+      <div style="flex: 1 1 200px;">
+        <span style="font-weight: 700; font-size: 1rem; color: var(--primary-dark);">${weekdayName}, ${dateLabel}</span>
+        <div style="margin-top: 4px;">
+          <span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; ${statusBadgeStyle}">${statusBadgeText}</span>
+        </div>
+      </div>
+      
+      <div style="flex: 1.5 1 250px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <div style="flex: 1 1 120px; min-width: 120px;">
+          <select id="week-day-type-${i}" class="form-control" onchange="handleWeekDayTypeChange(${i})" style="font-size: 0.9rem; padding: 8px;">
+            <option value="standard" ${selectedType === 'standard' ? 'selected' : ''}>Grundeinstellung</option>
+            <option value="closed" ${selectedType === 'closed' ? 'selected' : ''}>Geschlossen</option>
+            <option value="event" ${selectedType === 'event' ? 'selected' : ''}>Sonder-Event</option>
+            <option value="holiday" ${selectedType === 'holiday' ? 'selected' : ''}>Urlaub</option>
+            <option value="booked" ${selectedType === 'booked' ? 'selected' : ''}>Ausgebucht</option>
+            <option value="custom" ${selectedType === 'custom' ? 'selected' : ''}>Manuell</option>
+          </select>
+        </div>
+        <div style="flex: 1.5 1 150px; min-width: 150px;">
+          <input type="text" id="week-day-hours-${i}" class="form-control" value="${hoursVal}" placeholder="z.B. 17:00 - 22:00 Uhr" style="font-size: 0.9rem; padding: 8px;">
+        </div>
+      </div>
+
+      <div style="flex: 1 1 200px; min-width: 200px;">
+        <input type="text" id="week-day-label-${i}" class="form-control" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" style="font-size: 0.9rem; padding: 8px; display: ${selectedType === 'standard' ? 'none' : 'block'};">
+      </div>
+    `;
+
+    container.appendChild(row);
+  }
+}
+
+function handleWeekDayTypeChange(index) {
+  const select = document.getElementById(`week-day-type-${index}`);
+  const labelInput = document.getElementById(`week-day-label-${index}`);
+  const hoursInput = document.getElementById(`week-day-hours-${index}`);
+  
+  if (!select || !labelInput || !hoursInput) return;
+
+  const type = select.value;
+
+  if (type === 'standard') {
+    labelInput.style.display = 'none';
+    const GERMAN_WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+    const weekdayName = GERMAN_WEEKDAYS[index];
+    const defaultItem = pageData.openingHours ? pageData.openingHours.find(h => h.day.toLowerCase() === weekdayName.toLowerCase()) : null;
+    hoursInput.value = defaultItem ? defaultItem.hours : 'Geschlossen';
+  } else {
+    labelInput.style.display = 'block';
+    
+    if (type === 'closed') {
+      hoursInput.value = 'Geschlossen';
+      if (!labelInput.value) labelInput.value = 'Geschlossen';
+    } else if (type === 'holiday') {
+      hoursInput.value = 'Geschlossen';
+      if (!labelInput.value) labelInput.value = 'Betriebsferien';
+    } else if (type === 'booked') {
+      hoursInput.value = 'Geschlossen';
+      if (!labelInput.value) labelInput.value = 'Ausgebucht';
+    } else if (type === 'event') {
+      if (!labelInput.value) labelInput.value = 'Event';
+    }
+  }
+}
+
+async function saveWeekPlanner() {
+  if (!pageData.specialHours) pageData.specialHours = [];
+
+  const monday = new Date(plannerSelectedMonday);
+  const GERMAN_WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+
+  for (let i = 0; i < 7; i++) {
+    const dayDate = new Date(monday);
+    dayDate.setDate(monday.getDate() + i);
+    const dateStr = formatDateToYYYYMMDD(dayDate);
+
+    const typeSelect = document.getElementById(`week-day-type-${i}`);
+    const hoursInput = document.getElementById(`week-day-hours-${i}`);
+    const labelInput = document.getElementById(`week-day-label-${i}`);
+
+    if (!typeSelect || !hoursInput || !labelInput) continue;
+
+    const selectedType = typeSelect.value;
+    const hoursVal = hoursInput.value.trim();
+    const labelVal = labelInput.value.trim();
+
+    const weekdayName = GERMAN_WEEKDAYS[i];
+    const defaultItem = pageData.openingHours ? pageData.openingHours.find(h => h.day.toLowerCase() === weekdayName.toLowerCase()) : null;
+    const defaultHours = defaultItem ? defaultItem.hours : 'Geschlossen';
+
+    const existingIndex = pageData.specialHours.findIndex(h => h.date === dateStr);
+
+    if (selectedType === 'standard' && hoursVal === defaultHours) {
+      if (existingIndex !== -1) {
+        pageData.specialHours.splice(existingIndex, 1);
+      }
+    } else {
+      const entry = {
+        date: dateStr,
+        hours: hoursVal,
+        type: selectedType === 'standard' ? 'custom' : selectedType,
+        label: labelVal
+      };
+
+      if (existingIndex !== -1) {
+        pageData.specialHours[existingIndex] = entry;
+      } else {
+        pageData.specialHours.push(entry);
+      }
+    }
+  }
+
+  showToast('💾 Speichere Wochen-Öffnungszeiten...', 'info');
+  const dataSaved = await commitDataChange('Wochen-Planer: Öffnungszeiten geändert');
+  if (dataSaved) {
+    showToast('✅ Wochen-Öffnungszeiten erfolgreich gespeichert!', 'success');
+    populateHoursTab();
+  }
+}
+
+function populateHoursTab() {
+  // Render weekly planner sheet
+  renderWeekPlanner();
 
   // 2. Special/Deviating hours list (filter out past dates)
   const specialList = document.getElementById('admin-special-hours-list');
@@ -722,7 +921,7 @@ function populateHoursTab() {
     pageData.specialHours = pageData.specialHours.filter(item => !isDatePast(item.date));
 
     if (pageData.specialHours.length === 0) {
-      specialList.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine anstehenden Sonderöffnungszeiten geplant.</p>';
+      specialList.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine anstehenden Termine oder Ausnahmen geplant.</p>';
       return;
     }
 
@@ -987,20 +1186,6 @@ async function saveGeneralData() {
   await commitDataChange('Admin Panel: Status und allgemeine Daten geändert');
 }
 
-// Save Tab 2: Opening Hours
-async function saveHoursData() {
-  if (!pageData.openingHours) return;
-
-  pageData.openingHours.forEach((item, index) => {
-    const input = document.getElementById(`hour-day-${index}`);
-    if (input) {
-      item.hours = input.value.trim();
-    }
-  });
-
-  await commitDataChange('Admin Panel: Öffnungszeiten geändert');
-}
-
 // Save Tab 3: Calendar
 async function saveCalendarData() {
   await commitDataChange('Admin Panel: Belegungsplan / Termine geändert');
@@ -1158,6 +1343,21 @@ async function addManualReview() {
 }
 
 function populateSettingsTab() {
+  const templateContainer = document.getElementById('admin-template-hours-fields');
+  if (templateContainer && pageData.openingHours) {
+    templateContainer.innerHTML = '';
+    pageData.openingHours.forEach((item, index) => {
+      const row = document.createElement('div');
+      row.className = 'form-group';
+      row.style.marginBottom = '12px';
+      row.innerHTML = `
+        <label style="font-weight: 600;">${item.day}</label>
+        <input type="text" id="template-hour-day-${index}" class="form-control" value="${item.hours}">
+      `;
+      templateContainer.appendChild(row);
+    });
+  }
+
   if (pageData.contact) {
     const phoneEl = document.getElementById('admin-contact-phone');
     const emailEl = document.getElementById('admin-contact-email');
@@ -1166,6 +1366,26 @@ function populateSettingsTab() {
     if (emailEl) emailEl.value = pageData.contact.email || '';
     if (inhaberEl) inhaberEl.value = pageData.contact.inhaber || '';
   }
+}
+
+async function saveTemplateHours() {
+  if (!pageData.openingHours) return;
+
+  pageData.openingHours.forEach((item, index) => {
+    const input = document.getElementById(`template-hour-day-${index}`);
+    if (input) {
+      item.hours = input.value.trim();
+    }
+  });
+
+  showToast('💾 Speichere Standard-Zeiten...', 'info');
+  const dataSaved = await commitDataChange('Admin Panel: Grundeinstellungen Standard-Öffnungszeiten geändert');
+  if (dataSaved) {
+    showToast('✅ Standard-Öffnungszeiten erfolgreich gespeichert!', 'success');
+    populateSettingsTab();
+    renderWeekPlanner();
+  }
+}
 
   const container = document.getElementById('hero-slides-admin');
   if (!container) return;
@@ -1426,7 +1646,7 @@ async function addNewSpecialHours() {
     } else if (startTime) {
       finalHours = `ab ${startTime} Uhr`;
     } else {
-      finalHours = 'Ruhetag';
+      finalHours = 'Geschlossen';
     }
   }
 
@@ -1484,15 +1704,15 @@ async function addNewSpecialHours() {
 
   handleSpecialTypeChange();
   populateHoursTab();
-  await commitDataChange('Admin Panel: Sonderöffnungszeit geplant');
+  await commitDataChange('Admin Panel: Termin / Ausnahme geplant');
 }
 
 async function deleteSpecialHours(index) {
   if (!pageData.specialHours || !pageData.specialHours[index]) return;
 
-  if (confirm('Möchten Sie diese Sonderöffnungszeit wirklich löschen?')) {
+  if (confirm('Möchten Sie diesen Termin / diese Ausnahme wirklich löschen?')) {
     pageData.specialHours.splice(index, 1);
     populateHoursTab();
-    await commitDataChange('Admin Panel: Sonderöffnungszeit gelöscht');
+    await commitDataChange('Admin Panel: Termin / Ausnahme gelöscht');
   }
 }

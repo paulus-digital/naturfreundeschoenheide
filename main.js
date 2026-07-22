@@ -266,6 +266,8 @@ function renderOpeningHours() {
 
     // Find if this day has a special opening hour planned in the current week
     const dayDate = dates.find(d => GERMAN_DAYS[d.getDay()].toLowerCase() === item.day.toLowerCase());
+    const dateFormatted = dayDate ? ` (${dayDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })})` : '';
+    
     let specialMatch = null;
     if (dayDate && appData.specialHours) {
       const dateStr = formatDateToYYYYMMDD(dayDate);
@@ -276,14 +278,14 @@ function renderOpeningHours() {
       li.classList.add('special-day');
       li.innerHTML = `
         <span>
-          ${item.day}
+          ${item.day}${dateFormatted}
           <span class="special-hours-badge" title="${escapeHTML(specialMatch.label)}">${escapeHTML(specialMatch.label || 'Sonderregelung')}</span>
         </span>
         <span class="special-hours-time">${escapeHTML(specialMatch.hours)}</span>
       `;
     } else {
       li.innerHTML = `
-        <span>${item.day}</span>
+        <span>${item.day}${dateFormatted}</span>
         <span>${item.hours}</span>
       `;
     }
@@ -1257,5 +1259,15 @@ function copyShareLink() {
     document.execCommand('copy');
     document.body.removeChild(textarea);
     alert('✅ Link & Text erfolgreich in die Zwischenablage kopiert!');
+  }
+}
+
+// Collapsible Calendar toggle for mobile viewports
+function toggleCalendarMobile() {
+  const wrapper = document.querySelector('.calendar-collapsible-wrapper');
+  const btn = document.getElementById('toggle-calendar-btn');
+  if (wrapper && btn) {
+    const isOpen = wrapper.classList.toggle('open');
+    btn.innerHTML = isOpen ? '▲ Kalender ausblenden' : '📅 Kalender & Belegung anzeigen';
   }
 }

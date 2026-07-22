@@ -3142,3 +3142,59 @@ input:checked + .slider:before {
   background-color: #e0f7fa;
   border-color: #4dd0e1;
 }
+
+/* Collapsible Calendar / Planner on Mobile */
+.calendar-intro-text {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.calendar-toggle-btn {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 16px auto;
+  padding: 12px 20px;
+  background-color: var(--primary);
+  color: var(--bg-cream);
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.calendar-toggle-btn:hover {
+  background-color: var(--accent);
+  color: var(--primary-dark);
+  border-color: var(--accent);
+}
+
+.calendar-collapsible-wrapper {
+  overflow: hidden;
+  transition: max-height 0.4s ease-out;
+}
+
+@media (min-width: 769px) {
+  .calendar-intro-text,
+  .calendar-toggle-btn {
+    display: none !important;
+  }
+  .calendar-collapsible-wrapper {
+    display: block !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-collapsible-wrapper {
+    display: none;
+    margin-top: 10px;
+  }
+  .calendar-collapsible-wrapper.open {
+    display: block;
+  }
+}

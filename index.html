@@ -169,71 +169,80 @@
             Termine &amp; Belegung
           </h3>
 
-          <div class="calendar-widget">
-            <!-- Calendar Navigation Header -->
-            <div class="calendar-header">
-              <div class="calendar-views">
-                <button class="calendar-view-btn active" id="view-month-btn"
-                  onclick="setCalendarView('month')">Monat</button>
-                <button class="calendar-view-btn" id="view-week-btn" onclick="setCalendarView('week')">Woche</button>
-                <button class="calendar-view-btn" id="view-year-btn" onclick="setCalendarView('year')">Jahr</button>
-              </div>
-              <div class="calendar-nav">
-                <button class="calendar-nav-btn" onclick="navigateCalendar(-1)">&lsaquo;</button>
-                <span class="calendar-title" id="calendar-month-year">...</span>
-                <button class="calendar-nav-btn" onclick="navigateCalendar(1)">&rsaquo;</button>
-              </div>
-            </div>
+          <div class="calendar-intro-text">
+            Schauen Sie in unseren Jahreskalender für weitere Termine und Reservierungen.
+          </div>
+          <button type="button" id="toggle-calendar-btn" class="calendar-toggle-btn" onclick="toggleCalendarMobile()">
+            📅 Kalender &amp; Belegung anzeigen
+          </button>
 
-            <!-- Calendar Views Containers -->
-            <div id="calendar-month-container" class="calendar-grid-container">
-              <div class="calendar-weekdays">
-                <div>Mo</div>
-                <div>Di</div>
-                <div>Mi</div>
-                <div>Do</div>
-                <div>Fr</div>
-                <div>Sa</div>
-                <div>So</div>
+          <div class="calendar-collapsible-wrapper">
+            <div class="calendar-widget">
+              <!-- Calendar Navigation Header -->
+              <div class="calendar-header">
+                <div class="calendar-views">
+                  <button class="calendar-view-btn active" id="view-month-btn"
+                    onclick="setCalendarView('month')">Monat</button>
+                  <button class="calendar-view-btn" id="view-week-btn" onclick="setCalendarView('week')">Woche</button>
+                  <button class="calendar-view-btn" id="view-year-btn" onclick="setCalendarView('year')">Jahr</button>
+                </div>
+                <div class="calendar-nav">
+                  <button class="calendar-nav-btn" onclick="navigateCalendar(-1)">&lsaquo;</button>
+                  <span class="calendar-title" id="calendar-month-year">...</span>
+                  <button class="calendar-nav-btn" onclick="navigateCalendar(1)">&rsaquo;</button>
+                </div>
               </div>
-              <div class="calendar-days-grid" id="calendar-days">
-                <!-- Populated dynamically -->
+
+              <!-- Calendar Views Containers -->
+              <div id="calendar-month-container" class="calendar-grid-container">
+                <div class="calendar-weekdays">
+                  <div>Mo</div>
+                  <div>Di</div>
+                  <div>Mi</div>
+                  <div>Do</div>
+                  <div>Fr</div>
+                  <div>Sa</div>
+                  <div>So</div>
+                </div>
+                <div class="calendar-days-grid" id="calendar-days">
+                  <!-- Populated dynamically -->
+                </div>
               </div>
-            </div>
 
-            <div id="calendar-week-container" style="display:none;">
-              <div class="calendar-days-week" id="calendar-week-days">
-                <!-- Populated dynamically -->
+              <div id="calendar-week-container" style="display:none;">
+                <div class="calendar-days-week" id="calendar-week-days">
+                  <!-- Populated dynamically -->
+                </div>
               </div>
-            </div>
 
-            <div id="calendar-year-container" style="display:none;">
-              <div class="calendar-days-week" id="calendar-year-events">
-                <!-- Populated dynamically -->
+              <div id="calendar-year-container" style="display:none;">
+                <div class="calendar-days-week" id="calendar-year-events">
+                  <!-- Populated dynamically -->
+                </div>
               </div>
-            </div>
 
-            <!-- Calendar Legend -->
-            <div class="calendar-legend">
-              <div class="legend-item"><span class="legend-dot status-free"></span>Geöffnet / Reservierung möglich</div>
-              <div class="legend-item"><span class="legend-dot status-request"></span>Nur auf Anfrage (Feiern / Gruppen)</div>
-              <div class="legend-item"><span class="legend-dot status-booked"></span>Ausgebucht</div>
-              <div class="legend-item"><span class="legend-dot status-closed"></span>Geschlossen (Feier o.ä.)</div>
-              <div class="legend-item"><span class="legend-dot status-holiday"></span>Betriebsferien / Urlaub</div>
-              <div class="legend-item"><span class="legend-dot status-event"></span>Event (Schlachtfest etc.)</div>
-            </div>
+              <!-- Calendar Legend -->
+              <div class="calendar-legend">
+                <div class="legend-item"><span class="legend-dot status-free"></span>Geöffnet / Reservierung möglich</div>
+                <div class="legend-item"><span class="legend-dot status-request"></span>Nur auf Anfrage (Feiern / Gruppen)</div>
+                <div class="legend-item"><span class="legend-dot status-booked"></span>Ausgebucht</div>
+                <div class="legend-item"><span class="legend-dot status-closed"></span>Geschlossen (Feier o.ä.)</div>
+                <div class="legend-item"><span class="legend-dot status-holiday"></span>Betriebsferien / Urlaub</div>
+                <div class="legend-item"><span class="legend-dot status-event"></span>Event (Schlachtfest etc.)</div>
+              </div>
 
-            <!-- Day Details Box -->
-            <div class="calendar-details-box" id="calendar-day-details" style="display:none;">
-              <!-- Populated dynamically when clicking a day -->
-            </div>
+              <!-- Day Details Box -->
+              <div class="calendar-details-box" id="calendar-day-details" style="display:none;">
+                <!-- Populated dynamically when clicking a day -->
+              </div>
 
-            <div class="planner-cta-note">
-              <strong>Feiern, Events &amp; Buffets jeder Größe:</strong> Kontaktieren Sie uns gerne für
-              Familienfeiern, Geburtstage, Vereinsabende oder Firmenevents. Wir bieten unter anderem
-              <strong>Buffets, Spanferkel, Mutzbraten, À-la-carte und mehr</strong> an.
-              Auf Anfrage sind auch Termine an anderen Tagen möglich.
-              <a href="#kontakt" class="planner-cta-link">Jetzt unverbindlich anfragen &rsaquo;</a>
+              <div class="planner-cta-note">
+                <strong>Feiern, Events &amp; Buffets jeder Größe:</strong> Kontaktieren Sie uns gerne für
+                Familienfeiern, Geburtstage, Vereinsabende oder Firmenevents. Wir bieten unter anderem
+                <strong>Buffets, Spanferkel, Mutzbraten, À-la-carte und mehr</strong> an.
+                Auf Anfrage sind auch Termine an anderen Tagen möglich.
+                <a href="#kontakt" class="planner-cta-link">Jetzt unverbindlich anfragen &rsaquo;</a>
+              </div>
             </div>
           </div>
         </div>

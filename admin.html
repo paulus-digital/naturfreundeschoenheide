@@ -231,41 +231,49 @@
       <!-- 2. OPENING HOURS TAB PANEL -->
       <section id="panel-hours" class="panel-section">
         <div class="panel-header">
-          <h2 class="panel-title">Öffnungszeiten verwalten</h2>
+          <h2 class="panel-title">Öffnungszeiten wochenweise planen (Wochen-Planer)</h2>
         </div>
 
         <div class="easy-help-box">
-          <span>💡</span> <strong>Einfach erklärt:</strong> Stelle hier deine regulären Öffnungszeiten pro Wochentag ein. Unten kannst du Ausnahmen (Ruhetage, Events) für bestimmte Tage festlegen.
+          <span>💡</span> <strong>Einfach erklärt:</strong> Blättere wochenweise durch das Jahr. Du siehst direkt das jeweilige Datum und kannst für jeden Tag spezielle Zeiten eintragen, Events planen oder eintragen, wenn geschlossen/Urlaub/ausgebucht ist. Tage ohne manuelle Änderungen nutzen automatisch deine Grundeinstellungen.
         </div>
 
-        <p class="text-muted" style="margin-bottom: 24px;">Trage hier die Zeiten ein. Für Ruhetage trage bitte "Ruhetag" ein.</p>
+        <!-- Week Navigation Header -->
+        <div class="week-planner-navigation" style="display: flex; align-items: center; justify-content: space-between; margin: 20px 0; background: var(--bg-cream); padding: 14px 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm); flex-wrap: wrap; gap: 10px;">
+          <button type="button" class="admin-btn" onclick="navigateWeek(-1)" style="padding: 10px 18px; font-weight: 600;">← Vorherige Woche</button>
+          <span id="week-planner-title" style="font-weight: 700; font-size: 1.15rem; color: var(--primary-dark); text-align: center; min-width: 250px;">Kalenderwoche ...</span>
+          <button type="button" class="admin-btn" onclick="navigateWeek(1)" style="padding: 10px 18px; font-weight: 600;">Nächste Woche →</button>
+        </div>
 
-        <form id="admin-hours-form">
-          <div class="form-grid" id="admin-hours-fields" style="grid-template-columns: 1fr;">
+        <form id="admin-week-planner-form" onsubmit="event.preventDefault();">
+          <div class="week-planner-container" id="admin-week-planner-fields" style="background: var(--bg-white); border: 1px solid var(--border-warm); border-radius: var(--radius-sm); overflow: hidden; display: flex; flex-direction: column;">
             <!-- Populated dynamically via JS -->
           </div>
+          <button type="button" class="admin-btn admin-btn-primary" onclick="saveWeekPlanner()" style="width: 100%; margin-top: 20px; font-size: 1.05rem; padding: 14px 20px;">
+            💾 Änderungen für diese Kalenderwoche speichern
+          </button>
         </form>
 
         <hr style="border: 0; border-top: 1px solid var(--border-warm); margin: 40px 0;">
 
         <div class="panel-header">
-          <h2 class="panel-title">Sonderöffnungszeiten verplanen</h2>
+          <h2 class="panel-title">Termin- &amp; Ausnahme-Planung</h2>
         </div>
         <p class="text-muted" style="margin-bottom: 24px;">
-          Plane hier Tage mit abweichenden Öffnungszeiten (z. B. Feiertage, geschlossene Gesellschaften oder Betriebsferien).
+          Trage hier Termine schnell über einen Zeitraum hinweg ein (z. B. Urlaub über mehrere Wochen, Events oder geplante Ausnahmen).
         </p>
 
         <div class="card special-hours-card">
-          <h4 style="margin-bottom: 12px; color: var(--primary-dark);">Sonderöffnungszeit hinzufügen</h4>
+          <h4 style="margin-bottom: 12px; color: var(--primary-dark);">Ausnahme / Termin hinzufügen</h4>
           
           <!-- 1-Click Presets Box -->
           <div class="easy-presets-box">
             <span class="presets-label">⚡ 1-Klick Schnell-Auswahl:</span>
             <div class="presets-buttons-grid">
-              <button type="button" class="btn-preset btn-preset-closed" onclick="applySpecialPreset('closed')">🔴 Ruhetag / Geschlossen</button>
-              <button type="button" class="btn-preset btn-preset-open" onclick="applySpecialPreset('regular')">🟢 Regulär (11:30 - 21:00)</button>
-              <button type="button" class="btn-preset btn-preset-event" onclick="applySpecialPreset('event')">🎉 Sonder-Event / Feier</button>
-              <button type="button" class="btn-preset btn-preset-holiday" onclick="applySpecialPreset('holiday')">🏖️ Betriebsferien</button>
+              <button type="button" class="btn-preset btn-preset-closed" onclick="applySpecialPreset('closed')">🔴 Geschlossen</button>
+              <button type="button" class="btn-preset btn-preset-open" onclick="applySpecialPreset('regular')">🟢 Regulär geöffnet</button>
+              <button type="button" class="btn-preset btn-preset-event" onclick="applySpecialPreset('event')">🎉 Event / Feier</button>
+              <button type="button" class="btn-preset btn-preset-holiday" onclick="applySpecialPreset('holiday')">🏖️ Urlaub / Betriebsferien</button>
             </div>
           </div>
 
@@ -294,7 +302,7 @@
                 </label>
                 <label class="type-pill-btn">
                   <input type="radio" name="special-type-radio" id="type-radio-closed" value="closed" onchange="handleSpecialTypeChange()">
-                  <span>🚫 Ruhetag / Geschlossen</span>
+                  <span>🚫 Geschlossen</span>
                 </label>
                 <label class="type-pill-btn">
                   <input type="radio" name="special-type-radio" id="type-radio-event" value="event" onchange="handleSpecialTypeChange()">
@@ -327,12 +335,12 @@
               <input type="text" id="new-special-hours-custom" class="form-control" placeholder="z.B. 11:30 - 14:30 &amp; 17:00 - 22:00">
             </div>
 
-            <!-- 5. Direct Checkboxes for Ruhetag and Event -->
+            <!-- 5. Direct Checkboxes for closed status and Event -->
             <div class="form-group span-full">
               <div class="special-checkbox-row">
                 <label class="checkbox-label">
                   <input type="checkbox" id="special-is-closed-chk" onchange="handleSpecialCheckboxChange('closed')">
-                  <span>Als Ruhetag markieren (Geschlossen)</span>
+                  <span>Als geschlossen markieren</span>
                 </label>
                 <label class="checkbox-label">
                   <input type="checkbox" id="special-is-event-chk" onchange="handleSpecialCheckboxChange('event')">
@@ -348,10 +356,10 @@
             </div>
           </div>
 
-          <button class="admin-btn admin-btn-primary" style="width: 100%; margin-top: 20px; font-size: 1rem; padding: 12px 20px;" onclick="addNewSpecialHours()">Sonderzeit speichern</button>
+          <button class="admin-btn admin-btn-primary" style="width: 100%; margin-top: 20px; font-size: 1rem; padding: 12px 20px;" onclick="addNewSpecialHours()">Termin / Ausnahme speichern</button>
         </div>
 
-        <h4 style="margin-top: 30px; margin-bottom: 12px;">Geplante Sonderöffnungszeiten</h4>
+        <h4 style="margin-top: 30px; margin-bottom: 12px;">Geplante Termine &amp; Ausnahmen</h4>
         <div id="admin-special-hours-list">
           <!-- Populated dynamically via JS -->
         </div>
@@ -437,6 +445,22 @@
       <section id="panel-settings" class="panel-section">
         <div class="panel-header">
           <h2 class="panel-title">Website-Einstellungen</h2>
+        </div>
+
+        <!-- Grundeinstellungen Öffnungszeiten Card -->
+        <div class="card" style="margin-bottom: 30px;">
+          <h4 style="margin-bottom: 12px; color: var(--primary-dark);">Standard-Öffnungszeiten (Template)</h4>
+          <p class="text-muted" style="margin-bottom: 16px; font-size: 0.9rem;">
+            Hier kannst du die Grundeinstellungen deiner wöchentlichen Öffnungszeiten bearbeiten. Diese werden als Vorlage für jede neue Woche verwendet. Bereits individuell angepasste Tage in bestimmten Wochen werden durch Änderungen hier <strong>nicht</strong> überschrieben.
+          </p>
+          <form id="admin-template-hours-form" onsubmit="event.preventDefault();">
+            <div id="admin-template-hours-fields" class="form-grid" style="grid-template-columns: 1fr; gap: 12px;">
+              <!-- Populated dynamically via JS -->
+            </div>
+            <button type="button" class="admin-btn admin-btn-primary" onclick="saveTemplateHours()" style="width: 100%; margin-top: 20px;">
+              💾 Standard-Zeiten speichern
+            </button>
+          </form>
         </div>
 
         <!-- Kontaktdaten Card -->
