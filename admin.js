@@ -1366,26 +1366,6 @@ function populateSettingsTab() {
     if (emailEl) emailEl.value = pageData.contact.email || '';
     if (inhaberEl) inhaberEl.value = pageData.contact.inhaber || '';
   }
-}
-
-async function saveTemplateHours() {
-  if (!pageData.openingHours) return;
-
-  pageData.openingHours.forEach((item, index) => {
-    const input = document.getElementById(`template-hour-day-${index}`);
-    if (input) {
-      item.hours = input.value.trim();
-    }
-  });
-
-  showToast('💾 Speichere Standard-Zeiten...', 'info');
-  const dataSaved = await commitDataChange('Admin Panel: Grundeinstellungen Standard-Öffnungszeiten geändert');
-  if (dataSaved) {
-    showToast('✅ Standard-Öffnungszeiten erfolgreich gespeichert!', 'success');
-    populateSettingsTab();
-    renderWeekPlanner();
-  }
-}
 
   const container = document.getElementById('hero-slides-admin');
   if (!container) return;
@@ -1426,6 +1406,25 @@ async function saveTemplateHours() {
     }
     slot.innerHTML = previewHtml;
     container.appendChild(slot);
+  }
+}
+
+async function saveTemplateHours() {
+  if (!pageData.openingHours) return;
+
+  pageData.openingHours.forEach((item, index) => {
+    const input = document.getElementById(`template-hour-day-${index}`);
+    if (input) {
+      item.hours = input.value.trim();
+    }
+  });
+
+  showToast('💾 Speichere Standard-Zeiten...', 'info');
+  const dataSaved = await commitDataChange('Admin Panel: Grundeinstellungen Standard-Öffnungszeiten geändert');
+  if (dataSaved) {
+    showToast('✅ Standard-Öffnungszeiten erfolgreich gespeichert!', 'success');
+    populateSettingsTab();
+    renderWeekPlanner();
   }
 }
 
