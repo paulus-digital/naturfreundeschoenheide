@@ -322,7 +322,14 @@ nav a:hover::after {
 .nav-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1040;
+  z-index: 900; /* lowered to sit below header navigation */
+  background-color: rgba(16, 29, 18, 0.55);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 900; /* lowered to sit below header navigation */
   background-color: rgba(16, 29, 18, 0.55);
   opacity: 0;
   transition: opacity 0.3s ease;
