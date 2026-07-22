@@ -634,9 +634,10 @@ nav a:hover::after {
   color: var(--primary-light);
   font-weight: 700;
   background-color: rgba(45, 90, 39, 0.05);
-  margin: 0 -12px;
+  margin: 4px -12px;
   padding: 12px;
   border-radius: var(--radius-sm);
+  border-bottom: none;
 }
 
 .hours-row.current-day > span:first-child::after {
@@ -2594,9 +2595,18 @@ input:checked + .slider:before {
 }
 
 .hours-row.special-day {
-  background-color: rgba(154, 115, 37, 0.06);
-  border-left: 3px solid var(--accent);
-  padding-left: 8px;
+  background-color: rgba(154, 115, 37, 0.07);
+  border-left: 4px solid var(--accent);
+  margin: 4px -12px;
+  padding: 12px;
+  padding-left: 12px;
+  border-radius: var(--radius-sm);
+  border-bottom: none;
+}
+
+.hours-row.current-day.special-day {
+  background-color: rgba(154, 115, 37, 0.12);
+  border-left: 4px solid var(--accent);
 }
 
 .hours-row.special-day > span:first-child {
