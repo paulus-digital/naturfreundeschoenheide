@@ -58,6 +58,19 @@ document.addEventListener('DOMContentLoaded', () => {
     revealObserver.observe(el);
   });
 
+  // New: Prevent default scrolling for #kontakt anchors and scroll to top instead
+  document.querySelectorAll('a[href="#kontakt"]').forEach(anchor => {
+    anchor.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  // On page load, if URL contains #kontakt, scroll to top
+  if (window.location.hash === '#kontakt') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   // Stop polling when tab is hidden (saves GitHub rate limits), start again when focused
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
