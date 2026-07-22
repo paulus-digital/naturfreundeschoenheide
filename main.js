@@ -153,7 +153,7 @@ async function loadData() {
   } catch (error) {
     console.error('Fehler beim Laden der Website-Daten:', error);
     // If everything fails, look in localStorage as fallback
-    const backupData = localStorage.getItem('spartenheim_backup_data');
+    const backupData = localStorage.getItem('naturfreunde_backup_data');
     if (backupData) {
       appData = JSON.parse(backupData);
       renderWebsite();
@@ -831,7 +831,7 @@ function renderGallery() {
     item.innerHTML = `
       <img src="${img.src}" alt="${img.alt || 'Galeriebild'}" onerror="this.src='logo.png'; this.style.objectFit='contain';">
       <div class="gallery-overlay">
-        <div class="gallery-caption">${img.alt || 'Spartenheim Impression'}</div>
+        <div class="gallery-caption">${img.alt || 'Impression Gaststätte'}</div>
       </div>
     `;
     container.appendChild(item);
@@ -1129,8 +1129,8 @@ function escapeHTML(str) {
 // FRONTEND PAGE SHARE FEATURE
 // ----------------------------------------------------
 async function sharePage() {
-  const title = 'Gaststätte Spartenheim Naturfreunde Schönheide';
-  const text = 'Besucht das Spartenheim Naturfreunde in Schönheide! Hier findet ihr aktuelle Öffnungszeiten & Termine:';
+  const title = 'Gaststätte Naturfreunde Schönheide';
+  const text = 'Besucht die Gaststätte Naturfreunde in Schönheide! Hier findet ihr aktuelle Öffnungszeiten:';
   const url = window.location.href;
 
   if (navigator.share) {
@@ -1151,7 +1151,7 @@ function openShareModal() {
   const modal = document.getElementById('share-modal');
   if (!modal) return;
   
-  const text = 'Besucht das Spartenheim Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + window.location.href;
+  const text = 'Besucht die Gaststätte Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + window.location.href;
   const modalText = document.getElementById('share-modal-text');
   if (modalText) modalText.textContent = text;
 
@@ -1170,7 +1170,7 @@ function closeShareModal() {
 }
 
 function copyShareLink() {
-  const text = 'Besucht das Spartenheim Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + window.location.href;
+  const text = 'Besucht die Gaststätte Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + window.location.href;
   
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text).then(() => {

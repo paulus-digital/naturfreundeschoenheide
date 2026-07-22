@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Check if credentials exist in localStorage
 async function checkSavedAuth() {
-  const saved = localStorage.getItem('spartenheim_auth_secure');
+  const saved = localStorage.getItem('naturfreunde_auth_secure');
   if (saved) {
     try {
       const decoded = decodeURIComponent(escape(atob(saved)));
@@ -33,7 +33,7 @@ async function checkSavedAuth() {
         await handleLogin(mockEvent);
       }
     } catch (e) {
-      localStorage.removeItem('spartenheim_auth_secure');
+      localStorage.removeItem('naturfreunde_auth_secure');
     }
   }
 }
@@ -108,9 +108,9 @@ async function handleLogin(event) {
     const rememberCheckbox = document.getElementById('remember-login');
     if (!rememberCheckbox || rememberCheckbox.checked) {
       const creds = btoa(unescape(encodeURIComponent(JSON.stringify({ u: userField, p: passField }))));
-      localStorage.setItem('spartenheim_auth_secure', creds);
+      localStorage.setItem('naturfreunde_auth_secure', creds);
     } else {
-      localStorage.removeItem('spartenheim_auth_secure');
+      localStorage.removeItem('naturfreunde_auth_secure');
     }
     
     // Now fetch database records
@@ -168,7 +168,7 @@ async function connectToFirebase(firebaseUrl) {
 
 // Logout
 function logout() {
-  localStorage.removeItem('spartenheim_auth_secure');
+  localStorage.removeItem('naturfreunde_auth_secure');
   document.getElementById('dashboard-container').style.display = 'none';
   document.getElementById('auth-container').style.display = 'flex';
   document.getElementById('logout-btn').style.display = 'none';
@@ -923,7 +923,7 @@ async function commitDataChange(logMessage) {
     if (response.status === 401) {
       // Token might be expired (Firebase ID tokens expire after 1 hour).
       // Attempt silent re-authentication if credentials are saved.
-      const saved = localStorage.getItem('spartenheim_auth_secure');
+      const saved = localStorage.getItem('naturfreunde_auth_secure');
       if (saved) {
         showToast('🔄 Erneuere Verbindung...', 'info');
         const decoded = decodeURIComponent(escape(atob(saved)));

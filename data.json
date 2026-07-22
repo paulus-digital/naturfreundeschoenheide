@@ -12,7 +12,7 @@
   "openStatus": true,
   "banner": {
     "visible": true,
-    "text": "Willkommen im Spartenheim Naturfreunde! Die Woche nur am Sonntag geöffnet."
+    "text": "Willkommen bei der Gaststätte Naturfreunde! Die Woche nur am Sonntag geöffnet."
   },
   "openingHours": [
     {
@@ -84,7 +84,7 @@
     }
   ],
   "contact": {
-    "name": "Gaststätte Spartenheim Naturfreunde",
+    "name": "Gaststätte Naturfreunde",
     "address": "Gartenweg, 08304 Schönheide",
     "inhaber": "Ina Schultze",
     "phone": "+49 (0) 37755 12345",
