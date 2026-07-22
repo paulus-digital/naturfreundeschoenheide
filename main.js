@@ -716,7 +716,7 @@ function selectCalendarDay(dateObj, event) {
     statusKey = getOpenStatusForDate(dateObj);
     if (statusKey === 'closed') {
       statusText = 'Ruhetag';
-      descText = 'An diesem Tag haben wir Ruhetag und sind geschlossen.';
+      descText = 'An diesem Tag bleibt die Gaststätte geschlossen.';
     } else if (statusKey === 'request') {
       statusText = 'Nur auf Anfrage';
       descText = 'An diesem Tag haben wir nicht regulär geöffnet. Wir stehen jedoch nach Absprache sehr gerne für Feiern, Gruppen & Veranstaltungen zur Verfügung. Rufen Sie uns einfach an!';
@@ -726,11 +726,42 @@ function selectCalendarDay(dateObj, event) {
   }
 
   let hoursText = '';
-  if (appData.openingHours) {
+  let actualHours = '';
+
+  // 1. Check special opening hours first
+  if (appData.specialHours) {
+    const dateStr = formatDateToYYYYMMDD(dateObj);
+    const specialMatch = appData.specialHours.find(h => h.date === dateStr);
+    if (specialMatch) {
+      actualHours = specialMatch.hours;
+    }
+  }
+
+  // 2. Check if there is a planner event that specifies hours or status
+  if (!actualHours && event.length > 0) {
+    const mainEvent = event[0];
+    if (mainEvent.hours) {
+      actualHours = mainEvent.hours;
+    } else {
+      const statusHoursMap = {
+        'closed': 'Ruhetag',
+        'holiday': 'Betriebsferien',
+        'request': 'Nur auf Anfrage'
+      };
+      actualHours = statusHoursMap[mainEvent.status] || '';
+    }
+  }
+
+  // 3. Fallback to regular hours
+  if (!actualHours && appData.openingHours) {
     const hoursMatch = appData.openingHours.find(h => h.day.toLowerCase() === dayNameGerman.toLowerCase());
     if (hoursMatch) {
-      hoursText = `Reguläre Öffnungszeit: ${hoursMatch.hours}`;
+      actualHours = hoursMatch.hours;
     }
+  }
+
+  if (actualHours) {
+    hoursText = `Öffnungszeit: ${actualHours}`;
   }
 
   const phone = appData.contact ? appData.contact.phone : '+49 (0) 37755 12345';

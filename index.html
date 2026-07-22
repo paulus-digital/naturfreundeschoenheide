@@ -40,38 +40,41 @@
     <div class="preloader-spinner"></div>
   </div>
 
-  <!-- Live News Banner -->
-  <div id="live-banner" class="news-banner hidden">
-    <span class="banner-icon">📢</span>
-    <span id="banner-text">Neuigkeiten werden geladen...</span>
-    <button class="news-banner-close" onclick="closeBanner()" aria-label="Schließen">&times;</button>
-  </div>
-
-  <!-- Header Navigation -->
-  <header>
-    <div class="container header-container">
-      <a href="#" class="logo-link">
-        <img src="logo.png" alt="Wappen Naturfreunde" class="logo-img">
-        <span>Gaststätte Naturfreunde</span>
-      </a>
-
-      <nav id="navbar">
-        <ul>
-          <li><a href="#home">Start</a></li>
-          <li><a href="#zeiten">Öffnungszeiten</a></li>
-          <li><a href="#termine">Termine</a></li>
-          <li><a href="#galerie">Galerie</a></li>
-          <li><a href="#gaestebuch">Gästebuch</a></li>
-          <li><a href="#kontakt" class="cta-button">Jetzt Anrufen</a></li>
-          <li><button type="button" onclick="sharePage()" class="nav-share-btn">🔗 Teilen</button></li>
-        </ul>
-      </nav>
-
-      <button class="mobile-nav-toggle" onclick="toggleMobileMenu()" aria-label="Menü öffnen">
-        ☰
-      </button>
+  <!-- Fixed Header & Banner Wrapper -->
+  <div class="fixed-header-wrapper">
+    <!-- Live News Banner -->
+    <div id="live-banner" class="news-banner hidden">
+      <span class="banner-icon">📢</span>
+      <span id="banner-text">Neuigkeiten werden geladen...</span>
+      <button class="news-banner-close" onclick="closeBanner()" aria-label="Schließen">&times;</button>
     </div>
-  </header>
+
+    <!-- Header Navigation -->
+    <header>
+      <div class="container header-container">
+        <a href="#" class="logo-link">
+          <img src="logo.png" alt="Wappen Naturfreunde" class="logo-img">
+          <span>Gaststätte Naturfreunde</span>
+        </a>
+
+        <nav id="navbar">
+          <ul>
+            <li><a href="#home">Start</a></li>
+            <li><a href="#zeiten">Öffnungszeiten</a></li>
+            <li><a href="#termine">Termine</a></li>
+            <li><a href="#galerie">Galerie</a></li>
+            <li><a href="#gaestebuch">Gästebuch</a></li>
+            <li><a href="#kontakt" class="cta-button">Jetzt Anrufen</a></li>
+            <li><button type="button" onclick="sharePage()" class="nav-share-btn">🔗 Teilen</button></li>
+          </ul>
+        </nav>
+
+        <button class="mobile-nav-toggle" onclick="toggleMobileMenu()" aria-label="Menü öffnen">
+          ☰
+        </button>
+      </div>
+    </header>
+  </div>
 
   <div id="nav-backdrop" class="nav-backdrop" onclick="toggleMobileMenu()" hidden></div>
 
