@@ -224,22 +224,35 @@ header {
 .logo-link {
   display: flex;
   align-items: center;
+  gap: 12px;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.18rem;
+  color: var(--primary-dark);
+  white-space: nowrap;
   flex-shrink: 1;
+  letter-spacing: 0.02em;
   min-width: 0;
-}
-
-.logo-img {
-  height: 52px;
-  width: auto;
-  object-fit: contain;
-  flex-shrink: 0;
+  overflow: hidden;
   transition: var(--transition);
 }
 
-@media (max-width: 600px) {
-  .logo-img {
-    height: 42px;
-  }
+.logo-link span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.header-leaf-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.logo-link:hover .header-leaf-icon {
+  transform: rotate(-10deg) scale(1.1);
 }
 
 nav ul {
@@ -397,14 +410,32 @@ nav a:hover::after {
   margin: 0;
 }
 
-.hero-title {
-  font-size: clamp(2.4rem, 6vw, 4.2rem);
-  font-weight: 600;
-  color: var(--text-light);
-  margin: 0;
-  line-height: 1.08;
-  letter-spacing: 0.015em;
-  text-shadow: 0 2px 16px rgba(0,0,0,0.45);
+.hero-title-logo {
+  margin: 0 auto;
+  margin-top: 15px;
+  width: 100%;
+  max-width: 620px;
+  display: block;
+  animation: fadeInUp 1s ease-out;
+}
+
+.hero-logo-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.45)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+@media (max-width: 768px) {
+  .hero-title-logo {
+    max-width: 480px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title-logo {
+    max-width: 320px;
+  }
 }
 
 /* Live Status Banner – prominent, color-coded, impossible to miss */
