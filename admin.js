@@ -568,43 +568,6 @@ function updateSocialGraphic(isUserOverride = false) {
         ctx.drawImage(logoImg, (width - logoWidth) / 2, 120, logoWidth, logoHeight);
       }
 
-      // Divider line – subtle gray
-      ctx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      const dividerY = 120 + logoHeight + 25;
-      ctx.moveTo(width / 2 - 120, dividerY);
-      ctx.lineTo(width / 2 + 120, dividerY);
-      ctx.stroke();
-
-      // Date badge
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#faf6ef';
-      ctx.font = '500 38px sans-serif';
-      const dateY = dividerY + 55;
-      ctx.fillText(formattedDate, width / 2, dateY);
-
-      // Status text – no background box, color‑coded
-      const statusY = dateY + 45;
-      const isClosed = displayText.toLowerCase().includes('geschlossen') || displayText.toLowerCase().includes('ruhetag');
-      ctx.fillStyle = isClosed ? '#ff6b6b' : '#4caf50';
-      ctx.font = 'bold 48px sans-serif';
-      ctx.fillText(displayText, width / 2, statusY);
-
-      // Footer info (address)
-      const addressY = statusY + 70;
-      const correctAddress = (pageData.contact && pageData.contact.address) ? pageData.contact.address : 'Gartenweg 5, 08304 Schönheide';
-      ctx.fillStyle = '#d0c8b5';
-      ctx.font = '400 30px sans-serif';
-      ctx.fillText(correctAddress, width / 2, addressY);
-    };
-      let logoHeight = 240;
-      if (logoImg.complete && logoImg.naturalWidth > 0) {
-        const logoWidth = 600;
-        logoHeight = logoImg.naturalHeight * (logoWidth / logoImg.naturalWidth);
-        ctx.drawImage(logoImg, (width - logoWidth) / 2, 120, logoWidth, logoHeight);
-      }
-
       // Title & Subtitle are fully represented in the image logo, so we skip text drawing
 
       // Divider Line
