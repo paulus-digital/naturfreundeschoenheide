@@ -779,7 +779,7 @@ function renderWeekPlanner() {
 
     if (specialMatch) {
       hoursVal = specialMatch.hours;
-      selectedType = specialMatch.type || 'custom';
+      selectedType = (specialMatch.type === 'free') ? 'open' : (specialMatch.type || 'custom');
       labelVal = specialMatch.label || '';
     }
 
@@ -809,14 +809,15 @@ function renderWeekPlanner() {
       </div>
       
       <div style="flex: 1.5 1 250px; display: flex; gap: 10px; flex-wrap: wrap;">
-        <div style="flex: 1 1 120px; min-width: 120px;">
+        <div style="flex: 1 1 140px; min-width: 140px;">
           <select id="week-day-type-${i}" class="form-control" onchange="handleWeekDayTypeChange(${i})" style="font-size: 0.9rem; padding: 8px;">
-            <option value="standard" ${selectedType === 'standard' ? 'selected' : ''}>Grundeinstellung</option>
-            <option value="closed" ${selectedType === 'closed' ? 'selected' : ''}>Geschlossen</option>
-            <option value="event" ${selectedType === 'event' ? 'selected' : ''}>Sonder-Event</option>
-            <option value="holiday" ${selectedType === 'holiday' ? 'selected' : ''}>Urlaub</option>
-            <option value="booked" ${selectedType === 'booked' ? 'selected' : ''}>Ausgebucht</option>
-            <option value="custom" ${selectedType === 'custom' ? 'selected' : ''}>Manuell</option>
+            <option value="standard" ${selectedType === 'standard' ? 'selected' : ''}>⚙️ Grundeinstellung</option>
+            <option value="open" ${selectedType === 'open' ? 'selected' : ''}>🟢 Geöffnet (Uhrzeit anpassen)</option>
+            <option value="closed" ${selectedType === 'closed' ? 'selected' : ''}>🔴 Geschlossen</option>
+            <option value="event" ${selectedType === 'event' ? 'selected' : ''}>🎉 Sonder-Event</option>
+            <option value="holiday" ${selectedType === 'holiday' ? 'selected' : ''}>🏖️ Urlaub / Betriebsferien</option>
+            <option value="booked" ${selectedType === 'booked' ? 'selected' : ''}>❌ Ausgebucht</option>
+            <option value="custom" ${selectedType === 'custom' ? 'selected' : ''}>✍️ Manuell (Freitext)</option>
           </select>
         </div>
         <div style="flex: 1.5 1 150px; min-width: 150px;">
@@ -825,7 +826,7 @@ function renderWeekPlanner() {
       </div>
 
       <div style="flex: 1 1 200px; min-width: 200px;">
-        <input type="text" id="week-day-label-${i}" class="form-control" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" style="font-size: 0.9rem; padding: 8px; display: ${selectedType === 'standard' ? 'none' : 'block'};">
+        <input type="text" id="week-day-label-${i}" class="form-control" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" style="font-size: 0.9rem; padding: 8px; display: ${selectedType === 'standard' || selectedType === 'open' ? 'none' : 'block'};">
       </div>
     `;
 
@@ -848,6 +849,12 @@ function handleWeekDayTypeChange(index) {
     const weekdayName = GERMAN_WEEKDAYS[index];
     const defaultItem = pageData.openingHours ? pageData.openingHours.find(h => h.day.toLowerCase() === weekdayName.toLowerCase()) : null;
     hoursInput.value = defaultItem ? defaultItem.hours : 'Geschlossen';
+  } else if (type === 'open') {
+    labelInput.style.display = 'none';
+    const hLower = (hoursInput.value || '').toLowerCase();
+    if (!hoursInput.value || hLower.includes('geschlossen') || hLower.includes('ruhetag')) {
+      hoursInput.value = '17:00 - 22:00 Uhr';
+    }
   } else {
     labelInput.style.display = 'block';
     
