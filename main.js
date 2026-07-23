@@ -1237,11 +1237,19 @@ async function sharePage() {
   }
 }
 
+function getCleanDisplayUrl() {
+  let url = window.location.href;
+  url = url.replace(/xn--gaststtte-naturfreunde-54b\.de/gi, 'gaststätte-naturfreunde.de');
+  url = url.replace(/paulus-digital\.github\.io\/naturfreundeschoenheide/gi, 'gaststätte-naturfreunde.de');
+  return url;
+}
+
 function openShareModal() {
   const modal = document.getElementById('share-modal');
   if (!modal) return;
   
-  const text = 'Besucht die Gaststätte Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + window.location.href;
+  const cleanUrl = getCleanDisplayUrl();
+  const text = 'Besucht die Gaststätte Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + cleanUrl;
   const modalText = document.getElementById('share-modal-text');
   if (modalText) modalText.textContent = text;
 
@@ -1249,7 +1257,7 @@ function openShareModal() {
   if (waBtn) waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
 
   const fbBtn = document.getElementById('share-fb-btn');
-  if (fbBtn) fbBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+  if (fbBtn) fbBtn.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(cleanUrl)}`;
 
   modal.classList.add('active');
 }
@@ -1260,7 +1268,8 @@ function closeShareModal() {
 }
 
 function copyShareLink() {
-  const text = 'Besucht die Gaststätte Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + window.location.href;
+  const cleanUrl = getCleanDisplayUrl();
+  const text = 'Besucht die Gaststätte Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online: ' + cleanUrl;
   
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text).then(() => {
