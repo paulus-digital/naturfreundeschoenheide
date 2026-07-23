@@ -450,53 +450,50 @@ nav a:hover::after {
   }
 }
 
-/* Live Status Banner – prominent, color-coded, impossible to miss */
+/* Live Status Banner – Elegant Gold Pill with dynamic status dot & pulse */
 .status-banner {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 28px;
+  padding: 13px 28px;
   border-radius: 50px;
   font-family: var(--font-sans);
   font-weight: 800;
   font-size: 1.05rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #fff;
+  color: #ffffff !important;
   cursor: default;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-  animation: pulseBadge 2.4s infinite;
+  background: linear-gradient(135deg, #b88d32 0%, var(--accent) 50%, #765618 100%);
+  border: 2px solid var(--accent-light);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  transition: var(--transition);
+}
+
+.status-banner .status-text {
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .status-banner.open {
-  background-color: #2e7d32;
-  border-color: #66bb6a;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(57, 211, 83, 0.3);
 }
 
-.status-banner.closed {
-  background-color: #c62828;
-  border-color: #ef5350;
-}
-
+.status-banner.closed,
 .status-banner.booked {
-  background-color: #b71c1c;
-  border-color: #ef5350;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(255, 77, 77, 0.3);
 }
 
 .status-banner.holiday {
-  background-color: #e65100;
-  border-color: #ffa726;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(255, 152, 0, 0.3);
 }
 
 .status-banner.event {
-  background-color: #6a1b9a;
-  border-color: #ab47bc;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(224, 64, 251, 0.3);
 }
 
 .status-banner.reservation {
-  background-color: #9a7325;
-  border-color: #c49a3c;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 16px rgba(255, 215, 0, 0.3);
 }
 
 .status-banner.clickable {
@@ -504,24 +501,122 @@ nav a:hover::after {
 }
 
 .status-banner.clickable:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.12);
+  transform: translateY(-2px);
 }
 
+/* Status Dot – changes color & pulses in situation color */
 .status-dot {
   width: 14px;
   height: 14px;
   border-radius: 50%;
   display: inline-block;
-  background-color: #fff;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s ease;
 }
 
-.status-banner.open .status-dot { background-color: #a5ffb0; box-shadow: 0 0 12px #4caf50; }
+.status-banner.open .status-dot {
+  background-color: #39d353;
+  animation: dotPulseGreen 1.8s infinite;
+}
+
 .status-banner.closed .status-dot,
-.status-banner.booked .status-dot { background-color: #ffb3b3; box-shadow: 0 0 12px #f44336; }
-.status-banner.holiday .status-dot { background-color: #ffd0a0; box-shadow: 0 0 12px #ff9800; }
-.status-banner.event .status-dot { background-color: #e9b8ff; box-shadow: 0 0 12px #ab47bc; }
-.status-banner.reservation .status-dot { background-color: #ffe6a8; box-shadow: 0 0 12px #c49a3c; }
+.status-banner.booked .status-dot {
+  background-color: #ff4d4d;
+  animation: dotPulseRed 1.8s infinite;
+}
+
+.status-banner.holiday .status-dot {
+  background-color: #ff9800;
+  animation: dotPulseOrange 1.8s infinite;
+}
+
+.status-banner.event .status-dot {
+  background-color: #e040fb;
+  animation: dotPulsePurple 1.8s infinite;
+}
+
+.status-banner.reservation .status-dot {
+  background-color: #ffd700;
+  animation: dotPulseYellow 1.8s infinite;
+}
+
+/* Glowing Pulsing Keyframes per situation */
+@keyframes dotPulseGreen {
+  0% {
+    box-shadow: 0 0 0 0 rgba(57, 211, 83, 0.8), 0 0 8px #39d353;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(57, 211, 83, 0), 0 0 18px #39d353;
+    transform: scale(1.18);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(57, 211, 83, 0), 0 0 8px #39d353;
+    transform: scale(1);
+  }
+}
+
+@keyframes dotPulseRed {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.8), 0 0 8px #ff4d4d;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 77, 77, 0), 0 0 18px #ff4d4d;
+    transform: scale(1.18);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 77, 77, 0), 0 0 8px #ff4d4d;
+    transform: scale(1);
+  }
+}
+
+@keyframes dotPulseOrange {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.8), 0 0 8px #ff9800;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 152, 0, 0), 0 0 18px #ff9800;
+    transform: scale(1.18);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0), 0 0 8px #ff9800;
+    transform: scale(1);
+  }
+}
+
+@keyframes dotPulsePurple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(224, 64, 251, 0.8), 0 0 8px #e040fb;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(224, 64, 251, 0), 0 0 18px #e040fb;
+    transform: scale(1.18);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(224, 64, 251, 0), 0 0 8px #e040fb;
+    transform: scale(1);
+  }
+}
+
+@keyframes dotPulseYellow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.8), 0 0 8px #ffd700;
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 215, 0, 0), 0 0 18px #ffd700;
+    transform: scale(1.18);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0), 0 0 8px #ffd700;
+    transform: scale(1);
+  }
+}
 
 .hero-cta {
   display: flex;
