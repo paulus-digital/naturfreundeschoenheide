@@ -361,6 +361,29 @@ function renderOpeningHours() {
     hoursList.appendChild(li);
   });
 }
+function getTodayHoursString() {
+  const today = new Date();
+  const dateStr = formatDateToYYYYMMDD(today);
+
+  // 1. Special hours for today
+  if (appData.specialHours) {
+    const special = appData.specialHours.find(h => h.date === dateStr);
+    if (special && special.hours && !special.hours.toLowerCase().includes('geschlossen') && !special.hours.toLowerCase().includes('ruhetag')) {
+      return special.hours;
+    }
+  }
+
+  // 2. Regular opening hours for today
+  if (appData.openingHours) {
+    const dayName = GERMAN_DAYS[today.getDay()];
+    const match = appData.openingHours.find(h => h.day && h.day.toLowerCase() === dayName.toLowerCase());
+    if (match && match.hours && !match.hours.toLowerCase().includes('geschlossen') && !match.hours.toLowerCase().includes('ruhetag')) {
+      return match.hours;
+    }
+  }
+
+  return '';
+}
 
 // Derive today's live status from the planner + configured opening hours
 function renderLiveStatus() {
@@ -385,9 +408,23 @@ function renderLiveStatus() {
   };
 
   const label = STATUS_LABEL[dayStatus] || 'Geschlossen';
-  liveStatus.className = `status-banner ${dayStatus === 'free' ? 'open' : dayStatus}`;
+  liveStatus.className = `status-banner ${dayStatus === 'free' || dayStatus === 'open' ? 'open' : dayStatus}`;
   liveStatus.querySelector('.status-dot').className = 'status-dot';
-  statusText.textContent = `Heute: ${label}`;
+
+  if (dayStatus === 'free' || dayStatus === 'open') {
+    const todayHours = getTodayHoursString();
+    statusText.textContent = todayHours ? `Heute geöffnet: ${todayHours}` : `Heute geöffnet`;
+  } else if (dayStatus === 'closed') {
+    statusText.textContent = `Heute geschlossen`;
+  } else if (dayStatus === 'holiday') {
+    statusText.textContent = `Heute: Im Urlaub`;
+  } else if (dayStatus === 'event') {
+    statusText.textContent = `Heute: Sonder-Event`;
+  } else if (dayStatus === 'booked') {
+    statusText.textContent = `Heute: Ausgebucht`;
+  } else {
+    statusText.textContent = `Heute: ${label}`;
+  }
 
   // Build detail text
   let detailHtml = '';
@@ -414,7 +451,8 @@ function renderLiveStatus() {
     if (specialToday) {
       detailHtml = `Heute geänderte Öffnungszeit: <strong>${escapeHTML(specialToday.hours)}</strong> ${specialToday.label ? '(' + escapeHTML(specialToday.label) + ')' : ''}`;
     } else {
-      detailHtml = 'Wir haben heute geöffnet. Reservieren Sie gerne einen Tisch – wir freuen uns auf Sie!';
+      const todayHours = getTodayHoursString();
+      detailHtml = `Wir haben heute für Sie geöffnet${todayHours ? ' (' + todayHours + ')' : ''}. Reservieren Sie gerne einen Tisch – wir freuen uns auf Sie!`;
     }
   }
 

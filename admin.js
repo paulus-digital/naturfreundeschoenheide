@@ -300,6 +300,85 @@ function isDatePast(dateStr) {
   return eventDateEnd < now;
 }
 
+function setupStatusToggle() {
+  const statusToggle = document.getElementById('admin-status-toggle');
+  if (statusToggle) {
+    statusToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      const desired = !pageData.openStatus;
+      toggleLiveStatus(desired);
+    });
+  }
+}
+
+async function toggleLiveStatus(desiredState) {
+  let isTrue = desiredState;
+  
+  if (isTrue) {
+    // Determine existing hours for today as default prompt value
+    const todayStr = formatDateToYYYYMMDD(new Date());
+    let defaultVal = '16:00 - 22:00 Uhr';
+    
+    if (pageData.specialHours) {
+      const sp = pageData.specialHours.find(h => h.date === todayStr);
+      if (sp && sp.hours && !sp.hours.toLowerCase().includes('geschlossen') && !sp.hours.toLowerCase().includes('ruhetag')) {
+        defaultVal = sp.hours;
+      }
+    }
+
+    const userInput = prompt('Bitte die heutige Öffnungszeit eingeben (z. B. 16:00 - 22:00 Uhr oder ab 17:00 Uhr):', defaultVal);
+    
+    if (userInput === null) {
+      // User cancelled prompt -> keep current status
+      updateLiveStatusUI(pageData.openStatus);
+      return;
+    }
+
+    const hoursText = userInput.trim() || defaultVal;
+
+    // Overwrite / create specialHours entry for TODAY only
+    if (!pageData.specialHours) pageData.specialHours = [];
+    const existingIndex = pageData.specialHours.findIndex(h => h.date === todayStr);
+    
+    const todayEntry = {
+      date: todayStr,
+      hours: hoursText,
+      type: 'open',
+      label: 'Heute geöffnet'
+    };
+
+    if (existingIndex !== -1) {
+      pageData.specialHours[existingIndex] = todayEntry;
+    } else {
+      pageData.specialHours.push(todayEntry);
+    }
+  } else {
+    // Switch to GESCHLOSSEN -> set today's special hours to Geschlossen
+    const todayStr = formatDateToYYYYMMDD(new Date());
+    if (!pageData.specialHours) pageData.specialHours = [];
+    const existingIndex = pageData.specialHours.findIndex(h => h.date === todayStr);
+    
+    const todayEntry = {
+      date: todayStr,
+      hours: 'Geschlossen',
+      type: 'closed',
+      label: 'Heute geschlossen'
+    };
+
+    if (existingIndex !== -1) {
+      pageData.specialHours[existingIndex] = todayEntry;
+    } else {
+      pageData.specialHours.push(todayEntry);
+    }
+  }
+
+  pageData.openStatus = isTrue;
+  updateLiveStatusUI(isTrue);
+  
+  showToast(isTrue ? '🟢 Live-Status: HEUTE GEÖFFNET' : '🔴 Live-Status: HEUTE GESCHLOSSEN', 'success');
+  await commitDataChange(isTrue ? 'Live-Status auf Geöffnet geändert' : 'Live-Status auf Geschlossen geändert');
+}
+
 function updateLiveStatusUI(isOpen) {
   const isTrue = String(isOpen) === 'true' || isOpen === true;
   pageData.openStatus = isTrue;
@@ -352,12 +431,8 @@ function populateGeneralTab() {
 
 async function toggleQuickStatus() {
   const currentStatus = String(pageData.openStatus) === 'true' || pageData.openStatus === true;
-  const newStatus = !currentStatus;
-
-  updateLiveStatusUI(newStatus);
-  showToast(newStatus ? '🟢 Website-Status: GEÖFFNET' : '🔴 Website-Status: GESCHLOSSEN', 'success');
-
-  await commitDataChange(newStatus ? 'Live-Status auf Geöffnet geändert' : 'Live-Status auf Geschlossen geändert');
+  const desiredStatus = !currentStatus;
+  await toggleLiveStatus(desiredStatus);
 }
 
 function scrollToSocialGen() {
@@ -785,14 +860,6 @@ function renderWeekPlanner() {
 
     const row = document.createElement('div');
     row.className = 'week-day-row';
-    row.style.display = 'flex';
-    row.style.flexDirection = 'row';
-    row.style.alignItems = 'center';
-    row.style.justifyContent = 'space-between';
-    row.style.gap = '15px';
-    row.style.padding = '14px 20px';
-    row.style.borderBottom = '1px solid var(--border-warm)';
-    row.style.flexWrap = 'wrap';
 
     const statusBadgeStyle = specialMatch 
       ? 'background: rgba(217, 83, 79, 0.1); color: #d9534f; border: 1px solid rgba(217,83,79,0.25);'
@@ -801,17 +868,14 @@ function renderWeekPlanner() {
     const statusBadgeText = specialMatch ? 'Manuelle Ausnahme' : 'Grundeinstellung';
 
     row.innerHTML = `
-      <div class="week-day-row-title" style="flex: 1 1 180px;">
-        <strong style="font-size: 1.05rem; color: var(--primary-dark);">${weekdayName}, ${dateLabel}</strong>
-        <div style="margin-top: 2px;">
-          <span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; ${statusBadgeStyle}">${statusBadgeText}</span>
-        </div>
+      <div class="week-day-row-title">
+        <strong style="font-size: 0.95rem; color: var(--primary-dark);">${weekdayName}, ${dateLabel}</strong>
+        <span class="special-hours-badge-inline" style="font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; ${statusBadgeStyle}">${statusBadgeText}</span>
       </div>
       
-      <div class="week-day-row-controls" style="flex: 2 1 320px; display: flex; gap: 10px; flex-wrap: wrap;">
-        <div style="flex: 1 1 160px; min-width: 140px;">
-          <label style="display:block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Status / Regelung</label>
-          <select id="week-day-type-${i}" class="form-control" onchange="handleWeekDayTypeChange(${i})" style="font-size: 0.95rem; font-weight: 600; padding: 8px; width: 100%;">
+      <div class="week-day-row-controls">
+        <div class="week-day-col">
+          <select id="week-day-type-${i}" class="form-control week-day-select" onchange="handleWeekDayTypeChange(${i})">
             <option value="standard" ${selectedType === 'standard' ? 'selected' : ''}>⚙️ Standard</option>
             <option value="open" ${selectedType === 'open' ? 'selected' : ''}>🟢 Geöffnet</option>
             <option value="closed" ${selectedType === 'closed' ? 'selected' : ''}>🔴 Geschlossen</option>
@@ -821,15 +885,13 @@ function renderWeekPlanner() {
             <option value="custom" ${selectedType === 'custom' ? 'selected' : ''}>✍️ Manuell</option>
           </select>
         </div>
-        <div style="flex: 1 1 150px; min-width: 130px;">
-          <label style="display:block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Öffnungszeit / Text</label>
-          <input type="text" id="week-day-hours-${i}" class="form-control" value="${hoursVal}" placeholder="z.B. 17:00 - 22:00 Uhr" style="font-size: 0.9rem; padding: 8px; width: 100%;">
+        <div class="week-day-col">
+          <input type="text" id="week-day-hours-${i}" class="form-control week-day-input" value="${hoursVal}" placeholder="z.B. 17:00 - 22:00 Uhr">
         </div>
       </div>
 
-      <div class="week-day-row-extra" style="flex: 1 1 180px; min-width: 150px;">
-        <label id="week-day-label-heading-${i}" style="display: ${selectedType === 'standard' || selectedType === 'open' ? 'none' : 'block'}; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Zusatzinfo</label>
-        <input type="text" id="week-day-label-${i}" class="form-control" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" style="font-size: 0.9rem; padding: 8px; width: 100%; display: ${selectedType === 'standard' || selectedType === 'open' ? 'none' : 'block'};">
+      <div class="week-day-row-extra">
+        <input type="text" id="week-day-label-${i}" class="form-control week-day-input" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" style="display: ${selectedType === 'standard' || selectedType === 'open' ? 'none' : 'block'};">
       </div>
     `;
 
