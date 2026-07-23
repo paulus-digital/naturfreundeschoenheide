@@ -12,6 +12,7 @@ let authData = {
 let pageData = {};
 let currentFileSha = '';
 let activeTab = 'general';
+let currentSocialAspect = '1:1';
 
 document.addEventListener('DOMContentLoaded', () => {
   checkSavedAuth();
@@ -604,11 +605,13 @@ function updateSocialGraphic(isUserOverride = false) {
   const canvas = document.getElementById('social-graphic-canvas');
   if (!canvas) return;
 
+  const aspect = (typeof currentSocialAspect !== 'undefined' && currentSocialAspect) ? currentSocialAspect : '1:1';
+
   // Set Canvas Dimensions based on selected Aspect Ratio
-  if (currentSocialAspect === '3:4') {
+  if (aspect === '3:4') {
     canvas.width = 1080;
     canvas.height = 1440;
-  } else if (currentSocialAspect === '9:16') {
+  } else if (aspect === '9:16') {
     canvas.width = 1080;
     canvas.height = 1920;
   } else { // 1:1
@@ -697,7 +700,7 @@ function updateSocialGraphic(isUserOverride = false) {
       let addressSpacing = 75;
       let websiteSpacing = 50;
 
-      if (currentSocialAspect === '3:4') {
+      if (aspect === '3:4') {
         logoY = 170;
         logoWidth = 660;
         dateSpacing = 80;
@@ -706,7 +709,7 @@ function updateSocialGraphic(isUserOverride = false) {
         boxWidth = 820;
         addressSpacing = 110;
         websiteSpacing = 55;
-      } else if (currentSocialAspect === '9:16') {
+      } else if (aspect === '9:16') {
         logoY = 260;
         logoWidth = 720;
         dateSpacing = 110;
@@ -727,7 +730,7 @@ function updateSocialGraphic(isUserOverride = false) {
       ctx.strokeStyle = '#c59f2d';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      const dividerY = logoY + logoHeight + (currentSocialAspect === '9:16' ? 40 : 25);
+      const dividerY = logoY + logoHeight + (aspect === '9:16' ? 40 : 25);
       ctx.moveTo(width / 2 - 150, dividerY);
       ctx.lineTo(width / 2 + 150, dividerY);
       ctx.stroke();
@@ -769,7 +772,7 @@ function updateSocialGraphic(isUserOverride = false) {
         const mainPart = displayText.substring(0, displayText.indexOf('(')).trim();
         const subPart = displayText.substring(displayText.indexOf('(')).trim();
 
-        let fSize1 = (currentSocialAspect === '9:16') ? 58 : 54;
+        let fSize1 = (aspect === '9:16') ? 58 : 54;
         ctx.font = `bold ${fSize1}px sans-serif`;
         while (ctx.measureText(mainPart).width > maxTextWidth && fSize1 > 28) {
           fSize1 -= 2;
@@ -777,7 +780,7 @@ function updateSocialGraphic(isUserOverride = false) {
         }
         ctx.fillText(mainPart, width / 2, textCenterY - 18);
 
-        let fSize2 = (currentSocialAspect === '9:16') ? 40 : 38;
+        let fSize2 = (aspect === '9:16') ? 40 : 38;
         ctx.font = `600 ${fSize2}px sans-serif`;
         while (ctx.measureText(subPart).width > maxTextWidth && fSize2 > 24) {
           fSize2 -= 2;
@@ -786,7 +789,7 @@ function updateSocialGraphic(isUserOverride = false) {
         ctx.fillStyle = '#e8dcc8';
         ctx.fillText(subPart, width / 2, textCenterY + 40);
       } else {
-        let fSize = (currentSocialAspect === '9:16') ? 58 : 54;
+        let fSize = (aspect === '9:16') ? 58 : 54;
         ctx.font = `bold ${fSize}px sans-serif`;
         while (ctx.measureText(displayText).width > maxTextWidth && fSize > 28) {
           fSize -= 2;
@@ -811,7 +814,7 @@ function updateSocialGraphic(isUserOverride = false) {
       const downloadBtn = document.getElementById('social-gen-download');
       if (downloadBtn) {
         downloadBtn.href = canvas.toDataURL('image/png');
-        downloadBtn.download = `naturfreunde_status_${currentSocialAspect.replace(':', 'x')}.png`;
+        downloadBtn.download = `naturfreunde_status_${aspect.replace(':', 'x')}.png`;
       }
 
       let siteUrl = window.location.origin;
