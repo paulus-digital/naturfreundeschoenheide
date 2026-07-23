@@ -3710,4 +3710,64 @@ input:checked + .slider:before {
   color: var(--primary-dark);
 }
 
+/* ==================================================== */
+/* DESKTOP LAYOUT REFINEMENTS (PC & Monitors)           */
+/* ==================================================== */
+@media (min-width: 769px) {
+  /* Harmonious, tighter vertical rhythm between sections */
+  .section-padding {
+    padding: 75px 0 !important;
+  }
+
+  .section-title {
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+  }
+
+  .section-subtitle {
+    margin-bottom: 36px;
+    font-size: 0.8rem;
+  }
+
+  /* Balanced 50/50 desktop columns for Opening Hours & Planer */
+  .info-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 32px !important;
+    align-items: stretch !important;
+  }
+
+  /* Elegant card padding for tighter layout */
+  .card {
+    padding: 36px 38px !important;
+  }
+
+  /* Hero section scaling on PC */
+  .hero {
+    min-height: 85vh;
+    padding-top: calc(var(--header-height, 76px) + var(--banner-offset, 0px) + 30px);
+    padding-bottom: 50px;
+  }
+
+  .hero-content {
+    gap: 22px;
+  }
+
+  .hero-title-logo {
+    max-width: 580px;
+  }
+
+  /* Desktop Admin Card Layout Balance */
+  .admin-main {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 48px 0;
+  }
+}
+
+
 
