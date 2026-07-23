@@ -538,7 +538,7 @@ function updateSocialGraphic(isUserOverride = false) {
   const height = canvas.height;
 
   // Background Image selection
-  let bgSource = 'hero_cabin.png';
+  let bgSource = pageData.socialDefaultBg || 'hero_cabin.png';
   const selectedBg = bgSelect ? bgSelect.value : 'default';
   if (selectedBg === 'logo') {
     bgSource = 'logo.png';
@@ -1428,6 +1428,66 @@ function populateSettingsTab() {
     slot.innerHTML = previewHtml;
     container.appendChild(slot);
   }
+
+  // Social Media Generator default background slot
+  const socialBgContainer = document.getElementById('social-default-bg-admin');
+  if (socialBgContainer) {
+    const currentBg = pageData.socialDefaultBg || '';
+    if (currentBg) {
+      socialBgContainer.innerHTML = `
+        <img src="${currentBg}" style="width: 100px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); background: #eee;">
+        <div style="flex-grow: 1;">
+          <strong style="display:block; font-size: 0.95rem;">Aktuelles Standard-Hintergrundbild</strong>
+          <div style="display:flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+            <input type="file" id="social-bg-file-input" accept="image/*" style="display:none;" onchange="uploadSocialDefaultBg(event)">
+            <button class="admin-btn admin-btn-primary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="document.getElementById('social-bg-file-input').click()">Ändern</button>
+            <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem;" onclick="deleteSocialDefaultBg()">Zurücksetzen (Standard)</button>
+          </div>
+        </div>
+      `;
+    } else {
+      socialBgContainer.innerHTML = `
+        <div style="width: 100px; height: 60px; background-color: #eee; border-radius: 4px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 4px;">Original (hero_cabin)</div>
+        <div style="flex-grow: 1;">
+          <strong style="display:block; font-size: 0.95rem;">Standard-Bild festlegen</strong>
+          <input type="file" id="social-bg-file-input" accept="image/*" style="display:none;" onchange="uploadSocialDefaultBg(event)">
+          <button class="admin-btn admin-btn-primary" style="padding: 6px 12px; font-size: 0.85rem; margin-top: 6px;" onclick="document.getElementById('social-bg-file-input').click()">📷 Eigenes Standard-Bild hochladen</button>
+        </div>
+      `;
+    }
+  }
+}
+
+async function uploadSocialDefaultBg(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  showToast('📤 Konvertiere und lade Bild...', 'info');
+
+  try {
+    const webpData = await convertToWebP(file, 1200, 0.85);
+    pageData.socialDefaultBg = webpData;
+
+    populateSettingsTab();
+    if (typeof updateSocialGraphic === 'function') {
+      updateSocialGraphic(false);
+    }
+    await commitDataChange('Admin Panel: Standard-Hintergrund für WhatsApp-Generator geändert');
+  } catch (err) {
+    console.error(err);
+    showToast(`❌ Fehler beim Hochladen: ${err.message}`, 'error');
+  }
+}
+
+async function deleteSocialDefaultBg() {
+  if (!confirm('Möchten Sie das eigene Standard-Hintergrundbild zurücksetzen?')) return;
+
+  delete pageData.socialDefaultBg;
+  populateSettingsTab();
+  if (typeof updateSocialGraphic === 'function') {
+    updateSocialGraphic(false);
+  }
+  await commitDataChange('Admin Panel: Standard-Hintergrund auf Werkseinstellung zurückgesetzt');
 }
 
 async function saveTemplateHours() {
