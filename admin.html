@@ -264,99 +264,77 @@
         </p>
 
         <div class="card special-hours-card">
-          <h4 style="margin-bottom: 12px; color: var(--primary-dark);">Ausnahme / Termin hinzufügen</h4>
-          
-          <!-- 1-Click Presets Box -->
-          <div class="easy-presets-box">
-            <span class="presets-label">⚡ 1-Klick Schnell-Auswahl:</span>
-            <div class="presets-buttons-grid">
-              <button type="button" class="btn-preset btn-preset-closed" onclick="applySpecialPreset('closed')">🔴 Geschlossen</button>
-              <button type="button" class="btn-preset btn-preset-open" onclick="applySpecialPreset('regular')">🟢 Regulär geöffnet</button>
-              <button type="button" class="btn-preset btn-preset-event" onclick="applySpecialPreset('event')">🎉 Event / Feier</button>
-              <button type="button" class="btn-preset btn-preset-holiday" onclick="applySpecialPreset('holiday')">🏖️ Urlaub / Betriebsferien</button>
-            </div>
-          </div>
+          <h4 style="margin-bottom: 12px; color: var(--primary-dark);">Termin / Ausnahme eintragen</h4>
+          <p class="text-muted" style="margin-bottom: 20px; font-size: 0.9rem;">
+            Plane hier Urlaub, geschlossene Tage oder besondere Events im Voraus für den Kalender.
+          </p>
 
-          <div class="special-hours-grid">
-            <!-- 1. Datum Picker (Von & Bis für Zeiträume/Urlaub) -->
-            <div class="form-group span-full">
-              <div class="time-picker-grid">
-                <div class="form-group">
-                  <label for="new-special-date">Von Datum (Start) *</label>
-                  <input type="date" id="new-special-date" class="form-control" required>
-                </div>
-                <div class="form-group">
-                  <label for="new-special-date-end">Bis Datum (Ende, z.B. für Urlaub)</label>
-                  <input type="date" id="new-special-date-end" class="form-control" placeholder="Nur für Zeitraum">
-                </div>
+          <form id="special-hours-form" onsubmit="event.preventDefault(); addNewSpecialHours();">
+            <div class="special-hours-grid">
+              
+              <!-- 1. Art der Regelung -->
+              <div class="form-group span-full">
+                <label for="new-special-type">1. Was möchtest du eintragen? *</label>
+                <select id="new-special-type" class="form-control" onchange="handleSpecialTypeSelectChange()" style="font-weight: 600; font-size: 1rem;">
+                  <option value="closed">🚫 Geschlossen (Ruhetag / Geschlossen)</option>
+                  <option value="urlaub">🏖️ Betriebsferien / Urlaub</option>
+                  <option value="event">🎉 Event / Veranstaltung (z.B. Schlachtfest)</option>
+                  <option value="hours">🕒 Geöffnet mit bestimmten Uhrzeiten</option>
+                  <option value="custom">✍️ Sonstiges (Freitext)</option>
+                </select>
               </div>
-            </div>
 
-            <!-- 2. Art / Status Radio Pills -->
-            <div class="form-group span-full">
-              <label style="margin-bottom: 8px;">Art der Regelung *</label>
-              <div class="special-type-pills">
-                <label class="type-pill-btn">
-                  <input type="radio" name="special-type-radio" id="type-radio-hours" value="hours" checked onchange="handleSpecialTypeChange()">
-                  <span>🕒 Uhrzeiten (Geöffnet)</span>
-                </label>
-                <label class="type-pill-btn">
-                  <input type="radio" name="special-type-radio" id="type-radio-closed" value="closed" onchange="handleSpecialTypeChange()">
-                  <span>🚫 Geschlossen</span>
-                </label>
-                <label class="type-pill-btn">
-                  <input type="radio" name="special-type-radio" id="type-radio-event" value="event" onchange="handleSpecialTypeChange()">
-                  <span>🎉 Event / Veranstaltung</span>
-                </label>
-                <label class="type-pill-btn">
-                  <input type="radio" name="special-type-radio" id="type-radio-custom" value="custom" onchange="handleSpecialTypeChange()">
-                  <span>✍️ Manuelle Eingabe</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- 3. Time Pickers (Von / Bis) -->
-            <div id="special-time-picker-group" class="form-group span-full">
-              <div class="time-picker-grid">
-                <div class="form-group">
-                  <label for="new-special-time-start">Von (Uhrzeit)</label>
-                  <input type="time" id="new-special-time-start" class="form-control" value="11:30">
-                </div>
-                <div class="form-group">
-                  <label for="new-special-time-end">Bis (Uhrzeit)</label>
-                  <input type="time" id="new-special-time-end" class="form-control" value="21:00">
+              <!-- 2. Datum / Zeitraum -->
+              <div class="form-group span-full">
+                <label style="margin-bottom: 6px;">2. Datum oder Zeitraum *</label>
+                <div class="time-picker-grid">
+                  <div class="form-group">
+                    <label for="new-special-date" style="font-size: 0.85rem; color: var(--text-muted);">Von Datum (Start) *</label>
+                    <input type="date" id="new-special-date" class="form-control" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="new-special-date-end" style="font-size: 0.85rem; color: var(--text-muted);">Bis Datum (optional für Zeitraum)</label>
+                    <input type="date" id="new-special-date-end" class="form-control">
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 4. Custom Freitext Input (hidden unless 'custom' mode selected) -->
-            <div id="special-custom-text-group" class="form-group span-full" style="display: none;">
-              <label for="new-special-hours-custom">Abweichende Öffnungszeit (Text)</label>
-              <input type="text" id="new-special-hours-custom" class="form-control" placeholder="z.B. 11:30 - 14:30 &amp; 17:00 - 22:00">
-            </div>
-
-            <!-- 5. Direct Checkboxes for closed status and Event -->
-            <div class="form-group span-full">
-              <div class="special-checkbox-row">
-                <label class="checkbox-label">
-                  <input type="checkbox" id="special-is-closed-chk" onchange="handleSpecialCheckboxChange('closed')">
-                  <span>Als geschlossen markieren</span>
-                </label>
-                <label class="checkbox-label">
-                  <input type="checkbox" id="special-is-event-chk" onchange="handleSpecialCheckboxChange('event')">
-                  <span>Als besonderes Event markieren</span>
-                </label>
+              <!-- 3. Optional Info / Titel -->
+              <div class="form-group span-full">
+                <label for="new-special-label">3. Info / Bezeichnung (optional)</label>
+                <input type="text" id="new-special-label" class="form-control" placeholder="z.B. Sommerurlaub, Schlachtfest, Privatgesellschaft">
               </div>
-            </div>
 
-            <!-- 6. Zusatzinfo / Anlass -->
-            <div class="form-group span-full">
-              <label for="new-special-label">Zusatzinfo / Anlass (optional)</label>
-              <input type="text" id="new-special-label" class="form-control" placeholder="z.B. Karfreitag, Betriebsferien, Private Feier">
-            </div>
-          </div>
+              <!-- 4. Optional Uhrzeiten -->
+              <div id="special-time-picker-group" class="form-group span-full" style="display: none;">
+                <label style="margin-bottom: 6px;">4. Uhrzeiten (optional)</label>
+                <div class="time-picker-grid">
+                  <div class="form-group">
+                    <label for="new-special-time-start" style="font-size: 0.85rem; color: var(--text-muted);">Von (Uhrzeit)</label>
+                    <input type="time" id="new-special-time-start" class="form-control" value="11:30">
+                  </div>
+                  <div class="form-group">
+                    <label for="new-special-time-end" style="font-size: 0.85rem; color: var(--text-muted);">Bis (Uhrzeit)</label>
+                    <input type="time" id="new-special-time-end" class="form-control" value="21:00">
+                  </div>
+                </div>
+              </div>
 
-          <button class="admin-btn admin-btn-primary" style="width: 100%; margin-top: 20px; font-size: 1rem; padding: 12px 20px;" onclick="addNewSpecialHours()">Termin / Ausnahme speichern</button>
+              <!-- 5. Freitext Input (optional / custom) -->
+              <div id="special-custom-text-group" class="form-group span-full" style="display: none;">
+                <label for="new-special-hours-custom">Abweichender Text / Info</label>
+                <input type="text" id="new-special-hours-custom" class="form-control" placeholder="z.B. Nur Mittags geöffnet (11:30 - 14:00 Uhr)">
+              </div>
+
+              <!-- Submit Button -->
+              <div class="form-group span-full" style="margin-top: 10px;">
+                <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; padding: 14px 20px; font-size: 1.05rem;">
+                  ➕ Termin / Ausnahme speichern
+                </button>
+              </div>
+
+            </div>
+          </form>
         </div>
 
         <h4 style="margin-top: 30px; margin-bottom: 12px;">Geplante Termine &amp; Ausnahmen</h4>
@@ -509,6 +487,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=4"></script>
+  <script src="admin.js?v=5"></script>
 </body>
 </html>

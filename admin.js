@@ -1622,65 +1622,37 @@ function escapeHTML(str) {
   );
 }
 
-// Special hours type switcher & checkbox handlers
-function handleSpecialTypeChange() {
-  const selectedType = document.querySelector('input[name="special-type-radio"]:checked')?.value || 'hours';
+// Special hours type switcher handler
+function handleSpecialTypeSelectChange() {
+  const typeSelect = document.getElementById('new-special-type');
+  const type = typeSelect ? typeSelect.value : 'closed';
+  
   const timePickerGroup = document.getElementById('special-time-picker-group');
   const customTextGroup = document.getElementById('special-custom-text-group');
-  const closedChk = document.getElementById('special-is-closed-chk');
-  const eventChk = document.getElementById('special-is-event-chk');
   const labelInput = document.getElementById('new-special-label');
 
-  if (selectedType === 'closed') {
-    if (timePickerGroup) timePickerGroup.style.display = 'none';
-    if (customTextGroup) customTextGroup.style.display = 'none';
-    if (closedChk) closedChk.checked = true;
-    if (eventChk) eventChk.checked = false;
-  } else if (selectedType === 'event') {
+  if (type === 'hours') {
     if (timePickerGroup) timePickerGroup.style.display = 'block';
     if (customTextGroup) customTextGroup.style.display = 'none';
-    if (closedChk) closedChk.checked = false;
-    if (eventChk) eventChk.checked = true;
-    if (labelInput && !labelInput.value.trim()) {
-      labelInput.placeholder = 'z.B. Sommerevent, Live-Musik, Feiertag';
-    }
-  } else if (selectedType === 'custom') {
+    if (labelInput && !labelInput.value) labelInput.placeholder = 'z.B. Sonderöffnung';
+  } else if (type === 'event') {
+    if (timePickerGroup) timePickerGroup.style.display = 'block';
+    if (customTextGroup) customTextGroup.style.display = 'none';
+    if (labelInput && !labelInput.value) labelInput.placeholder = 'z.B. Schlachtfest, Live-Musik, Tanzabend';
+  } else if (type === 'custom') {
     if (timePickerGroup) timePickerGroup.style.display = 'none';
     if (customTextGroup) customTextGroup.style.display = 'block';
-    if (closedChk) closedChk.checked = false;
-    if (eventChk) eventChk.checked = false;
-  } else {
-    // 'hours'
-    if (timePickerGroup) timePickerGroup.style.display = 'block';
+    if (labelInput && !labelInput.value) labelInput.placeholder = 'z.B. Sonderregelung';
+  } else if (type === 'urlaub') {
+    if (timePickerGroup) timePickerGroup.style.display = 'none';
     if (customTextGroup) customTextGroup.style.display = 'none';
-    if (closedChk) closedChk.checked = false;
-    if (eventChk) eventChk.checked = false;
+    if (labelInput && !labelInput.value) labelInput.placeholder = 'z.B. Betriebsferien, Sommerurlaub';
+  } else {
+    // closed
+    if (timePickerGroup) timePickerGroup.style.display = 'none';
+    if (customTextGroup) customTextGroup.style.display = 'none';
+    if (labelInput && !labelInput.value) labelInput.placeholder = 'z.B. Ruhetag, Geschlossen';
   }
-}
-
-function handleSpecialCheckboxChange(type) {
-  const closedChk = document.getElementById('special-is-closed-chk');
-  const eventChk = document.getElementById('special-is-event-chk');
-  const radioClosed = document.getElementById('type-radio-closed');
-  const radioEvent = document.getElementById('type-radio-event');
-  const radioHours = document.getElementById('type-radio-hours');
-
-  if (type === 'closed') {
-    if (closedChk && closedChk.checked) {
-      if (eventChk) eventChk.checked = false;
-      if (radioClosed) radioClosed.checked = true;
-    } else {
-      if (radioHours) radioHours.checked = true;
-    }
-  } else if (type === 'event') {
-    if (eventChk && eventChk.checked) {
-      if (closedChk) closedChk.checked = false;
-      if (radioEvent) radioEvent.checked = true;
-    } else {
-      if (radioHours) radioHours.checked = true;
-    }
-  }
-  handleSpecialTypeChange();
 }
 
 // Special hours additions & deletions
@@ -1688,9 +1660,8 @@ async function addNewSpecialHours() {
   const dateInput = document.getElementById('new-special-date');
   const dateEndInput = document.getElementById('new-special-date-end');
   const labelInput = document.getElementById('new-special-label');
-  const selectedType = document.querySelector('input[name="special-type-radio"]:checked')?.value || 'hours';
-  const closedChk = document.getElementById('special-is-closed-chk');
-  const eventChk = document.getElementById('special-is-event-chk');
+  const typeSelect = document.getElementById('new-special-type');
+  const selectedType = typeSelect ? typeSelect.value : 'closed';
 
   if (!dateInput || !dateInput.value) {
     alert('Bitte wähle ein Startdatum aus.');
@@ -1706,33 +1677,40 @@ async function addNewSpecialHours() {
   }
 
   let finalHours = '';
+  let defaultLabel = '';
 
-  if ((closedChk && closedChk.checked) || selectedType === 'closed') {
-    finalHours = 'Ruhetag';
+  if (selectedType === 'closed') {
+    finalHours = 'Geschlossen';
+    defaultLabel = 'Geschlossen';
+  } else if (selectedType === 'urlaub') {
+    finalHours = 'Betriebsferien / Urlaub';
+    defaultLabel = 'Urlaub / Betriebsferien';
   } else if (selectedType === 'custom') {
     const customVal = document.getElementById('new-special-hours-custom')?.value.trim();
     if (!customVal) {
-      alert('Bitte gib die abweichende Öffnungszeit ein.');
+      alert('Bitte gib den abweichenden Text / Info ein.');
       return;
     }
     finalHours = customVal;
+    defaultLabel = 'Sonderregelung';
   } else {
     // hours or event mode
     const startTime = document.getElementById('new-special-time-start')?.value;
     const endTime = document.getElementById('new-special-time-end')?.value;
 
     if (startTime && endTime) {
-      finalHours = `${startTime} - ${endTime}`;
+      finalHours = `${startTime} - ${endTime} Uhr`;
     } else if (startTime) {
       finalHours = `ab ${startTime} Uhr`;
     } else {
-      finalHours = 'Geschlossen';
+      finalHours = selectedType === 'event' ? 'Event-Tag' : 'Geöffnet';
     }
+    defaultLabel = selectedType === 'event' ? 'Event / Veranstaltung' : 'Sonder-Öffnungszeit';
   }
 
   let finalLabel = labelInput ? labelInput.value.trim() : '';
-  if (!finalLabel && ((eventChk && eventChk.checked) || selectedType === 'event')) {
-    finalLabel = 'Besonderes Event';
+  if (!finalLabel) {
+    finalLabel = defaultLabel;
   }
 
   if (!pageData.specialHours) pageData.specialHours = [];
@@ -1743,7 +1721,6 @@ async function addNewSpecialHours() {
     const stop = new Date(endDateStr);
     while (curr <= stop) {
       const formattedCurr = curr.toISOString().split('T')[0];
-      // Avoid duplicate for same date
       const existingIdx = pageData.specialHours.findIndex(h => h.date === formattedCurr);
       if (existingIdx !== -1) {
         pageData.specialHours.splice(existingIdx, 1);
@@ -1775,14 +1752,11 @@ async function addNewSpecialHours() {
   dateInput.value = '';
   if (dateEndInput) dateEndInput.value = '';
   if (labelInput) labelInput.value = '';
-  const radioHours = document.getElementById('type-radio-hours');
-  if (radioHours) radioHours.checked = true;
-  if (closedChk) closedChk.checked = false;
-  if (eventChk) eventChk.checked = false;
+  if (typeSelect) typeSelect.value = 'closed';
   const customInput = document.getElementById('new-special-hours-custom');
   if (customInput) customInput.value = '';
 
-  handleSpecialTypeChange();
+  handleSpecialTypeSelectChange();
   populateHoursTab();
   await commitDataChange('Admin Panel: Termin / Ausnahme geplant');
 }
