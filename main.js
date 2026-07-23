@@ -1286,3 +1286,22 @@ function toggleCalendarMobile() {
     btn.innerHTML = isOpen ? '▲ Kalender ausblenden' : '📅 Kalender & Belegung anzeigen';
   }
 }
+
+// Smart call or scroll handler for phone button
+function handleCallOrScroll(e) {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 768 && ('ontouchstart' in window || navigator.maxTouchPoints > 0));
+
+  if (isMobile) {
+    // Mobile/Smartphone -> Open phone app directly
+    window.location.href = 'tel:01724258894';
+  } else {
+    // Desktop/PC -> Scroll down smoothly to contact section
+    if (e && e.preventDefault) e.preventDefault();
+    const contactSec = document.getElementById('kontakt');
+    if (contactSec) {
+      contactSec.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+  }
+}
