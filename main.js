@@ -174,6 +174,62 @@ async function loadData() {
   }
 }
 
+let currentHeroSlideIndex = 0;
+let heroSlideshowTimer = null;
+let lastHeroImagesKey = '';
+
+function renderHeroSlideshow() {
+  const container = document.getElementById('hero-slideshow');
+  if (!container) return;
+
+  // Determine list of images
+  let images = [];
+  if (appData.heroImages && Array.isArray(appData.heroImages)) {
+    images = appData.heroImages.filter(img => img && img.trim().length > 0);
+  }
+  if (images.length === 0 && appData.heroImage) {
+    images = [appData.heroImage];
+  }
+  if (images.length === 0) {
+    images = ['hero_cabin.png'];
+  }
+
+  // Avoid re-rendering DOM unnecessarily on polling
+  const imagesKey = JSON.stringify(images);
+  if (imagesKey === lastHeroImagesKey && container.children.length > 0) {
+    return;
+  }
+  lastHeroImagesKey = imagesKey;
+
+  // Clear timer & container
+  if (heroSlideshowTimer) {
+    clearInterval(heroSlideshowTimer);
+    heroSlideshowTimer = null;
+  }
+  container.innerHTML = '';
+  currentHeroSlideIndex = 0;
+
+  // Create slide elements
+  images.forEach((imgSrc, idx) => {
+    const slide = document.createElement('div');
+    slide.className = idx === 0 ? 'hero-slide active' : 'hero-slide';
+    slide.style.backgroundImage = `url('${imgSrc}')`;
+    container.appendChild(slide);
+  });
+
+  // If more than 1 image, auto-advance slides every 5 seconds
+  if (images.length > 1) {
+    heroSlideshowTimer = setInterval(() => {
+      const slides = container.querySelectorAll('.hero-slide');
+      if (slides.length <= 1) return;
+
+      slides[currentHeroSlideIndex].classList.remove('active');
+      currentHeroSlideIndex = (currentHeroSlideIndex + 1) % slides.length;
+      slides[currentHeroSlideIndex].classList.add('active');
+    }, 5000);
+  }
+}
+
 // Render dynamic elements
 function renderWebsite() {
   if (!appData) return;
