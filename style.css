@@ -2603,6 +2603,12 @@ input:checked + .slider:before {
   border: 1px solid var(--accent-light);
 }
 
+.events-feature-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
 .events-feature-content {
   flex: 1;
 }
