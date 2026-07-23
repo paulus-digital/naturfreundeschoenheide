@@ -2570,27 +2570,115 @@ input:checked + .slider:before {
   border-radius: var(--radius-sm);
 }
 
-/* CTA note inside the planner card */
-.planner-cta-note {
-  margin-top: 22px;
-  padding: 18px 20px;
-  background-color: var(--bg-white);
-  border: 1px solid var(--border-warm);
-  border-radius: var(--radius-sm);
-  font-size: 0.95rem;
+/* Standalone Events & Feiern Feature Banner */
+.events-feature-section {
+  padding: 50px 0;
+  background-color: var(--bg-cream);
+  border-top: 1px solid var(--border-warm);
+  border-bottom: 1px solid var(--border-warm);
+}
+
+.events-feature-card {
+  background: linear-gradient(135deg, var(--bg-white) 0%, #f7f2e6 100%);
+  border: 2px solid var(--border-warm);
+  border-left: 6px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: 36px 40px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  box-shadow: var(--shadow-md);
+}
+
+.events-feature-icon {
+  font-size: 3.2rem;
+  flex: 0 0 auto;
+  background: rgba(154, 115, 37, 0.12);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent-light);
+}
+
+.events-feature-content {
+  flex: 1;
+}
+
+.events-feature-title {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 12px;
+}
+
+.events-feature-text {
+  font-size: 1.02rem;
   line-height: 1.65;
   color: var(--text-dark);
+  margin-bottom: 20px;
 }
 
-.planner-cta-link {
-  display: inline-block;
-  margin-top: 8px;
+.events-feature-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.events-feature-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background-color: var(--primary);
+  color: var(--bg-white);
+  font-family: var(--font-sans);
   font-weight: 700;
-  color: var(--primary);
+  font-size: 1.02rem;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--primary-light);
 }
 
-.planner-cta-link:hover {
-  color: var(--accent);
+.events-feature-btn:hover {
+  background-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  color: var(--bg-white);
+}
+
+@media (max-width: 768px) {
+  .events-feature-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 28px 20px;
+    gap: 20px;
+  }
+
+  .events-feature-icon {
+    margin: 0 auto;
+    width: 68px;
+    height: 68px;
+    font-size: 2.5rem;
+  }
+
+  .events-feature-title {
+    font-size: 1.5rem;
+  }
+
+  .events-feature-actions {
+    justify-content: center;
+  }
+
+  .events-feature-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Calendar responsive adjustments */
