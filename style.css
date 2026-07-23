@@ -3657,3 +3657,57 @@ input:checked + .slider:before {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+/* Social Aspect Ratio Selector & Canvas Styling */
+.social-canvas-wrapper {
+  max-width: 440px;
+  margin: 0 auto;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  background-color: #111111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.social-canvas-wrapper canvas {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+.social-aspect-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.social-aspect-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: var(--bg-cream);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.social-aspect-btn:hover {
+  border-color: var(--primary);
+  background-color: #ffffff;
+}
+
+.social-aspect-btn.active {
+  border-color: var(--primary);
+  background-color: #eaf2e8;
+  box-shadow: var(--shadow-sm);
+}
+
+.social-aspect-btn.active strong {
+  color: var(--primary-dark);
+}
+
+

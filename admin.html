@@ -195,6 +195,38 @@
               </select>
             </div>
 
+            <div class="form-group span-full" style="margin-top: 10px;">
+              <label style="font-weight: 700; color: var(--primary-dark); margin-bottom: 8px; display: block;">Grafik-Format wählen</label>
+              <div class="social-aspect-options">
+                <label class="social-aspect-btn active" onclick="setSocialAspect('1:1', this)">
+                  <input type="radio" name="social-aspect" value="1:1" checked style="display:none;">
+                  <span style="font-size: 1.4rem;">⬛</span>
+                  <div>
+                    <strong style="display:block; font-size: 0.95rem;">Quadrat (1:1)</strong>
+                    <small style="color: var(--text-muted); font-size: 0.78rem;">Instagram &amp; Facebook Post</small>
+                  </div>
+                </label>
+
+                <label class="social-aspect-btn" onclick="setSocialAspect('3:4', this)">
+                  <input type="radio" name="social-aspect" value="3:4" style="display:none;">
+                  <span style="font-size: 1.4rem;">📱</span>
+                  <div>
+                    <strong style="display:block; font-size: 0.95rem;">Hochformat (3:4)</strong>
+                    <small style="color: var(--text-muted); font-size: 0.78rem;">Instagram Feed &amp; Portrait</small>
+                  </div>
+                </label>
+
+                <label class="social-aspect-btn" onclick="setSocialAspect('9:16', this)">
+                  <input type="radio" name="social-aspect" value="9:16" style="display:none;">
+                  <span style="font-size: 1.4rem;">📲</span>
+                  <div>
+                    <strong style="display:block; font-size: 0.95rem;">Story / Status (9:16)</strong>
+                    <small style="color: var(--text-muted); font-size: 0.78rem;">WhatsApp Status &amp; Stories</small>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             <div class="form-group span-full">
               <label for="social-gen-status-text">Angezeigter Status / Öffnungszeit (automatisch ermittelt, anpassbar)</label>
               <input type="text" id="social-gen-status-text" class="form-control" placeholder="z.B. Heute geöffnet: 11:30 - 21:00 Uhr" oninput="updateSocialGraphic(true)">
@@ -203,7 +235,7 @@
 
           <!-- Vorschau Canvas -->
           <div style="margin-top: 24px; text-align: center;">
-            <h5 style="margin-bottom: 12px; text-align: left; color: var(--primary-dark);">Grafik-Vorschau (HD Quadrat 1:1)</h5>
+            <h5 id="social-preview-title" style="margin-bottom: 12px; text-align: left; color: var(--primary-dark);">Grafik-Vorschau (HD Quadrat 1:1)</h5>
             <div class="social-canvas-wrapper">
               <canvas id="social-graphic-canvas" width="1080" height="1080"></canvas>
             </div>

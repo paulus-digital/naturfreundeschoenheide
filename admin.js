@@ -577,12 +577,44 @@ function getOpeningInfoForDate(dateStr) {
   return { hours: '11:30 - 21:00 Uhr', label: '', type: 'default' };
 }
 
+function setSocialAspect(aspect, btnEl) {
+  currentSocialAspect = aspect;
+  
+  const buttons = document.querySelectorAll('.social-aspect-btn');
+  buttons.forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+
+  const radio = btnEl ? btnEl.querySelector('input[type="radio"]') : null;
+  if (radio) radio.checked = true;
+
+  const previewTitle = document.getElementById('social-preview-title');
+  if (previewTitle) {
+    if (aspect === '1:1') previewTitle.textContent = 'Grafik-Vorschau (HD Quadrat 1:1)';
+    else if (aspect === '3:4') previewTitle.textContent = 'Grafik-Vorschau (HD Hochformat 3:4)';
+    else if (aspect === '9:16') previewTitle.textContent = 'Grafik-Vorschau (HD Story & WhatsApp Status 9:16)';
+  }
+
+  updateSocialGraphic(true);
+}
+
 function updateSocialGraphic(isUserOverride = false) {
   const dateInput = document.getElementById('social-gen-date');
   const bgSelect = document.getElementById('social-gen-bg');
   const statusInput = document.getElementById('social-gen-status-text');
   const canvas = document.getElementById('social-graphic-canvas');
   if (!canvas) return;
+
+  // Set Canvas Dimensions based on selected Aspect Ratio
+  if (currentSocialAspect === '3:4') {
+    canvas.width = 1080;
+    canvas.height = 1440;
+  } else if (currentSocialAspect === '9:16') {
+    canvas.width = 1080;
+    canvas.height = 1920;
+  } else { // 1:1
+    canvas.width = 1080;
+    canvas.height = 1080;
+  }
 
   const dateStr = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
   const info = getOpeningInfoForDate(dateStr);
@@ -644,7 +676,7 @@ function updateSocialGraphic(isUserOverride = false) {
       ctx.fillRect(0, 0, width, height);
     }
 
-// 2. Light overlay for subtle contrast
+    // 2. Light overlay for subtle contrast
     const overlayGrad = ctx.createLinearGradient(0, 0, 0, height);
     overlayGrad.addColorStop(0, 'rgba(15, 30, 15, 0.40)');
     overlayGrad.addColorStop(1, 'rgba(5, 10, 5, 0.60)');
@@ -655,20 +687,47 @@ function updateSocialGraphic(isUserOverride = false) {
     const logoImg = new Image();
     logoImg.src = 'logo.png';
     const drawContent = () => {
-      let logoHeight = 240;
-      if (logoImg.complete && logoImg.naturalWidth > 0) {
-        const logoWidth = 600;
-        logoHeight = logoImg.naturalHeight * (logoWidth / logoImg.naturalWidth);
-        ctx.drawImage(logoImg, (width - logoWidth) / 2, 120, logoWidth, logoHeight);
+      // Proportional vertical layout positions based on aspect ratio
+      let logoY = 120;
+      let logoWidth = 600;
+      let dateSpacing = 65;
+      let boxYOffset = 45;
+      let boxHeight = 200;
+      let boxWidth = 760;
+      let addressSpacing = 75;
+      let websiteSpacing = 50;
+
+      if (currentSocialAspect === '3:4') {
+        logoY = 170;
+        logoWidth = 660;
+        dateSpacing = 80;
+        boxYOffset = 60;
+        boxHeight = 230;
+        boxWidth = 820;
+        addressSpacing = 110;
+        websiteSpacing = 55;
+      } else if (currentSocialAspect === '9:16') {
+        logoY = 260;
+        logoWidth = 720;
+        dateSpacing = 110;
+        boxYOffset = 80;
+        boxHeight = 260;
+        boxWidth = 880;
+        addressSpacing = 160;
+        websiteSpacing = 65;
       }
 
-      // Title & Subtitle are fully represented in the image logo, so we skip text drawing
+      let logoHeight = 240;
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        logoHeight = logoImg.naturalHeight * (logoWidth / logoImg.naturalWidth);
+        ctx.drawImage(logoImg, (width - logoWidth) / 2, logoY, logoWidth, logoHeight);
+      }
 
       // Divider Line
       ctx.strokeStyle = '#c59f2d';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      const dividerY = 120 + logoHeight + 25;
+      const dividerY = logoY + logoHeight + (currentSocialAspect === '9:16' ? 40 : 25);
       ctx.moveTo(width / 2 - 150, dividerY);
       ctx.lineTo(width / 2 + 150, dividerY);
       ctx.stroke();
@@ -677,17 +736,15 @@ function updateSocialGraphic(isUserOverride = false) {
       ctx.textAlign = 'center';
       ctx.fillStyle = '#faf6ef';
       ctx.font = '500 38px sans-serif';
-      const dateY = dividerY + 65;
+      const dateY = dividerY + dateSpacing;
       ctx.fillText(formattedDate, width / 2, dateY);
 
-      // Main Status Card Box (Beautiful rounded soft card instead of warn warning block)
+      // Main Status Card Box
       const isClosed = displayText.toLowerCase().includes('geschlossen') || displayText.toLowerCase().includes('ruhetag');
       const boxBg = isClosed ? 'rgba(128, 32, 32, 0.9)' : 'rgba(32, 80, 37, 0.9)';
       const boxBorder = isClosed ? '#ef5350' : '#c59f2d';
 
-      const boxY = dateY + 45;
-      const boxHeight = 200;
-      const boxWidth = 760;
+      const boxY = dateY + boxYOffset;
       ctx.fillStyle = boxBg;
       if (ctx.roundRect) {
         ctx.beginPath();
@@ -704,7 +761,7 @@ function updateSocialGraphic(isUserOverride = false) {
       }
 
       // Status Text Inside Box
-      const maxTextWidth = boxWidth - 100; // 660px max
+      const maxTextWidth = boxWidth - 100;
       ctx.fillStyle = '#ffffff';
       const textCenterY = boxY + boxHeight / 2;
 
@@ -712,7 +769,7 @@ function updateSocialGraphic(isUserOverride = false) {
         const mainPart = displayText.substring(0, displayText.indexOf('(')).trim();
         const subPart = displayText.substring(displayText.indexOf('(')).trim();
 
-        let fSize1 = 54;
+        let fSize1 = (currentSocialAspect === '9:16') ? 58 : 54;
         ctx.font = `bold ${fSize1}px sans-serif`;
         while (ctx.measureText(mainPart).width > maxTextWidth && fSize1 > 28) {
           fSize1 -= 2;
@@ -720,7 +777,7 @@ function updateSocialGraphic(isUserOverride = false) {
         }
         ctx.fillText(mainPart, width / 2, textCenterY - 18);
 
-        let fSize2 = 38;
+        let fSize2 = (currentSocialAspect === '9:16') ? 40 : 38;
         ctx.font = `600 ${fSize2}px sans-serif`;
         while (ctx.measureText(subPart).width > maxTextWidth && fSize2 > 24) {
           fSize2 -= 2;
@@ -729,7 +786,7 @@ function updateSocialGraphic(isUserOverride = false) {
         ctx.fillStyle = '#e8dcc8';
         ctx.fillText(subPart, width / 2, textCenterY + 40);
       } else {
-        let fSize = 54;
+        let fSize = (currentSocialAspect === '9:16') ? 58 : 54;
         ctx.font = `bold ${fSize}px sans-serif`;
         while (ctx.measureText(displayText).width > maxTextWidth && fSize > 28) {
           fSize -= 2;
@@ -738,14 +795,14 @@ function updateSocialGraphic(isUserOverride = false) {
         ctx.fillText(displayText, width / 2, textCenterY + 18);
       }
 
-      // Footer Info (calculated dynamically relative to the box bottom)
+      // Footer Info
       const correctAddress = (pageData.contact && pageData.contact.address) ? pageData.contact.address : 'Gartenweg 5, 08304 Schönheide';
-      const addressY = boxY + boxHeight + 75;
+      const addressY = boxY + boxHeight + addressSpacing;
       ctx.fillStyle = '#d0c8b5';
       ctx.font = '400 32px sans-serif';
       ctx.fillText(correctAddress, width / 2, addressY);
 
-      const websiteY = addressY + 50;
+      const websiteY = addressY + websiteSpacing;
       ctx.fillStyle = '#c59f2d';
       ctx.font = 'bold 34px sans-serif';
       ctx.fillText('gaststaette-naturfreunde.de', width / 2, websiteY);
@@ -754,6 +811,7 @@ function updateSocialGraphic(isUserOverride = false) {
       const downloadBtn = document.getElementById('social-gen-download');
       if (downloadBtn) {
         downloadBtn.href = canvas.toDataURL('image/png');
+        downloadBtn.download = `naturfreunde_status_${currentSocialAspect.replace(':', 'x')}.png`;
       }
 
       let siteUrl = window.location.origin;
