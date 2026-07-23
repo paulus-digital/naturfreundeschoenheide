@@ -13,6 +13,7 @@ let pageData = {};
 let currentFileSha = '';
 let activeTab = 'general';
 let currentSocialAspect = '1:1';
+let temporaryCustomBgDataUrl = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   checkSavedAuth();
@@ -489,6 +490,37 @@ function applySpecialPreset(presetType) {
 // ----------------------------------------------------
 // SOCIAL MEDIA GRAPHIC & SHARE TEXT GENERATOR LOGIC
 // ----------------------------------------------------
+function handleSocialBgChange(select) {
+  if (select.value === 'custom') {
+    const fileInput = document.getElementById('social-gen-custom-file');
+    if (fileInput) {
+      fileInput.click();
+    }
+  } else {
+    updateSocialGraphic();
+  }
+}
+
+function handleCustomSocialBgFile(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      temporaryCustomBgDataUrl = e.target.result;
+      const select = document.getElementById('social-gen-bg');
+      if (select) select.value = 'custom';
+      updateSocialGraphic();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    if (!temporaryCustomBgDataUrl) {
+      const select = document.getElementById('social-gen-bg');
+      if (select) select.value = 'default';
+    }
+    updateSocialGraphic();
+  }
+}
+
 function initSocialGenerator() {
   const dateInput = document.getElementById('social-gen-date');
   if (dateInput && !dateInput.value) {
@@ -498,9 +530,11 @@ function initSocialGenerator() {
   // Populate hero images dropdown options
   const bgSelect = document.getElementById('social-gen-bg');
   if (bgSelect) {
+    const prevVal = bgSelect.value;
     bgSelect.innerHTML = `
       <option value="default">Standard (Gaststätte &amp; Naturfreunde)</option>
       <option value="logo">Naturfreunde Wappen &amp; Logo</option>
+      <option value="custom">📤 Eigenes Foto temporär hochladen...</option>
     `;
     if (pageData.heroImages && pageData.heroImages.length > 0) {
       pageData.heroImages.forEach((imgSrc, idx) => {
@@ -512,6 +546,7 @@ function initSocialGenerator() {
         }
       });
     }
+    if (prevVal) bgSelect.value = prevVal;
   }
 
   updateSocialGraphic(false);
@@ -650,9 +685,11 @@ function updateSocialGraphic(isUserOverride = false) {
   // Background Image selection
   let bgSource = pageData.socialDefaultBg || 'hero_cabin.png';
   const selectedBg = bgSelect ? bgSelect.value : 'default';
-  if (selectedBg === 'logo') {
+  if (selectedBg === 'custom' && temporaryCustomBgDataUrl) {
+    bgSource = temporaryCustomBgDataUrl;
+  } else if (selectedBg === 'logo') {
     bgSource = 'logo.png';
-  } else if (selectedBg !== 'default' && selectedBg) {
+  } else if (selectedBg !== 'default' && selectedBg !== 'custom' && selectedBg) {
     bgSource = selectedBg;
   }
 

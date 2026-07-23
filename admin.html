@@ -188,11 +188,19 @@
 
             <div class="form-group">
               <label for="social-gen-bg">Hintergrundbild</label>
-              <select id="social-gen-bg" class="form-control" onchange="updateSocialGraphic()">
-                <option value="default">Standard (Gaststätte &amp; Naturfreunde)</option>
-                <option value="logo">Naturfreunde Wappen &amp; Logo</option>
-                <!-- Slideshow images dynamically added -->
-              </select>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <select id="social-gen-bg" class="form-control" onchange="handleSocialBgChange(this)" style="flex: 1;">
+                  <option value="default">Standard (Gaststätte &amp; Naturfreunde)</option>
+                  <option value="logo">Naturfreunde Wappen &amp; Logo</option>
+                  <option value="custom">📤 Eigenes Foto temporär hochladen...</option>
+                  <!-- Slideshow images dynamically added -->
+                </select>
+                <button type="button" class="admin-btn" onclick="document.getElementById('social-gen-custom-file').click()" title="Eigenes Foto vom Gerät wählen (wird nicht gespeichert)" style="padding: 10px 14px; white-space: nowrap; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                  <span>📁 Foto wählen</span>
+                </button>
+              </div>
+              <input type="file" id="social-gen-custom-file" accept="image/*" style="display:none;" onchange="handleCustomSocialBgFile(this)">
+              <small class="text-muted" style="display: block; margin-top: 4px; font-size: 0.78rem;">💡 Eigenes Foto wird nur lokal im Browser genutzt und nicht gespeichert!</small>
             </div>
 
             <div class="form-group span-full" style="margin-top: 10px;">
