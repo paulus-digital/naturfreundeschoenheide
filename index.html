@@ -441,10 +441,20 @@
 
   <!-- Footer -->
   <footer>
-    <div class="container footer-content">
+    <div class="container footer-content" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
       <div>
-        <p>&copy; 2026 Gaststätte Naturfreunde. Alle Rechte vorbehalten.</p>
+        <p style="margin: 0;">&copy; 2026 Gaststätte Naturfreunde. Alle Rechte vorbehalten.</p>
       </div>
+      
+      <!-- Developer Branding: paulus.digital -->
+      <a href="https://www.paulus-digital.de" target="_blank" rel="noopener" class="developer-credit-link" style="display: flex; align-items: center; gap: 12px; text-decoration: none; background: rgba(255, 255, 255, 0.06); padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); transition: all 0.25s ease;">
+        <img src="paulusdigital.png" alt="paulus.digital Logo" style="height: 32px; width: auto; object-fit: contain;">
+        <div style="display: flex; flex-direction: column; text-align: left;">
+          <span style="font-size: 0.85rem; color: #ffffff; font-weight: 700;">Entwickler: <span style="color: var(--accent-light);">paulus.digital</span></span>
+          <span style="font-size: 0.76rem; color: #d0d7de; font-weight: 400;">Digital-Handwerk für die Heimatregion</span>
+        </div>
+      </a>
+
       <div class="footer-links">
         <a onclick="openModal('impressum')">Impressum</a>
         <a onclick="openModal('datenschutz')">Datenschutz</a>
