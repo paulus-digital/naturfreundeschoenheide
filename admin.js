@@ -214,19 +214,11 @@ function switchTab(tabId) {
 // Setup Event Listeners for controls
 function setupStatusToggle() {
   const toggle = document.getElementById('admin-status-toggle');
-  const label = document.getElementById('admin-status-label');
   
   if (toggle) {
     toggle.addEventListener('change', async () => {
-      if (toggle.checked) {
-        label.textContent = 'Geöffnet';
-        label.style.color = 'var(--success)';
-      } else {
-        label.textContent = 'Geschlossen';
-        label.style.color = 'var(--danger)';
-      }
-      // Auto-save the status immediately when toggled
-      await saveGeneralData();
+      updateLiveStatusUI(toggle.checked);
+      await commitDataChange(toggle.checked ? 'Live-Status auf Geöffnet geändert' : 'Live-Status auf Geschlossen geändert');
     });
   }
 
@@ -308,24 +300,48 @@ function isDatePast(dateStr) {
   return eventDateEnd < now;
 }
 
-function populateGeneralTab() {
+function updateLiveStatusUI(isOpen) {
+  const isTrue = String(isOpen) === 'true' || isOpen === true;
+  pageData.openStatus = isTrue;
+
+  // 1. Slider Toggle Checkbox
   const statusToggle = document.getElementById('admin-status-toggle');
-  if (statusToggle) statusToggle.checked = pageData.openStatus;
-  
+  if (statusToggle) {
+    statusToggle.checked = isTrue;
+  }
+
+  // 2. Slider Label
   const label = document.getElementById('admin-status-label');
   if (label) {
-    label.textContent = pageData.openStatus ? 'Geöffnet' : 'Geschlossen';
-    label.style.color = pageData.openStatus ? 'var(--success)' : 'var(--danger)';
+    label.textContent = isTrue ? 'Geöffnet' : 'Geschlossen';
+    label.style.color = isTrue ? 'var(--success)' : 'var(--danger)';
   }
 
+  // 3. Quick Action Card Badge
   const quickBadge = document.getElementById('quick-status-badge');
   if (quickBadge) {
-    quickBadge.textContent = pageData.openStatus ? 'GEÖFFNET' : 'GESCHLOSSEN';
-    quickBadge.style.backgroundColor = pageData.openStatus ? '#2e7d32' : '#c62828';
+    quickBadge.textContent = isTrue ? 'GEÖFFNET' : 'GESCHLOSSEN';
+    quickBadge.style.backgroundColor = isTrue ? '#2e7d32' : '#c62828';
   }
 
+  // 4. Quick Action Card Icon
+  const quickIcon = document.querySelector('.easy-quick-card .quick-card-icon');
+  if (quickIcon) {
+    quickIcon.textContent = isTrue ? '🟢' : '🔴';
+  }
+
+  // 5. Update Social Media Graphic Preview if canvas is rendered
+  const canvas = document.getElementById('social-graphic-canvas');
+  if (canvas) {
+    updateSocialGraphic(false);
+  }
+}
+
+function populateGeneralTab() {
+  updateLiveStatusUI(pageData.openStatus);
+
   const bannerToggle = document.getElementById('admin-banner-toggle');
-  if (bannerToggle) bannerToggle.checked = pageData.banner ? pageData.banner.visible : false;
+  if (bannerToggle) bannerToggle.checked = pageData.banner ? Boolean(pageData.banner.visible) : false;
 
   const bannerText = document.getElementById('admin-banner-text');
   if (bannerText) bannerText.value = pageData.banner ? pageData.banner.text : '';
@@ -334,11 +350,14 @@ function populateGeneralTab() {
   initSocialGenerator();
 }
 
-function toggleQuickStatus() {
-  pageData.openStatus = !pageData.openStatus;
-  populateGeneralTab();
-  commitDataChange(pageData.openStatus ? 'Live-Status auf Geöffnet geändert' : 'Live-Status auf Geschlossen geändert');
-  showToast(pageData.openStatus ? '🟢 Website-Status: GEÖFFNET' : '🔴 Website-Status: GESCHLOSSEN', 'success');
+async function toggleQuickStatus() {
+  const currentStatus = String(pageData.openStatus) === 'true' || pageData.openStatus === true;
+  const newStatus = !currentStatus;
+
+  updateLiveStatusUI(newStatus);
+  showToast(newStatus ? '🟢 Website-Status: GEÖFFNET' : '🔴 Website-Status: GESCHLOSSEN', 'success');
+
+  await commitDataChange(newStatus ? 'Live-Status auf Geöffnet geändert' : 'Live-Status auf Geschlossen geändert');
 }
 
 function scrollToSocialGen() {
@@ -1162,16 +1181,25 @@ async function commitDataChange(logMessage) {
 
 // Save Tab 1: General & Banner
 async function saveGeneralData() {
-  pageData.openStatus = document.getElementById('admin-status-toggle').checked;
+  const statusToggle = document.getElementById('admin-status-toggle');
+  if (statusToggle) {
+    updateLiveStatusUI(statusToggle.checked);
+  }
+  
+  const bannerToggle = document.getElementById('admin-banner-toggle');
+  const bannerText = document.getElementById('admin-banner-text');
   pageData.banner = {
-    visible: document.getElementById('admin-banner-toggle').checked,
-    text: document.getElementById('admin-banner-text').value.trim()
+    visible: bannerToggle ? bannerToggle.checked : false,
+    text: bannerText ? bannerText.value.trim() : ''
   };
 
   if (!pageData.contact) pageData.contact = {};
-  pageData.contact.phone = document.getElementById('admin-contact-phone').value.trim();
-  pageData.contact.email = document.getElementById('admin-contact-email').value.trim();
-  pageData.contact.inhaber = document.getElementById('admin-contact-inhaber').value.trim();
+  const phoneEl = document.getElementById('admin-contact-phone');
+  const emailEl = document.getElementById('admin-contact-email');
+  const inhaberEl = document.getElementById('admin-contact-inhaber');
+  if (phoneEl) pageData.contact.phone = phoneEl.value.trim();
+  if (emailEl) pageData.contact.email = emailEl.value.trim();
+  if (inhaberEl) pageData.contact.inhaber = inhaberEl.value.trim();
 
   await commitDataChange('Admin Panel: Status und allgemeine Daten geändert');
 }
