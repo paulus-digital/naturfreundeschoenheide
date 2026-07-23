@@ -703,70 +703,156 @@ function renderYearView() {
   if (!container) return;
   container.innerHTML = '';
 
-  if (!appData.planner || appData.planner.length === 0) {
-    container.innerHTML = '<p class="text-muted text-center" style="padding: 20px;">Keine Termine eingetragen.</p>';
-    return;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const combinedItems = [];
+
+  // 1. Planner entries (multi-day events, booked dates, holiday ranges)
+  if (appData.planner && Array.isArray(appData.planner)) {
+    appData.planner.forEach(event => {
+      const startStr = event.startDate || event.date;
+      const endStr = event.endDate || event.startDate || event.date;
+      if (!startStr) return;
+
+      const endParts = endStr.split('-');
+      if (endParts.length === 3) {
+        const endDateObj = new Date(parseInt(endParts[0], 10), parseInt(endParts[1], 10) - 1, parseInt(endParts[2], 10), 23, 59, 59, 999);
+        if (endDateObj < today) return; // Hide past entries automatically!
+      }
+
+      combinedItems.push({
+        startDate: startStr,
+        endDate: endStr,
+        status: event.status || 'event',
+        label: event.label || 'Termin',
+        isPlanner: true
+      });
+    });
   }
 
-  const now = new Date();
-
-  const events = appData.planner
-    .filter(event => {
-      const endStr = event.endDate || event.startDate || event.date;
-      if (!endStr) return true;
-      const parts = endStr.split('-');
+  // 2. Special Opening Hours entries (Urlaub, Sonderöffnungszeiten, Events)
+  if (appData.specialHours && Array.isArray(appData.specialHours)) {
+    // Filter out past dates first
+    const activeSpecial = appData.specialHours.filter(h => {
+      if (!h.date) return false;
+      const parts = h.date.split('-');
       if (parts.length === 3) {
-        const end = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 23, 59, 59, 999);
-        return end >= now;
+        const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 23, 59, 59, 999);
+        return dObj >= today;
       }
       return true;
-    })
-    .sort((a, b) => new Date(a.startDate || a.date) - new Date(b.startDate || b.date));
+    }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
-  if (events.length === 0) {
-    container.innerHTML = '<p class="text-muted text-center" style="padding: 20px;">Keine anstehenden Termine.</p>';
+    // Group consecutive 'holiday' (Urlaub) days into a single Von-Bis range
+    let currentHolidayRange = null;
+
+    activeSpecial.forEach(item => {
+      const hLower = (item.hours || '').toLowerCase();
+      const lLower = (item.label || '').toLowerCase();
+      const typeLower = (item.type || '').toLowerCase();
+
+      let status = 'event';
+      if (typeLower === 'holiday' || hLower.includes('urlaub') || hLower.includes('betriebsferien') || lLower.includes('urlaub') || lLower.includes('betriebsferien')) {
+        status = 'holiday';
+      } else if (typeLower === 'closed' || hLower.includes('ruhetag') || hLower.includes('geschlossen')) {
+        status = 'closed';
+      } else if (typeLower === 'booked' || hLower.includes('ausgebucht')) {
+        status = 'booked';
+      } else if (typeLower === 'open' || typeLower === 'free') {
+        status = 'free';
+      }
+
+      // If it's a holiday, try to merge with previous consecutive holiday date
+      if (status === 'holiday') {
+        const itemDateParts = item.date.split('-');
+        const itemDate = new Date(parseInt(itemDateParts[0], 10), parseInt(itemDateParts[1], 10) - 1, parseInt(itemDateParts[2], 10));
+        itemDate.setHours(0,0,0,0);
+
+        if (currentHolidayRange) {
+          const lastDateParts = currentHolidayRange.endDate.split('-');
+          const lastDate = new Date(parseInt(lastDateParts[0], 10), parseInt(lastDateParts[1], 10) - 1, parseInt(lastDateParts[2], 10));
+          lastDate.setHours(0,0,0,0);
+          const dayDiff = Math.round((itemDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (dayDiff <= 1) {
+            // Extend range
+            currentHolidayRange.endDate = item.date;
+            return;
+          }
+        }
+
+        // Start new holiday range
+        currentHolidayRange = {
+          startDate: item.date,
+          endDate: item.date,
+          status: 'holiday',
+          label: item.label || 'Betriebsferien / Urlaub',
+          isSpecialGroup: true
+        };
+        combinedItems.push(currentHolidayRange);
+      } else {
+        currentHolidayRange = null;
+        // Include non-standard events/exceptions
+        if (status !== 'free') {
+          combinedItems.push({
+            startDate: item.date,
+            endDate: item.date,
+            status: status,
+            label: item.label ? `${item.label}` : (item.hours || 'Sonderöffnung'),
+            isSpecial: true
+          });
+        }
+      }
+    });
+  }
+
+  // Sort combined items by startDate
+  combinedItems.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
+  if (combinedItems.length === 0) {
+    container.innerHTML = '<p class="text-muted text-center" style="padding: 20px;">Keine anstehenden Termine oder Betriebsferien eingetragen.</p>';
     return;
   }
 
   const statusTranslations = {
     'open': 'Geöffnet',
+    'free': 'Geöffnet',
     'booked': 'Ausgebucht',
     'closed': 'Geschlossen',
-    'holiday': 'Urlaub/Betriebsferien',
+    'holiday': 'Urlaub / Betriebsferien',
     'reservation': 'Reservierung möglich',
     'event': 'Event'
   };
 
-  events.forEach(event => {
-    const start = new Date(event.startDate || event.date);
-    const end = new Date(event.endDate || event.startDate || event.date);
+  combinedItems.forEach(item => {
+    const startParts = item.startDate.split('-');
+    const endParts = item.endDate.split('-');
     
-    const row = document.createElement('div');
-    const statusClass = `status-${event.status}`;
-    row.className = `calendar-week-row ${statusClass}`;
-
-    const isPast = end < today;
-    if (isPast) {
-      row.classList.add('past-event');
-    }
+    const start = new Date(parseInt(startParts[0], 10), parseInt(startParts[1], 10) - 1, parseInt(startParts[2], 10));
+    const end = new Date(parseInt(endParts[0], 10), parseInt(endParts[1], 10) - 1, parseInt(endParts[2], 10));
 
     const startStr = start.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-    const endStr = end.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-    const dateRangeStr = event.endDate && event.endDate !== event.startDate
-      ? `${startStr}. – ${endStr}.`
-      : `${startStr}.`;
+    const endStr = end.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-    const badgeText = statusTranslations[event.status] || event.status;
+    const dateRangeStr = item.endDate && item.endDate !== item.startDate
+      ? `${startStr}. – ${endStr}`
+      : `${startStr}. ${start.getFullYear()}`;
+
+    const row = document.createElement('div');
+    row.className = `calendar-week-row status-${item.status}`;
+
+    const badgeText = statusTranslations[item.status] || item.status;
 
     row.innerHTML = `
       <div class="calendar-week-date-box">
-        <span class="calendar-week-day-name">${event.label}</span>
-        <span class="calendar-week-date-string">${dateRangeStr} ${start.getFullYear()}</span>
+        <strong class="calendar-week-day-name" style="font-size: 1.05rem; color: var(--primary-dark); display: block; margin-bottom: 2px;">${item.label}</strong>
+        <span class="calendar-week-date-string" style="font-weight: 600; color: var(--text-dark);">${dateRangeStr}</span>
       </div>
       <div class="calendar-week-status">${badgeText}</div>
     `;
 
-    row.onclick = () => selectCalendarDay(start, [event]);
+    row.onclick = () => selectCalendarDay(start, [item]);
     container.appendChild(row);
   });
 }

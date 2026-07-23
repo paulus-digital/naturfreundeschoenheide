@@ -2844,7 +2844,7 @@ input:checked + .slider:before {
   background-color: rgba(255, 235, 238, 0.7);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .week-day-row {
     flex-direction: column !important;
     align-items: stretch !important;
