@@ -1409,8 +1409,8 @@ function escapeHTML(str) {
 // ----------------------------------------------------
 async function sharePage() {
   const title = 'Gaststätte Naturfreunde Schönheide';
-  const text = 'Besucht die Gaststätte Naturfreunde in Schönheide! Hier findet ihr aktuelle Öffnungszeiten:';
-  const url = window.location.href;
+  const text = 'Besucht die Gaststätte Naturfreunde in Schönheide! Gemütliche Gaststätte, Biergarten & Events. Alle Infos & Öffnungszeiten online:';
+  const url = getCleanDisplayUrl();
 
   if (navigator.share) {
     try {
@@ -1428,8 +1428,9 @@ async function sharePage() {
 
 function getCleanDisplayUrl() {
   let url = window.location.href;
-  url = url.replace(/xn--gaststtte-naturfreunde-54b\.de/gi, 'gaststätte-naturfreunde.de');
-  url = url.replace(/paulus-digital\.github\.io\/naturfreundeschoenheide/gi, 'gaststätte-naturfreunde.de');
+  url = url.replace(/xn--gaststtte-naturfreunde-54b\.de/gi, 'gaststaette-naturfreunde.de');
+  url = url.replace(/gaststätte-naturfreunde\.de/gi, 'gaststaette-naturfreunde.de');
+  url = url.replace(/paulus-digital\.github\.io\/naturfreundeschoenheide/gi, 'gaststaette-naturfreunde.de');
   return url;
 }
 

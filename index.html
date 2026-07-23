@@ -2,6 +2,11 @@
 <html lang="de">
 
 <head>
+  <script>
+    if (window.location.hostname.indexOf('gaststaette-naturfreunde.de') === -1 && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      window.location.replace('https://gaststaette-naturfreunde.de' + window.location.pathname + window.location.search + window.location.hash);
+    }
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gaststätte Naturfreunde – Schönheide</title>
@@ -10,12 +15,14 @@
 
   <!-- Open Graph / Social Sharing -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Gaststätte Naturfreunde">
+  <meta property="og:site_name" content="Gaststätte Naturfreunde Schönheide">
   <meta property="og:title" content="Gaststätte Naturfreunde – Schönheide">
   <meta property="og:description"
     content="Gemütliche Gaststätte im Gartenweg, Schönheide. Genießen Sie gutbürgerliche Küche, unseren idyllischen Biergarten und aktuelle Events.">
-  <meta property="og:url" content="https://gaststätte-naturfreunde.de/">
-  <meta property="og:image" content="https://gaststätte-naturfreunde.de/social_share.jpg">
+  <meta property="og:url" content="https://gaststaette-naturfreunde.de/">
+  <meta property="og:image" content="https://gaststaette-naturfreunde.de/social_share.jpg">
+  <meta property="og:image:secure_url" content="https://gaststaette-naturfreunde.de/social_share.jpg">
+  <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:locale" content="de_DE">
@@ -25,9 +32,9 @@
   <meta name="twitter:title" content="Gaststätte Naturfreunde – Schönheide">
   <meta name="twitter:description"
     content="Gemütliche Gaststätte im Gartenweg, Schönheide. Genießen Sie gutbürgerliche Küche, unseren idyllischen Biergarten und aktuelle Events.">
-  <meta name="twitter:image" content="https://gaststätte-naturfreunde.de/social_share.jpg">
+  <meta name="twitter:image" content="https://gaststaette-naturfreunde.de/social_share.jpg">
 
-  <link rel="canonical" href="https://gaststätte-naturfreunde.de/">
+  <link rel="canonical" href="https://gaststaette-naturfreunde.de/">
   <link rel="stylesheet" href="style.css?v=6">
   <link rel="icon" type="image/svg+xml" href="logo.svg">
 </head>
@@ -468,7 +475,7 @@
         <p>
           Telefon: <a href="tel:01724258894" style="color: var(--primary); font-weight:600;">0172 4258894</a><br>
           E-Mail: <a href="mailto:info@spartenheim-schoenheide.de" style="color: var(--primary);">info@spartenheim-schoenheide.de</a><br>
-          Website: <a href="https://gaststätte-naturfreunde.de" style="color: var(--primary);">https://gaststätte-naturfreunde.de</a>
+          Website: <a href="https://gaststaette-naturfreunde.de" style="color: var(--primary);">https://gaststaette-naturfreunde.de</a>
         </p>
 
         <h3>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h3>

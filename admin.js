@@ -748,7 +748,7 @@ function updateSocialGraphic(isUserOverride = false) {
       const websiteY = addressY + 50;
       ctx.fillStyle = '#c59f2d';
       ctx.font = 'bold 34px sans-serif';
-      ctx.fillText('gaststätte-naturfreunde.de', width / 2, websiteY);
+      ctx.fillText('gaststaette-naturfreunde.de', width / 2, websiteY);
 
       // Update Download Link & Share Text
       const downloadBtn = document.getElementById('social-gen-download');
@@ -757,10 +757,11 @@ function updateSocialGraphic(isUserOverride = false) {
       }
 
       let siteUrl = window.location.origin;
-      siteUrl = siteUrl.replace(/xn--gaststtte-naturfreunde-54b\.de/gi, 'gaststätte-naturfreunde.de');
-      siteUrl = siteUrl.replace(/paulus-digital\.github\.io\/naturfreundeschoenheide/gi, 'gaststätte-naturfreunde.de');
+      siteUrl = siteUrl.replace(/xn--gaststtte-naturfreunde-54b\.de/gi, 'gaststaette-naturfreunde.de');
+      siteUrl = siteUrl.replace(/gaststätte-naturfreunde\.de/gi, 'gaststaette-naturfreunde.de');
+      siteUrl = siteUrl.replace(/paulus-digital\.github\.io\/naturfreundeschoenheide/gi, 'gaststaette-naturfreunde.de');
       if (siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1')) {
-        siteUrl = 'https://gaststätte-naturfreunde.de';
+        siteUrl = 'https://gaststaette-naturfreunde.de';
       }
       const textVal = `🌲 Gaststätte Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}:\n${displayText}\n\n📍 ${correctAddress}\n🌐 Öffnungszeiten & Termine: ${siteUrl}/`;
       const textArea = document.getElementById('social-gen-text');
