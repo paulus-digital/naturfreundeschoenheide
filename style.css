@@ -2631,18 +2631,25 @@ input:checked + .slider:before {
 .events-feature-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   padding: 14px 28px;
   background-color: var(--primary);
   color: var(--bg-white);
   font-family: var(--font-sans);
   font-weight: 700;
-  font-size: 1.02rem;
+  font-size: clamp(0.9rem, 3.2vw, 1.02rem);
   border-radius: 50px;
   text-decoration: none;
   transition: var(--transition);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--primary-light);
+  text-align: center;
+}
+
+.phone-no-wrap {
+  white-space: nowrap;
+  display: inline-block;
 }
 
 .events-feature-btn:hover {
@@ -2673,11 +2680,13 @@ input:checked + .slider:before {
 
   .events-feature-actions {
     justify-content: center;
+    width: 100%;
   }
 
   .events-feature-btn {
     width: 100%;
     justify-content: center;
+    padding: 12px 18px;
   }
 }
 
