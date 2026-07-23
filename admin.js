@@ -681,7 +681,10 @@ function updateSocialGraphic(isUserOverride = false) {
         downloadBtn.href = canvas.toDataURL('image/png');
       }
 
-      const textVal = `🌲 Gaststätte Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}:\n${displayText}\n\n📍 ${correctAddress}\n🌐 Öffnungszeiten & Termine: https://paulus-digital.github.io/naturfreundeschoenheide/`;
+      const siteUrl = (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1'))
+        ? 'https://gaststätte-naturfreunde.de'
+        : window.location.origin;
+      const textVal = `🌲 Gaststätte Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}:\n${displayText}\n\n📍 ${correctAddress}\n🌐 Öffnungszeiten & Termine: ${siteUrl}/`;
       const textArea = document.getElementById('social-gen-text');
       if (textArea) {
         textArea.value = textVal;
