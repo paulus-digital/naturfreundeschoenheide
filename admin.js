@@ -871,6 +871,27 @@ function handleWeekDayTypeChange(index) {
     } else if (type === 'holiday') {
       hoursInput.value = 'Geschlossen';
       if (!labelInput.value) labelInput.value = 'Betriebsferien';
+
+      setTimeout(() => {
+        const createRange = confirm('Möchten Sie Urlaub / Betriebsferien für einen längeren Zeitraum eintragen (z. B. mehrere Wochen)?\n\n[OK] = Ja, zum Zeitraum-Formular unten springen\n[Abbrechen] = Nein, nur für diesen einzelnen Tag');
+        if (createRange) {
+          const typeSelect = document.getElementById('new-special-type');
+          if (typeSelect) {
+            typeSelect.value = 'urlaub';
+            if (typeof handleSpecialTypeSelectChange === 'function') {
+              handleSpecialTypeSelectChange();
+            }
+          }
+          const formAnchor = document.getElementById('new-special-type');
+          if (formAnchor) {
+            formAnchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          const dateInput = document.getElementById('new-special-date');
+          if (dateInput) {
+            dateInput.focus();
+          }
+        }
+      }, 150);
     } else if (type === 'booked') {
       hoursInput.value = 'Geschlossen';
       if (!labelInput.value) labelInput.value = 'Ausgebucht';

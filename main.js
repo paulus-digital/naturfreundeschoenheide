@@ -503,16 +503,25 @@ function getEventsForDate(dateObj) {
     const specialMatch = appData.specialHours.find(h => h.date === dateStr);
     if (specialMatch) {
       const hLower = (specialMatch.hours || '').toLowerCase();
+      const lLower = (specialMatch.label || '').toLowerCase();
+      const typeLower = (specialMatch.type || '').toLowerCase();
+
       let status = 'event';
-      if (hLower.includes('ruhetag') || hLower.includes('geschlossen')) {
-        status = 'closed';
-      } else if (hLower.includes('urlaub') || hLower.includes('betriebsferien')) {
+      if (typeLower === 'holiday' || hLower.includes('urlaub') || hLower.includes('betriebsferien') || lLower.includes('urlaub') || lLower.includes('betriebsferien')) {
         status = 'holiday';
+      } else if (typeLower === 'closed' || hLower.includes('ruhetag') || hLower.includes('geschlossen')) {
+        status = 'closed';
+      } else if (typeLower === 'open' || typeLower === 'free' || (hLower.includes('-') && !lLower.includes('event'))) {
+        status = 'free';
+      } else if (typeLower === 'booked' || hLower.includes('ausgebucht')) {
+        status = 'booked';
+      } else if (typeLower === 'event' || lLower.includes('event') || lLower.includes('fest') || lLower.includes('feier')) {
+        status = 'event';
       }
 
       const displayTitle = specialMatch.label 
         ? `${specialMatch.label}: ${specialMatch.hours}`
-        : `Sonderzeit: ${specialMatch.hours}`;
+        : (status === 'holiday' ? `Betriebsferien / Urlaub: ${specialMatch.hours}` : `Sonderzeit: ${specialMatch.hours}`);
 
       events.push({
         date: dateStr,
@@ -530,7 +539,7 @@ function getEventsForDate(dateObj) {
   return events;
 }
 
-const STATUS_PRIORITY = ['event', 'booked', 'holiday', 'closed', 'request', 'reservation', 'open', 'free'];
+const STATUS_PRIORITY = ['holiday', 'closed', 'booked', 'event', 'request', 'reservation', 'open', 'free'];
 
 function summarizeStatus(events) {
   if (!events || events.length === 0) return 'free';
