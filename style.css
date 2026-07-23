@@ -2776,6 +2776,56 @@ input:checked + .slider:before {
   }
 }
 
+/* Admin Week Planner Day Rows Mobile Layout */
+.week-day-row {
+  background-color: var(--bg-white);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .week-day-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 16px 14px !important;
+  }
+
+  .week-day-row-title {
+    flex: 1 1 100% !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--border);
+  }
+
+  .week-day-row-controls {
+    flex: 1 1 100% !important;
+    display: flex;
+    flex-direction: column;
+    gap: 10px !important;
+    width: 100%;
+  }
+
+  .week-day-row-controls select,
+  .week-day-row-controls input,
+  .week-day-row-extra input {
+    width: 100% !important;
+    font-size: 16px !important;
+    min-height: 48px !important;
+    padding: 10px 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .week-day-row-extra {
+    flex: 1 1 100% !important;
+    width: 100%;
+  }
+}
+
 /* Calendar responsive adjustments */
 @media (max-width: 768px) {
   .planner-card {

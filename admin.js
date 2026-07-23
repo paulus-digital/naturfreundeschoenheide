@@ -801,32 +801,35 @@ function renderWeekPlanner() {
     const statusBadgeText = specialMatch ? 'Manuelle Ausnahme' : 'Grundeinstellung';
 
     row.innerHTML = `
-      <div style="flex: 1 1 200px;">
-        <span style="font-weight: 700; font-size: 1rem; color: var(--primary-dark);">${weekdayName}, ${dateLabel}</span>
-        <div style="margin-top: 4px;">
-          <span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; ${statusBadgeStyle}">${statusBadgeText}</span>
+      <div class="week-day-row-title" style="flex: 1 1 180px;">
+        <strong style="font-size: 1.05rem; color: var(--primary-dark);">${weekdayName}, ${dateLabel}</strong>
+        <div style="margin-top: 2px;">
+          <span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; ${statusBadgeStyle}">${statusBadgeText}</span>
         </div>
       </div>
       
-      <div style="flex: 1.5 1 250px; display: flex; gap: 10px; flex-wrap: wrap;">
-        <div style="flex: 1 1 140px; min-width: 140px;">
-          <select id="week-day-type-${i}" class="form-control" onchange="handleWeekDayTypeChange(${i})" style="font-size: 0.9rem; padding: 8px;">
-            <option value="standard" ${selectedType === 'standard' ? 'selected' : ''}>⚙️ Grundeinstellung</option>
-            <option value="open" ${selectedType === 'open' ? 'selected' : ''}>🟢 Geöffnet (Uhrzeit anpassen)</option>
+      <div class="week-day-row-controls" style="flex: 2 1 320px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <div style="flex: 1 1 160px; min-width: 140px;">
+          <label style="display:block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Status / Regelung</label>
+          <select id="week-day-type-${i}" class="form-control" onchange="handleWeekDayTypeChange(${i})" style="font-size: 0.95rem; font-weight: 600; padding: 8px; width: 100%;">
+            <option value="standard" ${selectedType === 'standard' ? 'selected' : ''}>⚙️ Standard</option>
+            <option value="open" ${selectedType === 'open' ? 'selected' : ''}>🟢 Geöffnet</option>
             <option value="closed" ${selectedType === 'closed' ? 'selected' : ''}>🔴 Geschlossen</option>
             <option value="event" ${selectedType === 'event' ? 'selected' : ''}>🎉 Sonder-Event</option>
-            <option value="holiday" ${selectedType === 'holiday' ? 'selected' : ''}>🏖️ Urlaub / Betriebsferien</option>
+            <option value="holiday" ${selectedType === 'holiday' ? 'selected' : ''}>🏖️ Urlaub / Ferien</option>
             <option value="booked" ${selectedType === 'booked' ? 'selected' : ''}>❌ Ausgebucht</option>
-            <option value="custom" ${selectedType === 'custom' ? 'selected' : ''}>✍️ Manuell (Freitext)</option>
+            <option value="custom" ${selectedType === 'custom' ? 'selected' : ''}>✍️ Manuell</option>
           </select>
         </div>
-        <div style="flex: 1.5 1 150px; min-width: 150px;">
-          <input type="text" id="week-day-hours-${i}" class="form-control" value="${hoursVal}" placeholder="z.B. 17:00 - 22:00 Uhr" style="font-size: 0.9rem; padding: 8px;">
+        <div style="flex: 1 1 150px; min-width: 130px;">
+          <label style="display:block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Öffnungszeit / Text</label>
+          <input type="text" id="week-day-hours-${i}" class="form-control" value="${hoursVal}" placeholder="z.B. 17:00 - 22:00 Uhr" style="font-size: 0.9rem; padding: 8px; width: 100%;">
         </div>
       </div>
 
-      <div style="flex: 1 1 200px; min-width: 200px;">
-        <input type="text" id="week-day-label-${i}" class="form-control" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" style="font-size: 0.9rem; padding: 8px; display: ${selectedType === 'standard' || selectedType === 'open' ? 'none' : 'block'};">
+      <div class="week-day-row-extra" style="flex: 1 1 180px; min-width: 150px;">
+        <label id="week-day-label-heading-${i}" style="display: ${selectedType === 'standard' || selectedType === 'open' ? 'none' : 'block'}; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Zusatzinfo</label>
+        <input type="text" id="week-day-label-${i}" class="form-control" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" style="font-size: 0.9rem; padding: 8px; width: 100%; display: ${selectedType === 'standard' || selectedType === 'open' ? 'none' : 'block'};">
       </div>
     `;
 
@@ -837,6 +840,7 @@ function renderWeekPlanner() {
 function handleWeekDayTypeChange(index) {
   const select = document.getElementById(`week-day-type-${index}`);
   const labelInput = document.getElementById(`week-day-label-${index}`);
+  const labelHeading = document.getElementById(`week-day-label-heading-${index}`);
   const hoursInput = document.getElementById(`week-day-hours-${index}`);
   
   if (!select || !labelInput || !hoursInput) return;
@@ -845,18 +849,21 @@ function handleWeekDayTypeChange(index) {
 
   if (type === 'standard') {
     labelInput.style.display = 'none';
+    if (labelHeading) labelHeading.style.display = 'none';
     const GERMAN_WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
     const weekdayName = GERMAN_WEEKDAYS[index];
     const defaultItem = pageData.openingHours ? pageData.openingHours.find(h => h.day.toLowerCase() === weekdayName.toLowerCase()) : null;
     hoursInput.value = defaultItem ? defaultItem.hours : 'Geschlossen';
   } else if (type === 'open') {
     labelInput.style.display = 'none';
+    if (labelHeading) labelHeading.style.display = 'none';
     const hLower = (hoursInput.value || '').toLowerCase();
     if (!hoursInput.value || hLower.includes('geschlossen') || hLower.includes('ruhetag')) {
       hoursInput.value = '17:00 - 22:00 Uhr';
     }
   } else {
     labelInput.style.display = 'block';
+    if (labelHeading) labelHeading.style.display = 'block';
     
     if (type === 'closed') {
       hoursInput.value = 'Geschlossen';
