@@ -324,7 +324,8 @@ function renderLiveStatus() {
     'booked': 'Ausgebucht',
     'holiday': 'Im Urlaub',
     'event': 'Event-Tag',
-    'reservation': 'Reservierung möglich'
+    'request': 'Nur auf Anfrage',
+    'reservation': 'Nur auf Anfrage'
   };
 
   const label = STATUS_LABEL[dayStatus] || 'Geschlossen';
@@ -508,7 +509,7 @@ function getOpenStatusForDate(dateObj) {
   const match = appData.openingHours.find(h => h.day && h.day.toLowerCase() === dayName.toLowerCase());
   if (match && match.hours) {
     const hLower = match.hours.toLowerCase();
-    if (hLower.includes('ruhetag')) return 'closed';
+    if (hLower.includes('ruhetag') || hLower.includes('geschlossen') || hLower.includes('nicht geöffnet') || hLower.includes('zu')) return 'closed';
     if (hLower.includes('anfrage')) return 'request';
   }
   return 'free';
@@ -712,12 +713,12 @@ function selectCalendarDay(dateObj, event) {
   const dateStr = dateObj.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
   
   let statusKey = 'free';
-  let statusText = 'Geöffnet / Reservierung möglich';
+  let statusText = 'Geöffnet';
   if (!Array.isArray(event)) event = event ? [event] : [];
 
   const dayNameGerman = GERMAN_DAYS[dateObj.getDay()];
 
-  let descText = 'Für diesen Tag liegen keine Belegungen vor. Rufen Sie uns gerne an, um eine Anfrage zu stellen.';
+  let descText = 'Wir haben an diesem Tag regulär geöffnet. Kommen Sie gerne vorbei!';
 
   if (event.length > 0) {
     statusKey = summarizeStatus(event);
@@ -726,7 +727,7 @@ function selectCalendarDay(dateObj, event) {
       'booked': 'Ausgebucht',
       'closed': 'Geschlossen',
       'holiday': 'Urlaub / Betriebsferien',
-      'reservation': 'Reservierung möglich',
+      'reservation': 'Nur auf Anfrage',
       'request': 'Nur auf Anfrage',
       'event': 'Sonder-Event'
     };
@@ -741,7 +742,8 @@ function selectCalendarDay(dateObj, event) {
       statusText = 'Nur auf Anfrage';
       descText = 'An diesem Tag haben wir nicht regulär geöffnet. Wir stehen jedoch nach Absprache sehr gerne für Feiern, Gruppen & Veranstaltungen zur Verfügung. Rufen Sie uns einfach an!';
     } else {
-      statusText = 'Geöffnet / Reservierung möglich';
+      statusText = 'Geöffnet';
+      descText = 'Wir haben an diesem Tag regulär geöffnet. Kommen Sie gerne vorbei!';
     }
   }
 
