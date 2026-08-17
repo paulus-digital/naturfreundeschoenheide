@@ -218,9 +218,9 @@ function setupStatusToggle() {
   const toggle = document.getElementById('admin-status-toggle');
   
   if (toggle) {
-    toggle.addEventListener('change', async () => {
-      updateLiveStatusUI(toggle.checked);
-      await commitDataChange(toggle.checked ? 'Live-Status auf Geöffnet geändert' : 'Live-Status auf Geschlossen geändert');
+    toggle.addEventListener('change', async (e) => {
+      const isChecked = toggle.checked;
+      await toggleLiveStatus(isChecked);
     });
   }
 
@@ -302,25 +302,24 @@ function isDatePast(dateStr) {
   return eventDateEnd < now;
 }
 
-function setupStatusToggle() {
-  const statusToggle = document.getElementById('admin-status-toggle');
-  if (statusToggle) {
-    statusToggle.addEventListener('click', (e) => {
-      e.preventDefault();
-      const desired = !pageData.openStatus;
-      toggleLiveStatus(desired);
-    });
-  }
-}
-
 async function toggleLiveStatus(desiredState) {
-  let isTrue = desiredState;
+  let isTrue = Boolean(desiredState);
+  const today = new Date();
+  const todayStr = formatDateToYYYYMMDD(today);
+  const GERMAN_WEEKDAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+  const todayWeekday = GERMAN_WEEKDAYS[today.getDay()];
   
   if (isTrue) {
     // Determine existing hours for today as default prompt value
-    const todayStr = formatDateToYYYYMMDD(new Date());
     let defaultVal = '16:00 - 22:00 Uhr';
     
+    if (pageData.openingHours) {
+      const defaultItem = pageData.openingHours.find(h => h.day.toLowerCase() === todayWeekday.toLowerCase());
+      if (defaultItem && defaultItem.hours && !defaultItem.hours.toLowerCase().includes('geschlossen') && !defaultItem.hours.toLowerCase().includes('ruhetag')) {
+        defaultVal = defaultItem.hours;
+      }
+    }
+
     if (pageData.specialHours) {
       const sp = pageData.specialHours.find(h => h.date === todayStr);
       if (sp && sp.hours && !sp.hours.toLowerCase().includes('geschlossen') && !sp.hours.toLowerCase().includes('ruhetag')) {
@@ -331,7 +330,7 @@ async function toggleLiveStatus(desiredState) {
     const userInput = prompt('Bitte die heutige Öffnungszeit eingeben (z. B. 16:00 - 22:00 Uhr oder ab 17:00 Uhr):', defaultVal);
     
     if (userInput === null) {
-      // User cancelled prompt -> keep current status
+      // User cancelled prompt -> revert toggle back to previous state
       updateLiveStatusUI(pageData.openStatus);
       return;
     }
@@ -354,9 +353,16 @@ async function toggleLiveStatus(desiredState) {
     } else {
       pageData.specialHours.push(todayEntry);
     }
+
+    pageData.openStatus = true;
+    updateLiveStatusUI(true);
+    renderWeekPlanner();
+    populateHoursTab();
+    
+    showToast(`🟢 Live-Status: HEUTE GEÖFFNET (${hoursText})`, 'success');
+    await commitDataChange(`Live-Status auf Geöffnet (${hoursText}) geändert`);
   } else {
     // Switch to GESCHLOSSEN -> set today's special hours to Geschlossen
-    const todayStr = formatDateToYYYYMMDD(new Date());
     if (!pageData.specialHours) pageData.specialHours = [];
     const existingIndex = pageData.specialHours.findIndex(h => h.date === todayStr);
     
@@ -372,13 +378,15 @@ async function toggleLiveStatus(desiredState) {
     } else {
       pageData.specialHours.push(todayEntry);
     }
-  }
 
-  pageData.openStatus = isTrue;
-  updateLiveStatusUI(isTrue);
-  
-  showToast(isTrue ? '🟢 Live-Status: HEUTE GEÖFFNET' : '🔴 Live-Status: HEUTE GESCHLOSSEN', 'success');
-  await commitDataChange(isTrue ? 'Live-Status auf Geöffnet geändert' : 'Live-Status auf Geschlossen geändert');
+    pageData.openStatus = false;
+    updateLiveStatusUI(false);
+    renderWeekPlanner();
+    populateHoursTab();
+    
+    showToast('🔴 Live-Status: HEUTE GESCHLOSSEN', 'success');
+    await commitDataChange('Live-Status auf Geschlossen geändert');
+  }
 }
 
 function updateLiveStatusUI(isOpen) {
