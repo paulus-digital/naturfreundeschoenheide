@@ -1053,6 +1053,7 @@ function renderWeekPlanner() {
       : 'background: rgba(92, 184, 92, 0.1); color: #5cb85c; border: 1px solid rgba(92,184,92,0.25);';
 
     const statusBadgeText = specialMatch ? 'Manuelle Ausnahme' : 'Grundeinstellung';
+    const showLabelInput = (selectedType !== 'standard' && selectedType !== 'open' && selectedType !== 'closed');
 
     row.innerHTML = `
       <div class="week-day-row-title">
@@ -1074,12 +1075,12 @@ function renderWeekPlanner() {
           </select>
         </div>
         <div class="week-day-col">
-          <input type="text" id="week-day-hours-${i}" class="form-control week-day-input" value="${hoursVal}" placeholder="z.B. 17:00 - 22:00 Uhr">
+          <input type="text" id="week-day-hours-${i}" class="form-control week-day-input" value="${hoursVal}" placeholder="z.B. 17:00 - 22:00 Uhr" oninput="triggerPlannerAutoSave()" onchange="triggerPlannerAutoSave()">
         </div>
       </div>
 
       <div class="week-day-row-extra">
-        <input type="text" id="week-day-label-${i}" class="form-control week-day-input" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" style="display: ${selectedType === 'standard' || selectedType === 'open' ? 'none' : 'block'};">
+        <input type="text" id="week-day-label-${i}" class="form-control week-day-input" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" oninput="triggerPlannerAutoSave()" onchange="triggerPlannerAutoSave()" style="display: ${showLabelInput ? 'block' : 'none'};">
       </div>
     `;
 
@@ -1170,51 +1171,76 @@ async function setWeekToHoliday() {
 function handleWeekDayTypeChange(index) {
   const select = document.getElementById(`week-day-type-${index}`);
   const labelInput = document.getElementById(`week-day-label-${index}`);
-  const labelHeading = document.getElementById(`week-day-label-heading-${index}`);
   const hoursInput = document.getElementById(`week-day-hours-${index}`);
   
   if (!select || !labelInput || !hoursInput) return;
 
   const type = select.value;
+  const GERMAN_WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+  const weekdayName = GERMAN_WEEKDAYS[index];
+  const defaultItem = pageData.openingHours ? pageData.openingHours.find(h => h.day.toLowerCase() === weekdayName.toLowerCase()) : null;
+  const defaultHours = defaultItem ? defaultItem.hours : 'Geschlossen';
 
   if (type === 'standard') {
     labelInput.style.display = 'none';
-    if (labelHeading) labelHeading.style.display = 'none';
-    const GERMAN_WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
-    const weekdayName = GERMAN_WEEKDAYS[index];
-    const defaultItem = pageData.openingHours ? pageData.openingHours.find(h => h.day.toLowerCase() === weekdayName.toLowerCase()) : null;
-    hoursInput.value = defaultItem ? defaultItem.hours : 'Geschlossen';
+    labelInput.value = '';
+    hoursInput.value = defaultHours;
   } else if (type === 'open') {
     labelInput.style.display = 'none';
-    if (labelHeading) labelHeading.style.display = 'none';
+    labelInput.value = '';
     const hLower = (hoursInput.value || '').toLowerCase();
     if (!hoursInput.value || hLower.includes('geschlossen') || hLower.includes('ruhetag')) {
-      hoursInput.value = '17:00 - 22:00 Uhr';
+      if (defaultItem && defaultItem.hours && !defaultItem.hours.toLowerCase().includes('geschlossen') && !defaultItem.hours.toLowerCase().includes('ruhetag')) {
+        hoursInput.value = defaultItem.hours;
+      } else {
+        hoursInput.value = '17:00 - 22:00 Uhr';
+      }
+    }
+  } else if (type === 'closed') {
+    labelInput.style.display = 'none';
+    labelInput.value = '';
+    hoursInput.value = 'Geschlossen';
+  } else if (type === 'holiday') {
+    labelInput.style.display = 'block';
+    hoursInput.value = 'Betriebsferien / Urlaub';
+    if (!labelInput.value || labelInput.value.includes('geöffnet') || labelInput.value.includes('Geschlossen')) {
+      labelInput.value = 'Betriebsferien';
+    }
+  } else if (type === 'booked') {
+    labelInput.style.display = 'block';
+    hoursInput.value = 'Geschlossen';
+    if (!labelInput.value || labelInput.value.includes('geöffnet') || labelInput.value.includes('Geschlossen')) {
+      labelInput.value = 'Ausgebucht';
+    }
+  } else if (type === 'event') {
+    labelInput.style.display = 'block';
+    if (!labelInput.value || labelInput.value.includes('geöffnet') || labelInput.value.includes('Geschlossen')) {
+      labelInput.value = 'Event';
     }
   } else {
     labelInput.style.display = 'block';
-    if (labelHeading) labelHeading.style.display = 'block';
-    
-    if (type === 'closed') {
-      hoursInput.value = 'Geschlossen';
-      if (!labelInput.value) labelInput.value = 'Geschlossen';
-    } else if (type === 'holiday') {
-      hoursInput.value = 'Geschlossen';
-      if (!labelInput.value) labelInput.value = 'Betriebsferien';
-    } else if (type === 'booked') {
-      hoursInput.value = 'Geschlossen';
-      if (!labelInput.value) labelInput.value = 'Ausgebucht';
-    } else if (type === 'event') {
-      if (!labelInput.value) labelInput.value = 'Event';
-    }
   }
+
+  triggerPlannerAutoSave();
 }
 
-async function saveWeekPlanner() {
+let autoSavePlannerTimeout = null;
+function triggerPlannerAutoSave() {
+  if (autoSavePlannerTimeout) clearTimeout(autoSavePlannerTimeout);
+  autoSavePlannerTimeout = setTimeout(async () => {
+    await saveWeekPlanner(true);
+  }, 400);
+}
+
+async function saveWeekPlanner(silent = false) {
   if (!pageData.specialHours) pageData.specialHours = [];
 
   const monday = new Date(plannerSelectedMonday);
   const GERMAN_WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+  const today = new Date();
+  const todayStr = formatDateToYYYYMMDD(today);
+  let todayUpdatedInPlanner = false;
+  let todayStatusIsOpen = false;
 
   for (let i = 0; i < 7; i++) {
     const dayDate = new Date(monday);
@@ -1237,15 +1263,21 @@ async function saveWeekPlanner() {
 
     const existingIndex = pageData.specialHours.findIndex(h => h.date === dateStr);
 
-    if (selectedType === 'standard' && hoursVal === defaultHours) {
+    if (selectedType === 'standard' && (hoursVal === defaultHours || !hoursVal)) {
       if (existingIndex !== -1) {
         pageData.specialHours.splice(existingIndex, 1);
       }
+      if (dateStr === todayStr) {
+        todayUpdatedInPlanner = true;
+        const isDefClosed = defaultHours.toLowerCase().includes('geschlossen') || defaultHours.toLowerCase().includes('ruhetag');
+        todayStatusIsOpen = !isDefClosed;
+      }
     } else {
+      const isClosed = (selectedType === 'closed') || hoursVal.toLowerCase().includes('geschlossen') || hoursVal.toLowerCase().includes('ruhetag');
       const entry = {
         date: dateStr,
         hours: hoursVal,
-        type: selectedType === 'standard' ? 'custom' : selectedType,
+        type: selectedType === 'standard' ? (isClosed ? 'closed' : 'open') : selectedType,
         label: labelVal
       };
 
@@ -1254,13 +1286,30 @@ async function saveWeekPlanner() {
       } else {
         pageData.specialHours.push(entry);
       }
+
+      if (dateStr === todayStr) {
+        todayUpdatedInPlanner = true;
+        todayStatusIsOpen = !isClosed;
+      }
     }
   }
 
-  showToast('💾 Speichere Wochen-Öffnungszeiten...', 'info');
+  // Sort by date
+  pageData.specialHours.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  // Sync Live Status if today was edited in the week planner
+  if (todayUpdatedInPlanner) {
+    pageData.openStatus = todayStatusIsOpen;
+    updateLiveStatusUI(todayStatusIsOpen);
+  }
+
+  if (!silent) {
+    showToast('💾 Speichere Wochen-Öffnungszeiten...', 'info');
+  }
+
   const dataSaved = await commitDataChange('Wochen-Planer: Öffnungszeiten geändert');
   if (dataSaved) {
-    showToast('✅ Wochen-Öffnungszeiten erfolgreich gespeichert!', 'success');
+    showToast(silent ? '💾 Automatisch gespeichert!' : '✅ Wochen-Öffnungszeiten erfolgreich gespeichert!', 'success');
     populateHoursTab();
   }
 }

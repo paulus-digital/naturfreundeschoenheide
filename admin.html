@@ -345,9 +345,14 @@
           <div class="week-planner-container" id="admin-week-planner-fields" style="background: var(--bg-white); border: 1px solid var(--border-warm); border-radius: var(--radius-sm); overflow: hidden; display: flex; flex-direction: column;">
             <!-- Populated dynamically via JS -->
           </div>
-          <button type="button" class="admin-btn admin-btn-primary" onclick="saveWeekPlanner()" style="width: 100%; margin-top: 20px; font-size: 1.05rem; padding: 14px 20px;">
-            💾 Änderungen für diese Kalenderwoche speichern
-          </button>
+          <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: var(--bg-cream); padding: 12px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm);">
+            <span style="font-size: 0.9rem; font-weight: 600; color: var(--success); display: inline-flex; align-items: center; gap: 6px;">
+              ⚡ Alle Änderungen werden automatisch sofort live gespeichert!
+            </span>
+            <button type="button" class="admin-btn admin-btn-primary" onclick="saveWeekPlanner()" style="font-size: 0.9rem; padding: 8px 16px;">
+              💾 Jetzt manuell prüfen &amp; speichern
+            </button>
+          </div>
         </form>
 
         <hr style="border: 0; border-top: 1px solid var(--border-warm); margin: 40px 0;">
