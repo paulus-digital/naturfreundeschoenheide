@@ -970,6 +970,7 @@ function renderWeekPlanner() {
       <div class="week-day-row-title">
         <strong style="font-size: 0.95rem; color: var(--primary-dark);">${weekdayName}, ${dateLabel}</strong>
         <span class="special-hours-badge-inline" style="font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; ${statusBadgeStyle}">${statusBadgeText}</span>
+        ${specialMatch ? `<button type="button" class="admin-btn" style="padding: 2px 7px; font-size: 0.72rem; margin-left: auto; background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark); border-radius: 4px;" title="Auf Standard-Grundeinstellung zurücksetzen" onclick="resetSingleDayToStandard('${dateStr}', ${i})">🔄 Auf Standard</button>` : ''}
       </div>
       
       <div class="week-day-row-controls">
@@ -995,6 +996,86 @@ function renderWeekPlanner() {
     `;
 
     container.appendChild(row);
+  }
+}
+
+async function resetSingleDayToStandard(dateStr, index) {
+  if (pageData.specialHours) {
+    const existingIdx = pageData.specialHours.findIndex(h => h.date === dateStr);
+    if (existingIdx !== -1) {
+      pageData.specialHours.splice(existingIdx, 1);
+      renderWeekPlanner();
+      populateHoursTab();
+      await commitDataChange(`Wochen-Planer: ${dateStr} auf Standard zurückgesetzt`);
+      showToast('✅ Tag auf Standard zurückgesetzt!', 'success');
+    }
+  }
+}
+
+async function resetWeekToStandard() {
+  if (!confirm('Möchten Sie alle manuellen Ausnahmen für diese Kalenderwoche auf die Standard-Grundeinstellungen zurücksetzen?')) {
+    return;
+  }
+
+  const monday = new Date(plannerSelectedMonday);
+  const weekDates = [];
+  for (let i = 0; i < 7; i++) {
+    const dayDate = new Date(monday);
+    dayDate.setDate(monday.getDate() + i);
+    weekDates.push(formatDateToYYYYMMDD(dayDate));
+  }
+
+  const weekSet = new Set(weekDates);
+  if (pageData.specialHours) {
+    pageData.specialHours = pageData.specialHours.filter(h => !weekSet.has(h.date));
+  }
+
+  renderWeekPlanner();
+  populateHoursTab();
+  showToast('💾 Setze Kalenderwoche zurück...', 'info');
+  const saved = await commitDataChange('Wochen-Planer: Woche auf Standard zurückgesetzt');
+  if (saved) {
+    showToast('✅ Kalenderwoche erfolgreich auf Standard zurückgesetzt!', 'success');
+  }
+}
+
+async function setWeekToHoliday() {
+  if (!confirm('Möchten Sie die gesamte angezeigte Kalenderwoche als Urlaub / Betriebsferien eintragen?')) {
+    return;
+  }
+
+  if (!pageData.specialHours) pageData.specialHours = [];
+
+  const monday = new Date(plannerSelectedMonday);
+  for (let i = 0; i < 7; i++) {
+    const dayDate = new Date(monday);
+    dayDate.setDate(monday.getDate() + i);
+    const dateStr = formatDateToYYYYMMDD(dayDate);
+
+    const existingIdx = pageData.specialHours.findIndex(h => h.date === dateStr);
+    const entry = {
+      date: dateStr,
+      hours: 'Betriebsferien / Urlaub',
+      type: 'holiday',
+      label: 'Urlaub / Betriebsferien'
+    };
+
+    if (existingIdx !== -1) {
+      pageData.specialHours[existingIdx] = entry;
+    } else {
+      pageData.specialHours.push(entry);
+    }
+  }
+
+  // Sort by date
+  pageData.specialHours.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  renderWeekPlanner();
+  populateHoursTab();
+  showToast('💾 Speichere Urlaub für Kalenderwoche...', 'info');
+  const saved = await commitDataChange('Wochen-Planer: Ganze Woche als Urlaub eingetragen');
+  if (saved) {
+    showToast('✅ Kalenderwoche als Urlaub gespeichert!', 'success');
   }
 }
 
@@ -1117,12 +1198,123 @@ async function saveWeekPlanner() {
   }
 }
 
+function toggleSelectAllSpecialHours(checked) {
+  const checkboxes = document.querySelectorAll('.special-hour-checkbox');
+  checkboxes.forEach(cb => {
+    cb.checked = checked;
+  });
+  updateSpecialHoursSelectionCount();
+}
+
+function selectUrlaubSpecialHours() {
+  const checkboxes = document.querySelectorAll('.special-hour-checkbox');
+  let count = 0;
+  checkboxes.forEach(cb => {
+    const isUrlaub = cb.getAttribute('data-is-urlaub') === 'true';
+    cb.checked = isUrlaub;
+    if (isUrlaub) count++;
+  });
+  updateSpecialHoursSelectionCount();
+  if (count === 0) {
+    showToast('Keine Urlaubstage in der Liste gefunden.', 'info');
+  } else {
+    showToast(`🏖️ ${count} Urlaubstage ausgewählt`, 'info');
+  }
+}
+
+function updateSpecialHoursSelectionCount() {
+  const checkboxes = document.querySelectorAll('.special-hour-checkbox');
+  const checkedBoxes = document.querySelectorAll('.special-hour-checkbox:checked');
+  const count = checkedBoxes.length;
+
+  const selectAllCb = document.getElementById('select-all-special-hours');
+  if (selectAllCb) {
+    if (checkboxes.length === 0) {
+      selectAllCb.checked = false;
+      selectAllCb.indeterminate = false;
+    } else if (count === checkboxes.length) {
+      selectAllCb.checked = true;
+      selectAllCb.indeterminate = false;
+    } else if (count > 0) {
+      selectAllCb.checked = false;
+      selectAllCb.indeterminate = true;
+    } else {
+      selectAllCb.checked = false;
+      selectAllCb.indeterminate = false;
+    }
+  }
+
+  const badge = document.getElementById('special-hours-selected-count-badge');
+  if (badge) {
+    badge.textContent = `${count} ausgewählt`;
+    badge.style.color = count > 0 ? 'var(--primary-dark)' : 'var(--text-muted)';
+  }
+
+  const numSpan = document.getElementById('selected-count-num');
+  if (numSpan) {
+    numSpan.textContent = count;
+  }
+
+  const deleteBtn = document.getElementById('delete-selected-special-hours-btn');
+  if (deleteBtn) {
+    if (count > 0) {
+      deleteBtn.removeAttribute('disabled');
+      deleteBtn.style.opacity = '1';
+      deleteBtn.style.pointerEvents = 'auto';
+      deleteBtn.style.cursor = 'pointer';
+    } else {
+      deleteBtn.setAttribute('disabled', 'true');
+      deleteBtn.style.opacity = '0.5';
+      deleteBtn.style.pointerEvents = 'none';
+    }
+  }
+}
+
+async function deleteSelectedSpecialHours() {
+  if (!pageData.specialHours) return;
+
+  const checkboxes = document.querySelectorAll('.special-hour-checkbox:checked');
+  if (checkboxes.length === 0) return;
+
+  const selectedDates = Array.from(checkboxes).map(cb => cb.getAttribute('data-date')).filter(Boolean);
+  if (selectedDates.length === 0) return;
+
+  const confirmMsg = selectedDates.length === 1
+    ? 'Möchten Sie den ausgewählten Tag wirklich löschen?'
+    : `Möchten Sie die ${selectedDates.length} ausgewählten Tage wirklich löschen?`;
+
+  if (!confirm(confirmMsg)) return;
+
+  const selectedSet = new Set(selectedDates);
+  pageData.specialHours = pageData.specialHours.filter(h => !selectedSet.has(h.date));
+
+  showToast(`🗑️ ${selectedDates.length} Einträge gelöscht...`, 'info');
+  populateHoursTab();
+  const saved = await commitDataChange(`Admin Panel: ${selectedDates.length} Termine/Ausnahmen gelöscht`);
+  if (saved) {
+    showToast(`✅ ${selectedDates.length} Termine/Ausnahmen erfolgreich gelöscht!`, 'success');
+  }
+}
+
+async function deleteSpecialHoursByDate(dateStr) {
+  if (!pageData.specialHours) return;
+
+  if (confirm('Möchten Sie diesen Eintrag wirklich löschen?')) {
+    pageData.specialHours = pageData.specialHours.filter(h => h.date !== dateStr);
+    populateHoursTab();
+    await commitDataChange('Admin Panel: Termin / Ausnahme gelöscht');
+    showToast('✅ Eintrag gelöscht!', 'success');
+  }
+}
+
 function populateHoursTab() {
   // Render weekly planner sheet
   renderWeekPlanner();
 
   // 2. Special/Deviating hours list (filter out past dates)
   const specialList = document.getElementById('admin-special-hours-list');
+  const toolbar = document.getElementById('admin-special-hours-toolbar');
+
   if (specialList) {
     specialList.innerHTML = '';
 
@@ -1131,10 +1323,16 @@ function populateHoursTab() {
     // Automatically remove past special hours so stored list does not grow infinitely
     pageData.specialHours = pageData.specialHours.filter(item => !isDatePast(item.date));
 
+    // Sort special hours chronologically
+    pageData.specialHours.sort((a, b) => new Date(a.date) - new Date(b.date));
+
     if (pageData.specialHours.length === 0) {
+      if (toolbar) toolbar.style.display = 'none';
       specialList.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine anstehenden Termine oder Ausnahmen geplant.</p>';
       return;
     }
+
+    if (toolbar) toolbar.style.display = 'flex';
 
     pageData.specialHours.forEach((item, index) => {
       const row = document.createElement('div');
@@ -1144,26 +1342,37 @@ function populateHoursTab() {
       let dateStr = item.date;
       if (dateParts.length === 3) {
         const d = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-        dateStr = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        dateStr = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
       }
 
+      const isUrlaub = (item.hours && (item.hours.toLowerCase().includes('urlaub') || item.hours.toLowerCase().includes('betriebsferien') || item.hours.toLowerCase().includes('ferien'))) ||
+                       (item.label && (item.label.toLowerCase().includes('urlaub') || item.label.toLowerCase().includes('betriebsferien') || item.label.toLowerCase().includes('ferien'))) ||
+                       (item.type === 'holiday');
+
       const isClosed = item.hours && (item.hours.toLowerCase().includes('ruhetag') || item.hours.toLowerCase().includes('geschlossen'));
-      const badgeStyle = isClosed 
-        ? 'background: rgba(217, 83, 79, 0.15); color: #d9534f; border: 1px solid rgba(217,83,79,0.3);' 
-        : 'background: rgba(197, 159, 45, 0.15); color: var(--primary-dark); border: 1px solid rgba(197, 159, 45, 0.3);';
+      const badgeStyle = isUrlaub
+        ? 'background: rgba(43, 140, 204, 0.15); color: #1e70a2; border: 1px solid rgba(43, 140, 204, 0.3);'
+        : isClosed 
+          ? 'background: rgba(217, 83, 79, 0.15); color: #d9534f; border: 1px solid rgba(217,83,79,0.3);' 
+          : 'background: rgba(197, 159, 45, 0.15); color: var(--primary-dark); border: 1px solid rgba(197, 159, 45, 0.3);';
 
       row.innerHTML = `
-        <div class="admin-item-details">
-          <span class="admin-item-date" style="font-size:0.9rem; font-weight:700; white-space: nowrap;">${dateStr}</span>
-          <span class="admin-item-label">
-            <strong>${escapeHTML(item.hours)}</strong>
-            ${item.label ? `<span class="special-hours-badge-inline" style="margin-left: 6px; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; ${badgeStyle}">${escapeHTML(item.label)}</span>` : ''}
-          </span>
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto;">
+          <input type="checkbox" class="special-hour-checkbox" data-date="${item.date}" data-is-urlaub="${isUrlaub ? 'true' : 'false'}" onchange="updateSpecialHoursSelectionCount()" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
+          <div class="admin-item-details">
+            <span class="admin-item-date" style="font-size:0.9rem; font-weight:700; white-space: nowrap;">${dateStr}</span>
+            <span class="admin-item-label">
+              <strong>${escapeHTML(item.hours)}</strong>
+              ${item.label ? `<span class="special-hours-badge-inline" style="margin-left: 6px; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; ${badgeStyle}">${escapeHTML(item.label)}</span>` : ''}
+            </span>
+          </div>
         </div>
-        <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem; flex-shrink: 0;" onclick="deleteSpecialHours(${index})">Löschen</button>
+        <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem; flex-shrink: 0;" onclick="deleteSpecialHoursByDate('${item.date}')">Löschen</button>
       `;
       specialList.appendChild(row);
     });
+
+    updateSpecialHoursSelectionCount();
   }
 }
 

@@ -1728,6 +1728,18 @@ input:checked + .slider:before {
 }
 
 /* Planner / Calendar Admin List */
+.special-hours-batch-toolbar {
+  transition: all 0.2s ease;
+}
+
+.special-hours-batch-toolbar .admin-btn:hover {
+  background-color: var(--bg-warm) !important;
+}
+
+.special-hour-checkbox {
+  accent-color: var(--primary-dark);
+}
+
 .admin-item-row {
   display: flex;
   justify-content: space-between;
@@ -1739,6 +1751,12 @@ input:checked + .slider:before {
   border-radius: var(--radius-sm);
   margin-bottom: 12px;
   flex-wrap: wrap;
+  transition: background-color 0.15s ease;
+}
+
+.admin-item-row:has(.special-hour-checkbox:checked) {
+  background-color: rgba(197, 159, 45, 0.08);
+  border-color: rgba(197, 159, 45, 0.4);
 }
 
 .admin-item-details {
