@@ -299,39 +299,30 @@ async function toggleLiveStatus(desiredState) {
   const todayStr = formatDateToYYYYMMDD(today);
   const GERMAN_WEEKDAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
   const todayWeekday = GERMAN_WEEKDAYS[today.getDay()];
-  
+
+  if (!pageData.specialHours) pageData.specialHours = [];
+  const existingIndex = pageData.specialHours.findIndex(h => h.date === todayStr);
+
   if (isTrue) {
-    // Determine existing hours for today as default prompt value
-    let defaultVal = '16:00 - 22:00 Uhr';
-    
+    // 1. Determine active hours for today
+    let hoursText = '16:00 - 22:00 Uhr';
+
+    // First check regular configured opening hours for today's weekday
     if (pageData.openingHours) {
       const defaultItem = pageData.openingHours.find(h => h.day.toLowerCase() === todayWeekday.toLowerCase());
       if (defaultItem && defaultItem.hours && !defaultItem.hours.toLowerCase().includes('geschlossen') && !defaultItem.hours.toLowerCase().includes('ruhetag')) {
-        defaultVal = defaultItem.hours;
+        hoursText = defaultItem.hours;
       }
     }
 
-    if (pageData.specialHours) {
-      const sp = pageData.specialHours.find(h => h.date === todayStr);
-      if (sp && sp.hours && !sp.hours.toLowerCase().includes('geschlossen') && !sp.hours.toLowerCase().includes('ruhetag')) {
-        defaultVal = sp.hours;
-      }
+    // Check if the input field on screen has a specific time
+    const hoursInput = document.getElementById('admin-status-today-hours');
+    if (hoursInput && hoursInput.value && !hoursInput.value.toLowerCase().includes('geschlossen') && !hoursInput.value.toLowerCase().includes('ruhetag')) {
+      hoursText = hoursInput.value.trim();
+    } else if (existingIndex !== -1 && pageData.specialHours[existingIndex].hours && !pageData.specialHours[existingIndex].hours.toLowerCase().includes('geschlossen')) {
+      hoursText = pageData.specialHours[existingIndex].hours;
     }
 
-    const userInput = prompt('Bitte die heutige Öffnungszeit eingeben (z. B. 16:00 - 22:00 Uhr oder ab 17:00 Uhr):', defaultVal);
-    
-    if (userInput === null) {
-      // User cancelled prompt -> revert toggle back to previous state
-      updateLiveStatusUI(pageData.openStatus);
-      return;
-    }
-
-    const hoursText = userInput.trim() || defaultVal;
-
-    // Overwrite / create specialHours entry for TODAY only
-    if (!pageData.specialHours) pageData.specialHours = [];
-    const existingIndex = pageData.specialHours.findIndex(h => h.date === todayStr);
-    
     const todayEntry = {
       date: todayStr,
       hours: hoursText,
@@ -349,14 +340,11 @@ async function toggleLiveStatus(desiredState) {
     updateLiveStatusUI(true);
     renderWeekPlanner();
     populateHoursTab();
-    
+
     showToast(`🟢 Live-Status: HEUTE GEÖFFNET (${hoursText})`, 'success');
     await commitDataChange(`Live-Status auf Geöffnet (${hoursText}) geändert`);
   } else {
     // Switch to GESCHLOSSEN -> set today's special hours to Geschlossen
-    if (!pageData.specialHours) pageData.specialHours = [];
-    const existingIndex = pageData.specialHours.findIndex(h => h.date === todayStr);
-    
     const todayEntry = {
       date: todayStr,
       hours: 'Geschlossen',
@@ -374,10 +362,46 @@ async function toggleLiveStatus(desiredState) {
     updateLiveStatusUI(false);
     renderWeekPlanner();
     populateHoursTab();
-    
+
     showToast('🔴 Live-Status: HEUTE GESCHLOSSEN', 'success');
     await commitDataChange('Live-Status auf Geschlossen geändert');
   }
+}
+
+async function saveTodayLiveHours(newHours) {
+  const hoursText = (newHours || '').trim();
+  if (!hoursText) return;
+
+  const today = new Date();
+  const todayStr = formatDateToYYYYMMDD(today);
+
+  if (!pageData.specialHours) pageData.specialHours = [];
+  const existingIndex = pageData.specialHours.findIndex(h => h.date === todayStr);
+
+  const isClosed = hoursText.toLowerCase().includes('geschlossen') || hoursText.toLowerCase().includes('ruhetag');
+  const type = isClosed ? 'closed' : 'open';
+  const label = isClosed ? 'Heute geschlossen' : 'Heute geöffnet';
+
+  const todayEntry = {
+    date: todayStr,
+    hours: hoursText,
+    type: type,
+    label: label
+  };
+
+  if (existingIndex !== -1) {
+    pageData.specialHours[existingIndex] = todayEntry;
+  } else {
+    pageData.specialHours.push(todayEntry);
+  }
+
+  pageData.openStatus = !isClosed;
+  updateLiveStatusUI(!isClosed);
+  renderWeekPlanner();
+  populateHoursTab();
+
+  showToast(`💾 Heutige Öffnungszeit gespeichert: ${hoursText}`, 'success');
+  await commitDataChange(`Live-Status Öffnungszeit geändert: ${hoursText}`);
 }
 
 function updateLiveStatusUI(isOpen) {
@@ -397,20 +421,54 @@ function updateLiveStatusUI(isOpen) {
     label.style.color = isTrue ? 'var(--success)' : 'var(--danger)';
   }
 
-  // 3. Quick Action Card Badge
+  // 3. Today Hours Input Field
+  const hoursInput = document.getElementById('admin-status-today-hours');
+  const hoursContainer = document.getElementById('admin-status-hours-container');
+  if (hoursInput) {
+    const today = new Date();
+    const todayStr = formatDateToYYYYMMDD(today);
+    const GERMAN_WEEKDAYS = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    const todayWeekday = GERMAN_WEEKDAYS[today.getDay()];
+
+    let currentHours = '';
+    if (pageData.specialHours) {
+      const sp = pageData.specialHours.find(h => h.date === todayStr);
+      if (sp) currentHours = sp.hours;
+    }
+    if (!currentHours && pageData.openingHours) {
+      const def = pageData.openingHours.find(h => h.day.toLowerCase() === todayWeekday.toLowerCase());
+      if (def) currentHours = def.hours;
+    }
+    if (!currentHours) currentHours = isTrue ? '16:00 - 22:00 Uhr' : 'Geschlossen';
+
+    if (isTrue) {
+      if (currentHours.toLowerCase().includes('geschlossen') || currentHours.toLowerCase().includes('ruhetag')) {
+        currentHours = '16:00 - 22:00 Uhr';
+      }
+      hoursInput.value = currentHours;
+      hoursInput.disabled = false;
+      if (hoursContainer) hoursContainer.style.opacity = '1';
+    } else {
+      hoursInput.value = 'Geschlossen';
+      hoursInput.disabled = true;
+      if (hoursContainer) hoursContainer.style.opacity = '0.7';
+    }
+  }
+
+  // 4. Quick Action Card Badge
   const quickBadge = document.getElementById('quick-status-badge');
   if (quickBadge) {
     quickBadge.textContent = isTrue ? 'GEÖFFNET' : 'GESCHLOSSEN';
     quickBadge.style.backgroundColor = isTrue ? '#2e7d32' : '#c62828';
   }
 
-  // 4. Quick Action Card Icon
+  // 5. Quick Action Card Icon
   const quickIcon = document.querySelector('.easy-quick-card .quick-card-icon');
   if (quickIcon) {
     quickIcon.textContent = isTrue ? '🟢' : '🔴';
   }
 
-  // 5. Update Social Media Graphic Preview if canvas is rendered
+  // 6. Update Social Media Graphic Preview if canvas is rendered
   const canvas = document.getElementById('social-graphic-canvas');
   if (canvas) {
     updateSocialGraphic(false);
