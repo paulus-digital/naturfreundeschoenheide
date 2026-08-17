@@ -3460,25 +3460,64 @@ input:checked + .slider:before {
    SENIOR-FRIENDLY & EASY ADMIN UI STYLES
    ==================================================== */
 
-/* Easy Help Box */
+/* Easy Help Box (Collapsible) */
 .easy-help-box {
   background-color: #fffde7;
   border: 1px solid #ffe082;
-  border-left: 5px solid #ffb300;
-  padding: 14px 18px;
+  border-left: 4px solid #ffb300;
   border-radius: var(--radius-sm);
-  margin-bottom: 24px;
-  font-size: 0.98rem;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
   color: #424242;
-  display: flex;
-  align-items: center;
-  gap: 12px;
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
-.easy-help-box span {
-  font-size: 1.4rem;
-  flex: 0 0 auto;
+.easy-help-box summary {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  user-select: none;
+  font-weight: 600;
+  color: #5d4037;
+  list-style: none;
+}
+
+.easy-help-box summary::-webkit-details-marker {
+  display: none;
+}
+
+.easy-help-summary-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.easy-help-summary-left span {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.easy-help-toggle-icon {
+  font-size: 0.7rem;
+  color: #8d6e63;
+  transition: transform 0.2s ease;
+}
+
+.easy-help-box[open] .easy-help-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.easy-help-content {
+  padding: 10px 14px 14px 14px;
+  border-top: 1px dashed rgba(255, 179, 0, 0.4);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #424242;
 }
 
 /* Quick Action Grid & Cards */
