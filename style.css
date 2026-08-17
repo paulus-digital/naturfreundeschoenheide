@@ -3837,5 +3837,99 @@ input:checked + .slider:before {
   }
 }
 
+/* ============================================
+   TODAY HIGHLIGHT IN ADMIN WEEK PLANNER
+   ============================================ */
+.week-day-row.is-today-row {
+  border-left: 5px solid var(--primary-dark) !important;
+  background-color: #fffdf5 !important;
+  box-shadow: 0 3px 10px rgba(197, 159, 45, 0.15) !important;
+  border-color: rgba(197, 159, 45, 0.5) !important;
+}
 
+.week-day-row.is-today-row .week-day-row-title strong {
+  color: var(--primary-dark);
+  font-weight: 800;
+}
 
+/* ============================================
+   MOBILE STICKY QUICK ACTION BAR (FRONTEND)
+   ============================================ */
+.mobile-sticky-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2500;
+  background: rgba(253, 250, 243, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-warm);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px;
+  align-items: center;
+  justify-content: space-around;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .mobile-sticky-bar {
+    display: flex;
+  }
+  body {
+    padding-bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.mobile-sticky-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 4px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--primary-dark);
+  font-weight: 700;
+  font-size: 0.78rem;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.mobile-sticky-btn:active {
+  transform: scale(0.96);
+}
+
+.mobile-sticky-btn.mobile-sticky-call {
+  background: #2e6b3a;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 6px rgba(46, 107, 58, 0.25);
+}
+
+.mobile-sticky-btn.mobile-sticky-whatsapp {
+  background: #25d366;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
+}
+
+.mobile-sticky-btn.mobile-sticky-route {
+  background: var(--bg-white);
+  color: var(--primary-dark);
+  border: 1px solid var(--border-warm);
+}
+
+.mobile-sticky-icon {
+  font-size: 1.15rem;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.mobile-sticky-label {
+  line-height: 1;
+  letter-spacing: 0.2px;
+}

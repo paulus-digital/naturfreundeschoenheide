@@ -1126,6 +1126,19 @@ function renderContact() {
   // Modals placeholders
   document.querySelectorAll('.contact-phone-placeholder').forEach(el => el.textContent = c.phone);
   document.querySelectorAll('.contact-email-placeholder').forEach(el => el.textContent = c.email);
+
+  // Update sticky mobile bar links
+  const stickyCall = document.getElementById('mobile-sticky-call');
+  if (stickyCall && c.phone) {
+    stickyCall.href = `tel:${c.phone.replace(/[^0-9+]/g, '')}`;
+  }
+
+  const stickyWa = document.getElementById('mobile-sticky-whatsapp');
+  if (stickyWa && c.phone) {
+    let cleanPhone = c.phone.replace(/[^0-9]/g, '');
+    if (cleanPhone.startsWith('0')) cleanPhone = '49' + cleanPhone.slice(1);
+    stickyWa.href = `https://wa.me/${cleanPhone}?text=Hallo%2C%20ich%20m%C3%B6chte%20gerne%20einen%20Tisch%20in%20der%20Gastst%C3%A4tte%20Naturfreunde%20anfragen.`;
+  }
 }
 
 // Lightbox functions

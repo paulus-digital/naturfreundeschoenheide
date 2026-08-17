@@ -1045,8 +1045,11 @@ function renderWeekPlanner() {
       labelVal = specialMatch.label || '';
     }
 
+    const todayStr = formatDateToYYYYMMDD(new Date());
+    const isToday = (dateStr === todayStr);
+
     const row = document.createElement('div');
-    row.className = 'week-day-row';
+    row.className = 'week-day-row' + (isToday ? ' is-today-row' : '');
 
     const statusBadgeStyle = specialMatch 
       ? 'background: rgba(217, 83, 79, 0.1); color: #d9534f; border: 1px solid rgba(217,83,79,0.25);'
@@ -1058,6 +1061,7 @@ function renderWeekPlanner() {
     row.innerHTML = `
       <div class="week-day-row-title">
         <strong style="font-size: 0.95rem; color: var(--primary-dark);">${weekdayName}, ${dateLabel}</strong>
+        ${isToday ? `<span class="today-indicator-badge" style="background: var(--primary); color: #fff; font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700; margin-left: 4px; letter-spacing: 0.5px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">📍 HEUTE</span>` : ''}
         <span class="special-hours-badge-inline" style="font-size: 0.7rem; padding: 1px 6px; border-radius: 4px; ${statusBadgeStyle}">${statusBadgeText}</span>
         ${specialMatch ? `<button type="button" class="admin-btn" style="padding: 2px 7px; font-size: 0.72rem; margin-left: auto; background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark); border-radius: 4px;" title="Auf Standard-Grundeinstellung zurücksetzen" onclick="resetSingleDayToStandard('${dateStr}', ${i})">🔄 Auf Standard</button>` : ''}
       </div>
