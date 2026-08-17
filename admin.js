@@ -1681,7 +1681,7 @@ function populateGuestbookTab() {
   list.innerHTML = '';
   
   if (!pageData.guestbook || pageData.guestbook.length === 0) {
-    list.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine Gästebucheinträge vorhanden.</p>';
+    list.innerHTML = '<div class="card" style="text-align: center; padding: 30px; color: var(--text-muted);"><p style="margin: 0; font-size: 1rem;">📭 Keine Gästebucheinträge vorhanden.</p></div>';
     return;
   }
 
@@ -1691,31 +1691,40 @@ function populateGuestbookTab() {
   reversed.forEach((r) => {
     const card = document.createElement('div');
     card.className = 'review-admin-card';
+    card.style.cssText = `margin-bottom: 16px; padding: 18px 20px; background: #fff; border-radius: var(--radius-sm); border: 1px solid ${r.approved ? 'var(--border-warm)' : 'rgba(217, 83, 79, 0.4)'}; box-shadow: var(--shadow-sm); border-left: 5px solid ${r.approved ? '#2e7d32' : '#e65100'};`;
     
     const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
-    const approvedBtnText = r.approved ? 'Ausblenden' : 'Freigeben';
-    const approvedBtnColor = r.approved ? 'var(--warning)' : 'var(--success)';
-    
-    // Find index in original array
     const originalIndex = pageData.guestbook.findIndex(item => item.id === r.id);
 
+    const statusBadge = r.approved 
+      ? `<span style="background: rgba(46, 125, 50, 0.12); color: #2e7d32; font-size: 0.78rem; font-weight: 700; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(46, 125, 50, 0.3);">🟢 Öffentlich sichtbar</span>`
+      : `<span style="background: rgba(230, 81, 0, 0.12); color: #e65100; font-size: 0.78rem; font-weight: 700; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(230, 81, 0, 0.3);">🟡 Ausgeblendet / Neu</span>`;
+
+    const toggleBtnText = r.approved ? '👁️ Ausblenden' : '✅ Freigeben & Veröffentlichen';
+    const toggleBtnStyle = r.approved 
+      ? 'background-color: #f5f5f5; color: #333; border: 1px solid #ccc;' 
+      : 'background-color: #2e7d32; color: #fff; border: 1px solid #2e7d32;';
+
     card.innerHTML = `
-      <div class="review-admin-header">
-        <div>
-          <strong>${escapeHTML(r.name)}</strong>
-          <span style="color: var(--accent); margin-left: 8px;">${stars}</span>
-          <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 10px;">${r.date}</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <strong style="font-size: 1.05rem; color: var(--primary-dark);">${escapeHTML(r.name)}</strong>
+          <span style="color: var(--accent); font-size: 1.1rem; letter-spacing: 2px;">${stars}</span>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">${r.date || ''}</span>
+          ${statusBadge}
         </div>
-        <div>
-          <button class="admin-btn" style="background-color: ${approvedBtnColor}; color: white; padding: 4px 10px; font-size: 0.8rem;" onclick="toggleReviewApproval(${originalIndex})">
-            ${approvedBtnText}
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="admin-btn" style="${toggleBtnStyle} padding: 6px 12px; font-size: 0.85rem; font-weight: 600;" onclick="toggleReviewApproval(${originalIndex})">
+            ${toggleBtnText}
           </button>
-          <button class="admin-btn admin-btn-danger" style="padding: 4px 10px; font-size: 0.8rem;" onclick="deleteReview(${originalIndex})">
-            Löschen
+          <button type="button" class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem;" onclick="deleteReview(${originalIndex})">
+            🗑️ Löschen
           </button>
         </div>
       </div>
-      <p style="font-style: italic; margin-top: 8px;">"${escapeHTML(r.comment)}"</p>
+      <p style="font-style: italic; margin: 0; font-size: 0.95rem; color: var(--text-dark); background: var(--bg-cream); padding: 12px 14px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.04); line-height: 1.5;">
+        "${escapeHTML(r.comment)}"
+      </p>
     `;
     list.appendChild(card);
   });
@@ -1958,37 +1967,6 @@ async function deleteReview(index) {
   if (!confirm('Diesen Gästebucheintrag dauerhaft löschen?')) return;
   pageData.guestbook.splice(index, 1);
   populateGuestbookTab();
-  await saveReviewsData();
-}
-
-async function addManualReview() {
-  const nameInput = document.getElementById('admin-gb-name');
-  const ratingInput = document.getElementById('admin-gb-rating');
-  const commentInput = document.getElementById('admin-gb-comment');
-
-  if (!nameInput.value.trim() || !commentInput.value.trim()) {
-    alert('Bitte Name und Kommentar eintragen.');
-    return;
-  }
-
-  if (!pageData.guestbook) pageData.guestbook = [];
-
-  const newReview = {
-    id: String(Date.now()),
-    name: nameInput.value.trim(),
-    rating: parseInt(ratingInput.value),
-    comment: commentInput.value.trim(),
-    date: new Date().toISOString().split('T')[0],
-    approved: true
-  };
-
-  pageData.guestbook.push(newReview);
-  populateGuestbookTab();
-
-  // Clear inputs
-  nameInput.value = '';
-  commentInput.value = '';
-
   await saveReviewsData();
 }
 
