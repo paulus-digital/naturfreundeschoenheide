@@ -301,11 +301,20 @@
           </div>
         </details>
 
-        <!-- Week Navigation Header -->
-        <div class="week-planner-navigation" style="display: flex; align-items: center; justify-content: space-between; margin: 20px 0; background: var(--bg-cream); padding: 14px 20px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm); flex-wrap: wrap; gap: 10px;">
-          <button type="button" class="admin-btn" onclick="navigateWeek(-1)" style="padding: 10px 18px; font-weight: 600;">← Vorherige Woche</button>
-          <span id="week-planner-title" style="font-weight: 700; font-size: 1.15rem; color: var(--primary-dark); text-align: center; min-width: 250px;">Kalenderwoche ...</span>
-          <button type="button" class="admin-btn" onclick="navigateWeek(1)" style="padding: 10px 18px; font-weight: 600;">Nächste Woche →</button>
+        <!-- Week Navigation Header with Calendar Jump Widget -->
+        <div class="week-planner-navigation" style="display: flex; align-items: center; justify-content: space-between; margin: 20px 0; background: var(--bg-cream); padding: 12px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm); flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="admin-btn" onclick="navigateWeek(-1)" style="padding: 8px 14px; font-weight: 600;">← Vorherige Woche</button>
+            <button type="button" class="admin-btn" onclick="jumpToCurrentWeek()" style="padding: 8px 12px; font-weight: 600; background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark);" title="Zur aktuellen Woche springen">🏠 Diese Woche</button>
+            <button type="button" class="admin-btn" onclick="navigateWeek(1)" style="padding: 8px 14px; font-weight: 600;">Nächste Woche →</button>
+          </div>
+
+          <span id="week-planner-title" style="font-weight: 700; font-size: 1.15rem; color: var(--primary-dark); text-align: center; min-width: 240px;">Kalenderwoche ...</span>
+
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="week-planner-jump-date" style="margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); white-space: nowrap;">📅 Zu Datum springen:</label>
+            <input type="date" id="week-planner-jump-date" class="form-control" onchange="jumpToDate(this.value)" style="width: auto; padding: 6px 10px; font-size: 0.9rem; cursor: pointer; height: 36px; background: #fff;">
+          </div>
         </div>
 
         <div class="week-planner-quick-actions" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
@@ -328,89 +337,8 @@
 
         <hr style="border: 0; border-top: 1px solid var(--border-warm); margin: 40px 0;">
 
-        <div class="panel-header">
-          <h2 class="panel-title">Termin- &amp; Ausnahme-Planung</h2>
-        </div>
-        <p class="text-muted" style="margin-bottom: 24px;">
-          Trage hier Termine schnell über einen Zeitraum hinweg ein (z. B. Urlaub über mehrere Wochen, Events oder geplante Ausnahmen).
-        </p>
-
-        <div class="card special-hours-card">
-          <h4 style="margin-bottom: 12px; color: var(--primary-dark);">Termin / Ausnahme eintragen</h4>
-          <p class="text-muted" style="margin-bottom: 20px; font-size: 0.9rem;">
-            Plane hier Urlaub, geschlossene Tage oder besondere Events im Voraus für den Kalender.
-          </p>
-
-          <form id="special-hours-form" onsubmit="event.preventDefault(); addNewSpecialHours();">
-            <div class="special-hours-grid">
-              
-              <!-- 1. Art der Regelung -->
-              <div class="form-group span-full">
-                <label for="new-special-type">1. Was möchtest du eintragen? *</label>
-                <select id="new-special-type" class="form-control" onchange="handleSpecialTypeSelectChange()" style="font-weight: 600; font-size: 1rem;">
-                  <option value="closed">🚫 Geschlossen (Ruhetag / Geschlossen)</option>
-                  <option value="urlaub">🏖️ Betriebsferien / Urlaub</option>
-                  <option value="event">🎉 Event / Veranstaltung (z.B. Schlachtfest)</option>
-                  <option value="hours">🕒 Geöffnet mit bestimmten Uhrzeiten</option>
-                  <option value="custom">✍️ Sonstiges (Freitext)</option>
-                </select>
-              </div>
-
-              <!-- 2. Datum / Zeitraum -->
-              <div class="form-group span-full">
-                <label style="margin-bottom: 6px;">2. Datum oder Zeitraum *</label>
-                <div class="time-picker-grid">
-                  <div class="form-group">
-                    <label for="new-special-date" style="font-size: 0.85rem; color: var(--text-muted);">Von Datum (Start) *</label>
-                    <input type="date" id="new-special-date" class="form-control" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="new-special-date-end" style="font-size: 0.85rem; color: var(--text-muted);">Bis Datum (optional für Zeitraum)</label>
-                    <input type="date" id="new-special-date-end" class="form-control">
-                  </div>
-                </div>
-              </div>
-
-              <!-- 3. Info / Titel -->
-              <div class="form-group span-full">
-                <label for="new-special-label">3. Info / Bezeichnung (optional)</label>
-                <input type="text" id="new-special-label" class="form-control" placeholder="z.B. Sommerurlaub, Schlachtfest, Privatgesellschaft">
-              </div>
-
-              <!-- 4. Optional Uhrzeiten -->
-              <div id="special-time-picker-group" class="form-group span-full" style="display: none;">
-                <label style="margin-bottom: 6px;">4. Uhrzeiten (optional)</label>
-                <div class="time-picker-grid">
-                  <div class="form-group">
-                    <label for="new-special-time-start" style="font-size: 0.85rem; color: var(--text-muted);">Von (Uhrzeit)</label>
-                    <input type="time" id="new-special-time-start" class="form-control" value="11:30">
-                  </div>
-                  <div class="form-group">
-                    <label for="new-special-time-end" style="font-size: 0.85rem; color: var(--text-muted);">Bis (Uhrzeit)</label>
-                    <input type="time" id="new-special-time-end" class="form-control" value="21:00">
-                  </div>
-                </div>
-              </div>
-
-              <!-- 5. Freitext Input (optional / custom) -->
-              <div id="special-custom-text-group" class="form-group span-full" style="display: none;">
-                <label for="new-special-hours-custom">Abweichender Text / Info</label>
-                <input type="text" id="new-special-hours-custom" class="form-control" placeholder="z.B. Nur Mittags geöffnet (11:30 - 14:00 Uhr)">
-              </div>
-
-              <!-- Submit Button -->
-              <div class="form-group span-full" style="margin-top: 10px;">
-                <button type="submit" class="admin-btn admin-btn-primary" style="width: 100%; padding: 14px 20px; font-size: 1.05rem;">
-                  ➕ Termin / Ausnahme speichern
-                </button>
-              </div>
-
-            </div>
-          </form>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-          <h4 style="margin: 0;">Geplante Termine &amp; Ausnahmen</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="margin: 0; font-size: 1.25rem; color: var(--primary-dark);">Geplante Ausnahmen &amp; Urlaub</h3>
         </div>
 
         <!-- Multi-select / Batch Toolbar -->

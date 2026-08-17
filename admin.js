@@ -912,9 +912,36 @@ function navigateWeek(offset) {
   renderWeekPlanner();
 }
 
+function jumpToDate(dateStr) {
+  if (!dateStr) return;
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return;
+  
+  const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.setDate(diff));
+  monday.setHours(0, 0, 0, 0);
+
+  plannerSelectedMonday = monday;
+  renderWeekPlanner();
+}
+
+function jumpToCurrentWeek() {
+  const today = new Date();
+  const day = today.getDay();
+  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(today.setDate(diff));
+  monday.setHours(0, 0, 0, 0);
+
+  plannerSelectedMonday = monday;
+  renderWeekPlanner();
+}
+
 function renderWeekPlanner() {
   const titleEl = document.getElementById('week-planner-title');
   const container = document.getElementById('admin-week-planner-fields');
+  const jumpDateInput = document.getElementById('week-planner-jump-date');
   if (!container) return;
 
   const monday = new Date(plannerSelectedMonday);
@@ -927,6 +954,10 @@ function renderWeekPlanner() {
 
   if (titleEl) {
     titleEl.textContent = `Kalenderwoche ${kwNum} (${mondayFormatted} - ${sundayFormatted})`;
+  }
+
+  if (jumpDateInput) {
+    jumpDateInput.value = formatDateToYYYYMMDD(monday);
   }
 
   container.innerHTML = '';
@@ -1113,27 +1144,6 @@ function handleWeekDayTypeChange(index) {
     } else if (type === 'holiday') {
       hoursInput.value = 'Geschlossen';
       if (!labelInput.value) labelInput.value = 'Betriebsferien';
-
-      setTimeout(() => {
-        const createRange = confirm('Möchten Sie Urlaub / Betriebsferien für einen längeren Zeitraum eintragen (z. B. mehrere Wochen)?\n\n[OK] = Ja, zum Zeitraum-Formular unten springen\n[Abbrechen] = Nein, nur für diesen einzelnen Tag');
-        if (createRange) {
-          const typeSelect = document.getElementById('new-special-type');
-          if (typeSelect) {
-            typeSelect.value = 'urlaub';
-            if (typeof handleSpecialTypeSelectChange === 'function') {
-              handleSpecialTypeSelectChange();
-            }
-          }
-          const formAnchor = document.getElementById('new-special-type');
-          if (formAnchor) {
-            formAnchor.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-          const dateInput = document.getElementById('new-special-date');
-          if (dateInput) {
-            dateInput.focus();
-          }
-        }
-      }, 150);
     } else if (type === 'booked') {
       hoursInput.value = 'Geschlossen';
       if (!labelInput.value) labelInput.value = 'Ausgebucht';
