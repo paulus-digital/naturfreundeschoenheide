@@ -1198,6 +1198,67 @@ async function saveWeekPlanner() {
   }
 }
 
+function groupSpecialHours(items) {
+  if (!items || !items.length) return [];
+
+  // Sort ascending by date
+  const sorted = [...items].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const groups = [];
+
+  sorted.forEach(item => {
+    const hLower = (item.hours || '').toLowerCase();
+    const lLower = (item.label || '').toLowerCase();
+    const typeLower = (item.type || '').toLowerCase();
+
+    const isUrlaub = typeLower === 'holiday' || hLower.includes('urlaub') || hLower.includes('betriebsferien') || hLower.includes('ferien') || lLower.includes('urlaub') || lLower.includes('betriebsferien') || lLower.includes('ferien');
+    const isClosed = !isUrlaub && (typeLower === 'closed' || hLower.includes('ruhetag') || hLower.includes('geschlossen'));
+
+    // Check if we can append to the last group
+    if (groups.length > 0) {
+      const lastGroup = groups[groups.length - 1];
+      
+      const lastDateParts = lastGroup.endDate.split('-');
+      const itemDateParts = item.date.split('-');
+      
+      const lastDate = new Date(parseInt(lastDateParts[0], 10), parseInt(lastDateParts[1], 10) - 1, parseInt(lastDateParts[2], 10));
+      const itemDate = new Date(parseInt(itemDateParts[0], 10), parseInt(itemDateParts[1], 10) - 1, parseInt(itemDateParts[2], 10));
+      lastDate.setHours(0, 0, 0, 0);
+      itemDate.setHours(0, 0, 0, 0);
+      
+      const diffDays = Math.round((itemDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Same category/content check:
+      // If both are Urlaub, or both have identical hours AND label
+      const canMerge = (diffDays === 1) && (
+        (isUrlaub && lastGroup.isUrlaub) ||
+        (!isUrlaub && !lastGroup.isUrlaub && lastGroup.hours === item.hours && (lastGroup.label || '') === (item.label || ''))
+      );
+
+      if (canMerge) {
+        lastGroup.endDate = item.date;
+        lastGroup.dates.push(item.date);
+        lastGroup.count = lastGroup.dates.length;
+        return;
+      }
+    }
+
+    // Start a new group
+    groups.push({
+      startDate: item.date,
+      endDate: item.date,
+      dates: [item.date],
+      count: 1,
+      hours: item.hours,
+      label: item.label,
+      type: item.type,
+      isUrlaub: isUrlaub,
+      isClosed: isClosed
+    });
+  });
+
+  return groups;
+}
+
 function toggleSelectAllSpecialHours(checked) {
   const checkboxes = document.querySelectorAll('.special-hour-checkbox');
   checkboxes.forEach(cb => {
@@ -1209,33 +1270,42 @@ function toggleSelectAllSpecialHours(checked) {
 function selectUrlaubSpecialHours() {
   const checkboxes = document.querySelectorAll('.special-hour-checkbox');
   let count = 0;
+  let dayCount = 0;
   checkboxes.forEach(cb => {
     const isUrlaub = cb.getAttribute('data-is-urlaub') === 'true';
     cb.checked = isUrlaub;
-    if (isUrlaub) count++;
+    if (isUrlaub) {
+      count++;
+      dayCount += parseInt(cb.getAttribute('data-count') || '1', 10);
+    }
   });
   updateSpecialHoursSelectionCount();
   if (count === 0) {
     showToast('Keine Urlaubstage in der Liste gefunden.', 'info');
   } else {
-    showToast(`🏖️ ${count} Urlaubstage ausgewählt`, 'info');
+    showToast(`🏖️ ${dayCount} Urlaubstag(e) ausgewählt`, 'info');
   }
 }
 
 function updateSpecialHoursSelectionCount() {
   const checkboxes = document.querySelectorAll('.special-hour-checkbox');
   const checkedBoxes = document.querySelectorAll('.special-hour-checkbox:checked');
-  const count = checkedBoxes.length;
+  const groupCount = checkedBoxes.length;
+
+  let totalDays = 0;
+  checkedBoxes.forEach(cb => {
+    totalDays += parseInt(cb.getAttribute('data-count') || '1', 10);
+  });
 
   const selectAllCb = document.getElementById('select-all-special-hours');
   if (selectAllCb) {
     if (checkboxes.length === 0) {
       selectAllCb.checked = false;
       selectAllCb.indeterminate = false;
-    } else if (count === checkboxes.length) {
+    } else if (groupCount === checkboxes.length) {
       selectAllCb.checked = true;
       selectAllCb.indeterminate = false;
-    } else if (count > 0) {
+    } else if (groupCount > 0) {
       selectAllCb.checked = false;
       selectAllCb.indeterminate = true;
     } else {
@@ -1246,18 +1316,25 @@ function updateSpecialHoursSelectionCount() {
 
   const badge = document.getElementById('special-hours-selected-count-badge');
   if (badge) {
-    badge.textContent = `${count} ausgewählt`;
-    badge.style.color = count > 0 ? 'var(--primary-dark)' : 'var(--text-muted)';
+    if (totalDays > 0) {
+      badge.textContent = groupCount > 1 
+        ? `${groupCount} Zeiträume (${totalDays} Tage) ausgewählt` 
+        : (totalDays > 1 ? `1 Zeitraum (${totalDays} Tage) ausgewählt` : `1 Tag ausgewählt`);
+      badge.style.color = 'var(--primary-dark)';
+    } else {
+      badge.textContent = '0 ausgewählt';
+      badge.style.color = 'var(--text-muted)';
+    }
   }
 
   const numSpan = document.getElementById('selected-count-num');
   if (numSpan) {
-    numSpan.textContent = count;
+    numSpan.textContent = totalDays;
   }
 
   const deleteBtn = document.getElementById('delete-selected-special-hours-btn');
   if (deleteBtn) {
-    if (count > 0) {
+    if (totalDays > 0) {
       deleteBtn.removeAttribute('disabled');
       deleteBtn.style.opacity = '1';
       deleteBtn.style.pointerEvents = 'auto';
@@ -1276,35 +1353,51 @@ async function deleteSelectedSpecialHours() {
   const checkboxes = document.querySelectorAll('.special-hour-checkbox:checked');
   if (checkboxes.length === 0) return;
 
-  const selectedDates = Array.from(checkboxes).map(cb => cb.getAttribute('data-date')).filter(Boolean);
-  if (selectedDates.length === 0) return;
+  const allDates = Array.from(checkboxes).flatMap(cb => (cb.getAttribute('data-dates') || '').split(',')).filter(Boolean);
+  if (allDates.length === 0) return;
 
-  const confirmMsg = selectedDates.length === 1
+  const confirmMsg = allDates.length === 1
     ? 'Möchten Sie den ausgewählten Tag wirklich löschen?'
-    : `Möchten Sie die ${selectedDates.length} ausgewählten Tage wirklich löschen?`;
+    : `Möchten Sie alle ${allDates.length} ausgewählten Tage wirklich löschen?`;
 
   if (!confirm(confirmMsg)) return;
 
-  const selectedSet = new Set(selectedDates);
+  const selectedSet = new Set(allDates);
   pageData.specialHours = pageData.specialHours.filter(h => !selectedSet.has(h.date));
 
-  showToast(`🗑️ ${selectedDates.length} Einträge gelöscht...`, 'info');
+  showToast(`🗑️ ${allDates.length} Tag(e) gelöscht...`, 'info');
   populateHoursTab();
-  const saved = await commitDataChange(`Admin Panel: ${selectedDates.length} Termine/Ausnahmen gelöscht`);
+  const saved = await commitDataChange(`Admin Panel: ${allDates.length} Tag(e) gelöscht`);
   if (saved) {
-    showToast(`✅ ${selectedDates.length} Termine/Ausnahmen erfolgreich gelöscht!`, 'success');
+    showToast(`✅ ${allDates.length} Tag(e) erfolgreich gelöscht!`, 'success');
+  }
+}
+
+async function deleteSpecialHoursRange(datesParam, formattedLabel) {
+  if (!pageData.specialHours) return;
+
+  const datesToDelete = datesParam.split(',').filter(Boolean);
+  if (datesToDelete.length === 0) return;
+
+  const confirmMsg = datesToDelete.length > 1
+    ? `Möchten Sie diesen Zeitraum (${formattedLabel || datesToDelete.length + ' Tage'}) wirklich löschen?`
+    : `Möchten Sie diesen Eintrag wirklich löschen?`;
+
+  if (!confirm(confirmMsg)) return;
+
+  const set = new Set(datesToDelete);
+  pageData.specialHours = pageData.specialHours.filter(h => !set.has(h.date));
+
+  showToast(`🗑️ Lösche ${datesToDelete.length} Tag(e)...`, 'info');
+  populateHoursTab();
+  const saved = await commitDataChange(`Admin Panel: ${datesToDelete.length} Tag(e) gelöscht`);
+  if (saved) {
+    showToast(`✅ ${datesToDelete.length > 1 ? datesToDelete.length + ' Tage' : 'Eintrag'} erfolgreich gelöscht!`, 'success');
   }
 }
 
 async function deleteSpecialHoursByDate(dateStr) {
-  if (!pageData.specialHours) return;
-
-  if (confirm('Möchten Sie diesen Eintrag wirklich löschen?')) {
-    pageData.specialHours = pageData.specialHours.filter(h => h.date !== dateStr);
-    populateHoursTab();
-    await commitDataChange('Admin Panel: Termin / Ausnahme gelöscht');
-    showToast('✅ Eintrag gelöscht!', 'success');
-  }
+  deleteSpecialHoursRange(dateStr, dateStr);
 }
 
 function populateHoursTab() {
@@ -1334,40 +1427,48 @@ function populateHoursTab() {
 
     if (toolbar) toolbar.style.display = 'flex';
 
-    pageData.specialHours.forEach((item, index) => {
+    // Group consecutive items together (e.g. Urlaub period or consecutive closed days)
+    const groupedList = groupSpecialHours(pageData.specialHours);
+
+    groupedList.forEach(group => {
       const row = document.createElement('div');
       row.className = 'admin-item-row';
 
-      const dateParts = item.date ? item.date.split('-') : [];
-      let dateStr = item.date;
-      if (dateParts.length === 3) {
-        const d = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-        dateStr = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+      const startParts = group.startDate.split('-');
+      const endParts = group.endDate.split('-');
+      const dStart = new Date(parseInt(startParts[0], 10), parseInt(startParts[1], 10) - 1, parseInt(startParts[2], 10));
+      const dEnd = new Date(parseInt(endParts[0], 10), parseInt(endParts[1], 10) - 1, parseInt(endParts[2], 10));
+
+      const startStr = dStart.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+      const endStr = dEnd.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+
+      let dateDisplay = startStr;
+      let confirmPeriodLabel = startStr;
+      if (group.count > 1) {
+        dateDisplay = `<span>${startStr} – ${endStr}</span> <span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 2px 7px; border-radius: 12px; background: rgba(0,0,0,0.06); color: var(--text-dark); margin-left: 6px; font-weight: 600;">${group.count} Tage</span>`;
+        confirmPeriodLabel = `${dStart.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })} – ${dEnd.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}, ${group.count} Tage`;
       }
 
-      const isUrlaub = (item.hours && (item.hours.toLowerCase().includes('urlaub') || item.hours.toLowerCase().includes('betriebsferien') || item.hours.toLowerCase().includes('ferien'))) ||
-                       (item.label && (item.label.toLowerCase().includes('urlaub') || item.label.toLowerCase().includes('betriebsferien') || item.label.toLowerCase().includes('ferien'))) ||
-                       (item.type === 'holiday');
-
-      const isClosed = item.hours && (item.hours.toLowerCase().includes('ruhetag') || item.hours.toLowerCase().includes('geschlossen'));
-      const badgeStyle = isUrlaub
+      const badgeStyle = group.isUrlaub
         ? 'background: rgba(43, 140, 204, 0.15); color: #1e70a2; border: 1px solid rgba(43, 140, 204, 0.3);'
-        : isClosed 
+        : group.isClosed 
           ? 'background: rgba(217, 83, 79, 0.15); color: #d9534f; border: 1px solid rgba(217,83,79,0.3);' 
           : 'background: rgba(197, 159, 45, 0.15); color: var(--primary-dark); border: 1px solid rgba(197, 159, 45, 0.3);';
 
+      const datesJoined = group.dates.join(',');
+
       row.innerHTML = `
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto;">
-          <input type="checkbox" class="special-hour-checkbox" data-date="${item.date}" data-is-urlaub="${isUrlaub ? 'true' : 'false'}" onchange="updateSpecialHoursSelectionCount()" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
+          <input type="checkbox" class="special-hour-checkbox" data-dates="${datesJoined}" data-count="${group.count}" data-is-urlaub="${group.isUrlaub ? 'true' : 'false'}" onchange="updateSpecialHoursSelectionCount()" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
           <div class="admin-item-details">
-            <span class="admin-item-date" style="font-size:0.9rem; font-weight:700; white-space: nowrap;">${dateStr}</span>
+            <span class="admin-item-date" style="font-size:0.9rem; font-weight:700; display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px;">${dateDisplay}</span>
             <span class="admin-item-label">
-              <strong>${escapeHTML(item.hours)}</strong>
-              ${item.label ? `<span class="special-hours-badge-inline" style="margin-left: 6px; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; ${badgeStyle}">${escapeHTML(item.label)}</span>` : ''}
+              <strong>${escapeHTML(group.hours)}</strong>
+              ${group.label ? `<span class="special-hours-badge-inline" style="margin-left: 6px; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; ${badgeStyle}">${escapeHTML(group.label)}</span>` : ''}
             </span>
           </div>
         </div>
-        <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem; flex-shrink: 0;" onclick="deleteSpecialHoursByDate('${item.date}')">Löschen</button>
+        <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem; flex-shrink: 0;" onclick="deleteSpecialHoursRange('${datesJoined}', '${escapeHTML(confirmPeriodLabel)}')">Löschen</button>
       `;
       specialList.appendChild(row);
     });
