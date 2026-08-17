@@ -155,13 +155,13 @@
         <div class="card" style="margin-bottom: 24px;">
           <h3 style="margin-bottom: 16px; color: var(--primary-dark);">Live-Status Gaststätte (Manuell)</h3>
           <div class="form-group">
-            <div class="switch-group">
+            <div class="switch-group" style="cursor: pointer; user-select: none;" onclick="toggleQuickStatus()" title="Klicken, um Status umzuschalten">
               <span class="switch-label">Live-Status Gaststätte:</span>
-              <label class="switch">
+              <label class="switch" style="pointer-events: none;">
                 <input type="checkbox" id="admin-status-toggle">
                 <span class="slider"></span>
               </label>
-              <span id="admin-status-label" style="font-weight: 600;">Geöffnet</span>
+              <span id="admin-status-label" style="font-weight: 700; font-size: 1.1rem; min-width: 120px;">Geöffnet</span>
             </div>
           </div>
         </div>

@@ -1651,6 +1651,17 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
+/* Live status switch: Red when closed, Green when open */
+#admin-status-toggle + .slider {
+  background-color: #c62828 !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+#admin-status-toggle:checked + .slider {
+  background-color: #2e7d32 !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
 /* Sync status toast overlay */
 .sync-toast {
   position: fixed;

@@ -215,15 +215,6 @@ function switchTab(tabId) {
 
 // Setup Event Listeners for controls
 function setupStatusToggle() {
-  const toggle = document.getElementById('admin-status-toggle');
-  
-  if (toggle) {
-    toggle.addEventListener('change', async (e) => {
-      const isChecked = toggle.checked;
-      await toggleLiveStatus(isChecked);
-    });
-  }
-
   // Auto-save banner toggle
   const bannerToggle = document.getElementById('admin-banner-toggle');
   if (bannerToggle) {
