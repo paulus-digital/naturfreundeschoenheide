@@ -1,4 +1,4 @@
 {
-  "version": "1.7.0",
-  "notes": "Bereinigung der Wochenplaner-Buttons im Backend"
+  "version": "1.8.0",
+  "notes": "Erhöhte Datensicherheit: Eigene Speichern-Buttons und Anti-Cache-Schutz gegen Datenverlust"
 }

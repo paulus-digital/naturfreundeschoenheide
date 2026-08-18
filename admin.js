@@ -3,7 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
-const CURRENT_APP_VERSION = '1.7.0';
+const CURRENT_APP_VERSION = '1.8.0';
 
 // Global Admin State
 let authData = {
@@ -184,7 +184,14 @@ async function connectToFirebase(firebaseUrl) {
   showToast('🔄 Verbinde mit Datenbank...', 'info');
   
   try {
-    const response = await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`);
+    const cleanUrl = firebaseUrl.endsWith('/') ? firebaseUrl.slice(0, -1) : firebaseUrl;
+    const response = await fetch(`${cleanUrl}/data.json?auth=${authData.token}&nocache=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    });
 
     if (!response.ok) {
       throw new Error(`Datenbank-Verbindungsfehler: ${response.statusText}`);
@@ -195,11 +202,11 @@ async function connectToFirebase(firebaseUrl) {
     // If database is empty, initialize it with default data.json
     if (!dbData) {
       showToast('🆕 Initialisiere leere Datenbank...', 'info');
-      const localRes = await fetch('data.json');
+      const localRes = await fetch(`data.json?nocache=${Date.now()}`, { cache: 'no-store' });
       if (localRes.ok) {
         dbData = await localRes.json();
         // Save to Firebase for the first time
-        await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`, {
+        await fetch(`${cleanUrl}/data.json?auth=${authData.token}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dbData)
@@ -209,6 +216,15 @@ async function connectToFirebase(firebaseUrl) {
 
     pageData = dbData;
     if (!pageData.specialHours) pageData.specialHours = [];
+    if (!pageData.openingHours) pageData.openingHours = [];
+    if (!pageData.contact) pageData.contact = {};
+    if (!pageData.gallery) pageData.gallery = [];
+    if (!pageData.guestbook) pageData.guestbook = [];
+    if (!pageData.banner) pageData.banner = { visible: false, text: '' };
+
+    try {
+      localStorage.setItem('naturfreunde_backup_data', JSON.stringify(pageData));
+    } catch(e) {}
     
     // Show Dashboard
     showDashboard();
@@ -277,31 +293,12 @@ function switchTab(tabId) {
 
 // Setup Event Listeners for controls
 function setupStatusToggle() {
-  // Auto-save banner toggle
   const bannerToggle = document.getElementById('admin-banner-toggle');
   if (bannerToggle) {
-    bannerToggle.addEventListener('change', async () => {
-      await saveGeneralData();
+    bannerToggle.addEventListener('change', () => {
+      updateBannerStatusLabel(bannerToggle.checked);
     });
   }
-
-  // Auto-save banner text on change or blur
-  const bannerText = document.getElementById('admin-banner-text');
-  if (bannerText) {
-    bannerText.addEventListener('change', async () => {
-      await saveGeneralData();
-    });
-  }
-
-  // Auto-save contact fields on change
-  ['admin-contact-phone', 'admin-contact-email', 'admin-contact-inhaber'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('change', async () => {
-        await saveGeneralData();
-      });
-    }
-  });
 }
 
 // ----------------------------------------------------
@@ -1930,27 +1927,36 @@ async function commitDataChange(logMessage) {
 
 // Save Tab 1: General & Banner
 async function saveGeneralData() {
-  const statusToggle = document.getElementById('admin-status-toggle');
-  if (statusToggle) {
-    updateLiveStatusUI(statusToggle.checked);
-  }
-  
   const bannerToggle = document.getElementById('admin-banner-toggle');
   const bannerText = document.getElementById('admin-banner-text');
-  pageData.banner = {
-    visible: bannerToggle ? bannerToggle.checked : false,
-    text: bannerText ? bannerText.value.trim() : ''
-  };
+  
+  if (!pageData.banner) pageData.banner = {};
+  pageData.banner.visible = bannerToggle ? Boolean(bannerToggle.checked) : false;
+  pageData.banner.text = bannerText ? bannerText.value.trim() : '';
 
+  showToast('💾 Speichere Live-Banner...', 'info');
+  const saved = await commitDataChange('Admin Panel: Live-Banner geändert');
+  if (saved) {
+    showToast(pageData.banner.visible ? '✅ Live-Banner erfolgreich aktiviert & gespeichert!' : '✅ Live-Banner deaktiviert & gespeichert!', 'success');
+  }
+}
+
+// Save Tab 5: Contact Data
+async function saveContactSettings() {
   if (!pageData.contact) pageData.contact = {};
   const phoneEl = document.getElementById('admin-contact-phone');
   const emailEl = document.getElementById('admin-contact-email');
   const inhaberEl = document.getElementById('admin-contact-inhaber');
+  
   if (phoneEl) pageData.contact.phone = phoneEl.value.trim();
   if (emailEl) pageData.contact.email = emailEl.value.trim();
   if (inhaberEl) pageData.contact.inhaber = inhaberEl.value.trim();
 
-  await commitDataChange('Admin Panel: Status und allgemeine Daten geändert');
+  showToast('💾 Speichere Kontaktdaten...', 'info');
+  const saved = await commitDataChange('Admin Panel: Kontaktdaten gespeichert');
+  if (saved) {
+    showToast('✅ Kontaktdaten erfolgreich gespeichert!', 'success');
+  }
 }
 
 // Save Tab 3: Calendar
