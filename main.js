@@ -1,6 +1,7 @@
 // Global data state
 let appData = {};
-let lastDataFetchTime = 0;
+let currentDataTimestamp = 0;
+let liveSyncInterval = null;
 
 // GitHub API and Raw URL definitions
 const GITHUB_API_URL = 'https://api.github.com/repos/paulus-digital/naturfreundeschoenheide/contents/data.json?ref=data-sync';
@@ -13,6 +14,7 @@ let calendarDate = new Date();
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
   setupEventListeners();
+  startLiveSync();
 
   // Close mobile navigation drawer when a link is clicked
   document.querySelectorAll('nav a').forEach(link => {
@@ -55,15 +57,61 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Only refresh data if the user returns to the tab after at least 5 minutes of inactivity
+  // Handle tab visibility: pause sync in background, check instantly on return
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      if (Date.now() - lastDataFetchTime > 300000) {
-        loadData();
-      }
+    if (document.hidden) {
+      stopLiveSync();
+    } else {
+      checkLiveUpdates();
+      startLiveSync();
     }
   });
 });
+
+// Lightweight 13-Byte Realtime Sync: checks only lastUpdated timestamp from Firebase
+function startLiveSync() {
+  if (liveSyncInterval) clearInterval(liveSyncInterval);
+  // Check every 10 seconds (transfers only ~13 bytes per check)
+  liveSyncInterval = setInterval(checkLiveUpdates, 10000);
+}
+
+function stopLiveSync() {
+  if (liveSyncInterval) {
+    clearInterval(liveSyncInterval);
+    liveSyncInterval = null;
+  }
+}
+
+async function checkLiveUpdates() {
+  if (document.hidden) return;
+
+  let firebaseUrl = appData && appData.firebase ? appData.firebase.url : null;
+  if (!firebaseUrl) {
+    try {
+      const cfgRes = await fetch(`data.json?t=${Date.now()}`);
+      if (cfgRes.ok) {
+        const cfg = await cfgRes.json();
+        if (cfg && cfg.firebase) firebaseUrl = cfg.firebase.url;
+      }
+    } catch(e) {}
+  }
+  if (!firebaseUrl) return;
+  if (firebaseUrl.endsWith('/')) firebaseUrl = firebaseUrl.slice(0, -1);
+
+  try {
+    // Micro-request: ONLY fetch the lastUpdated timestamp number (13 bytes)
+    const res = await fetch(`${firebaseUrl}/data/lastUpdated.json?t=${Date.now()}`);
+    if (res.ok) {
+      const remoteTimestamp = await res.json();
+      if (remoteTimestamp && currentDataTimestamp && remoteTimestamp !== currentDataTimestamp) {
+        console.log('⚡ Neue Änderungen im Backend gespeichert – lade Update in Echtzeit!');
+        await loadData();
+      }
+    }
+  } catch (e) {
+    // Silent fail if network unreachable
+  }
+}
 
 // Load data.json – tries Firebase Realtime Database first, then falls back to GitHub repository/CDN
 async function loadData() {
@@ -144,7 +192,7 @@ async function loadData() {
     }
 
     appData = freshData;
-    lastDataFetchTime = Date.now();
+    currentDataTimestamp = freshData.lastUpdated || Date.now();
 
     renderWebsite();
   } catch (error) {

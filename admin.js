@@ -1857,6 +1857,9 @@ async function commitDataChange(logMessage) {
     }
     if (firebaseUrl.endsWith('/')) firebaseUrl = firebaseUrl.slice(0, -1);
 
+    // Update timestamp for lightweight 13-byte client-side live-sync
+    pageData.lastUpdated = Date.now();
+
     let response = await fetch(`${firebaseUrl}/data.json?auth=${authData.token}`, {
       method: 'PUT',
       headers: {
