@@ -3,6 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
+const CURRENT_APP_VERSION = '1.2.0';
 
 // Global Admin State
 let authData = {
@@ -18,7 +19,60 @@ let temporaryCustomBgDataUrl = null;
 document.addEventListener('DOMContentLoaded', () => {
   checkSavedAuth();
   setupStatusToggle();
+  checkForAppUpdates();
+  // Check for updates every 60 seconds
+  setInterval(checkForAppUpdates, 60000);
 });
+
+// Check if an app update is available
+async function checkForAppUpdates() {
+  try {
+    const res = await fetch(`version.json?nocache=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.version && data.version !== CURRENT_APP_VERSION) {
+      const banner = document.getElementById('admin-update-banner');
+      const msgEl = document.getElementById('update-banner-msg');
+      if (banner) {
+        if (msgEl) {
+          msgEl.textContent = data.notes ? `Neues Update v${data.version}: ${data.notes}` : `Neues Update v${data.version} verfügbar!`;
+        }
+        banner.style.display = 'block';
+      }
+    }
+  } catch (e) {
+    console.warn('Update check skipped:', e);
+  }
+}
+
+// 1-Click Hard App Refresh / Cache Clear
+async function forceAppRefresh(manual = false) {
+  showToast('🔄 Aktualisiere App & leere Cache...', 'info');
+
+  // Clear CacheStorage API if supported
+  if ('caches' in window) {
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    } catch(e) {}
+  }
+
+  // Unregister Service Workers if present
+  if ('serviceWorker' in navigator) {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (let reg of registrations) {
+        await reg.unregister();
+      }
+    } catch(e) {}
+  }
+
+  // Reload with cache busting timestamp
+  setTimeout(() => {
+    const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
+    window.location.replace(cleanUrl);
+  }, 350);
+}
 
 // Check if credentials exist in localStorage
 async function checkSavedAuth() {
@@ -174,6 +228,8 @@ function logout() {
   document.getElementById('dashboard-container').style.display = 'none';
   document.getElementById('auth-container').style.display = 'flex';
   document.getElementById('logout-btn').style.display = 'none';
+  const refreshBtn = document.getElementById('refresh-app-btn');
+  if (refreshBtn) refreshBtn.style.display = 'none';
 }
 
 // Show Dashboard Panel
@@ -181,6 +237,11 @@ function showDashboard() {
   document.getElementById('auth-container').style.display = 'none';
   document.getElementById('dashboard-container').style.display = 'grid';
   document.getElementById('logout-btn').style.display = 'block';
+  const refreshBtn = document.getElementById('refresh-app-btn');
+  if (refreshBtn) refreshBtn.style.display = 'inline-flex';
+
+  // Check for updates upon opening dashboard
+  checkForAppUpdates();
 
   // Fill Forms
   populateGeneralTab();

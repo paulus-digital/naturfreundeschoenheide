@@ -14,6 +14,19 @@
 </head>
 <body class="admin-body">
 
+  <!-- APP UPDATE NOTIFICATION BANNER (For Mobile App / Homescreen PWA) -->
+  <div id="admin-update-banner" class="admin-update-banner" style="display: none;">
+    <div class="update-banner-inner">
+      <div class="update-banner-text">
+        <span class="update-banner-badge">✨ Neues Update</span>
+        <span id="update-banner-msg">Eine neuere Version mit Verbesserungen ist verfügbar!</span>
+      </div>
+      <button type="button" class="admin-btn update-banner-btn" onclick="forceAppRefresh()">
+        🚀 Jetzt mit 1 Klick aktualisieren
+      </button>
+    </div>
+  </div>
+
   <!-- Admin Navigation Header (div instead of header to prevent inheritance of fixed header styling) -->
   <div class="admin-header">
     <div class="container admin-nav">
@@ -22,7 +35,10 @@
         <span style="font-weight: 500; font-size: 0.95rem; opacity: 0.75;">Verwaltung</span>
         <span class="admin-badge">Admin</span>
       </div>
-      <button id="logout-btn" class="admin-logout" style="display: none;" onclick="logout()">Abmelden</button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button id="refresh-app-btn" class="admin-btn" style="display: none; padding: 6px 12px; font-size: 0.8rem; background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark); font-weight: 600;" onclick="forceAppRefresh(true)" title="App aktualisieren und Cache leeren">🔄 Neu laden</button>
+        <button id="logout-btn" class="admin-logout" style="display: none;" onclick="logout()">Abmelden</button>
+      </div>
     </div>
   </div>
 
