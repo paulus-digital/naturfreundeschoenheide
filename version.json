@@ -1,4 +1,4 @@
 {
-  "version": "1.3.0",
-  "notes": "Neue einfache Foto-Upload Funktion mit Live-Vorschau und Ladeanzeige"
+  "version": "1.4.0",
+  "notes": "Vollautomatisches Update-System beim App-Start ohne manuelle Buttons"
 }

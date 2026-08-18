@@ -3,7 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
-const CURRENT_APP_VERSION = '1.3.0';
+const CURRENT_APP_VERSION = '1.4.0';
 
 // Global Admin State
 let authData = {
@@ -228,8 +228,6 @@ function logout() {
   document.getElementById('dashboard-container').style.display = 'none';
   document.getElementById('auth-container').style.display = 'flex';
   document.getElementById('logout-btn').style.display = 'none';
-  const refreshBtn = document.getElementById('refresh-app-btn');
-  if (refreshBtn) refreshBtn.style.display = 'none';
 }
 
 // Show Dashboard Panel
@@ -237,11 +235,6 @@ function showDashboard() {
   document.getElementById('auth-container').style.display = 'none';
   document.getElementById('dashboard-container').style.display = 'grid';
   document.getElementById('logout-btn').style.display = 'block';
-  const refreshBtn = document.getElementById('refresh-app-btn');
-  if (refreshBtn) refreshBtn.style.display = 'inline-flex';
-
-  // Check for updates upon opening dashboard
-  checkForAppUpdates();
 
   // Fill Forms
   populateGeneralTab();
