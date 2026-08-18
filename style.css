@@ -988,6 +988,62 @@ nav a:hover::after {
   font-size: 0.95rem;
 }
 
+/* Gallery Thumbnails Strip */
+.gallery-thumbnails-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 8px 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.gallery-thumb-item {
+  width: 60px;
+  height: 44px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  opacity: 0.5;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+  background-color: var(--bg-cream);
+}
+
+.gallery-thumb-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-thumb-item:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.gallery-thumb-item.active {
+  opacity: 1;
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(27, 61, 47, 0.3);
+  transform: scale(1.08);
+}
+
+@media (max-width: 768px) {
+  .gallery-thumbnails-strip {
+    justify-content: flex-start;
+    padding-bottom: 12px;
+  }
+  .gallery-thumb-item {
+    width: 52px;
+    height: 38px;
+  }
+}
+
 /* Lightbox Modal */
 .lightbox {
   position: fixed;

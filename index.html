@@ -35,7 +35,7 @@
   <meta name="twitter:image" content="https://gaststaette-naturfreunde.de/social_share.jpg">
 
   <link rel="canonical" href="https://gaststaette-naturfreunde.de/">
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=18">
   <link rel="icon" type="image/svg+xml" href="logo.svg">
 </head>
 
@@ -274,12 +274,17 @@
         <p class="section-subtitle">Impressionen aus unserer Gaststätte &amp; Gartenanlage</p>
       </div>
 
-      <div class="carousel-wrapper">
-        <button class="carousel-btn prev" onclick="scrollCarousel(-1)" aria-label="Vorheriges Bild">&lsaquo;</button>
+      <div class="carousel-wrapper" id="gallery-carousel-wrapper">
+        <button class="carousel-btn prev" onclick="scrollGallery(-1)" aria-label="Vorheriges Bild">&lsaquo;</button>
         <div class="gallery-carousel" id="gallery-container">
           <!-- Populated dynamically via JS -->
         </div>
-        <button class="carousel-btn next" onclick="scrollCarousel(1)" aria-label="Nächstes Bild">&rsaquo;</button>
+        <button class="carousel-btn next" onclick="scrollGallery(1)" aria-label="Nächstes Bild">&rsaquo;</button>
+      </div>
+
+      <!-- Gallery Thumbnail Navigation Strip -->
+      <div class="gallery-thumbnails-strip" id="gallery-thumbnails-strip">
+        <!-- Thumbnails populated dynamically via JS -->
       </div>
     </div>
   </section>
@@ -571,7 +576,7 @@
         </a>
       </div>
     </div>
-  <script src="main.js?v=16"></script>
+  <script src="main.js?v=18"></script>
 </body>
 
 </html>
