@@ -3,7 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
-const CURRENT_APP_VERSION = '1.2.1';
+const CURRENT_APP_VERSION = '1.3.0';
 
 // Global Admin State
 let authData = {
@@ -1734,18 +1734,25 @@ function populateGalleryTab() {
   grid.innerHTML = '';
   
   if (!pageData.gallery || pageData.gallery.length === 0) {
-    grid.innerHTML = '<p class="text-muted" style="padding: 15px; grid-column: 1/-1;">Keine Galeriebilder vorhanden.</p>';
+    grid.innerHTML = '<div class="card" style="text-align: center; padding: 30px; color: var(--text-muted); grid-column: 1/-1;"><p style="margin: 0; font-size: 1rem;">🖼️ Noch keine Galeriebilder vorhanden. Lade oben das erste Foto hoch!</p></div>';
     return;
   }
 
   pageData.gallery.forEach((img, index) => {
     const card = document.createElement('div');
     card.className = 'gallery-admin-card';
+    card.style.cssText = 'background: #fff; border: 1px solid var(--border-warm); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column;';
     card.innerHTML = `
-      <img src="${img.src}" alt="${img.alt || 'Galerie'}" onerror="this.src='logo.png'; this.style.objectFit='contain';">
-      <div class="gallery-admin-actions">
-        <p style="font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 8px;">${img.alt || 'Bild'}</p>
-        <button class="admin-btn admin-btn-danger" style="padding: 4px 10px; font-size: 0.8rem; width: 100%;" onclick="deleteGalleryImage(${index})">Entfernen</button>
+      <div style="width: 100%; height: 160px; background: #eee; overflow: hidden; position: relative;">
+        <img src="${img.src}" alt="${escapeHTML(img.alt || 'Galerie')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='logo.png'; this.style.objectFit='contain';">
+      </div>
+      <div style="padding: 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: space-between;">
+        <p style="font-size: 0.9rem; margin: 0; color: var(--text-dark); line-height: 1.4; word-break: break-word;">
+          ${escapeHTML(img.alt || 'Ohne Beschreibung')}
+        </p>
+        <button type="button" class="admin-btn admin-btn-danger" style="padding: 8px 12px; font-size: 0.85rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="deleteGalleryImage(${index})">
+          🗑️ Foto löschen
+        </button>
       </div>
     `;
     grid.appendChild(card);
@@ -1983,51 +1990,99 @@ async function deleteCalendarEntry(index) {
 }
 
 // Save Tab 4: Gallery Uploads
-async function uploadGalleryImage() {
-  const fileInput = document.getElementById('new-gallery-file');
-  const altInput = document.getElementById('new-gallery-alt');
+let pendingGalleryImageWebP = null;
 
-  if (!fileInput.files || fileInput.files.length === 0) {
-    alert('Bitte wählen Sie ein Bild zum Hochladen aus.');
+async function handleGalleryFileSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const previewContainer = document.getElementById('gallery-preview-container');
+  const statusBox = document.getElementById('gallery-upload-status');
+  const statusIcon = document.getElementById('gallery-status-icon');
+  const statusText = document.getElementById('gallery-status-text');
+  const previewThumb = document.getElementById('gallery-preview-thumb');
+  const saveBtn = document.getElementById('gallery-save-btn');
+  const descInput = document.getElementById('gallery-img-desc');
+
+  if (previewContainer) previewContainer.style.display = 'block';
+  if (saveBtn) saveBtn.disabled = true;
+  if (descInput) descInput.value = '';
+
+  if (statusBox) {
+    statusBox.style.background = 'rgba(197, 159, 45, 0.15)';
+    statusBox.style.color = 'var(--primary-dark)';
+  }
+  if (statusIcon) statusIcon.textContent = '⏳';
+  if (statusText) statusText.textContent = `Foto wird geladen und fürs Web optimiert (${(file.size / 1024 / 1024).toFixed(1)} MB)...`;
+
+  try {
+    const webpData = await convertToWebP(file, 1600, 0.82);
+    pendingGalleryImageWebP = webpData;
+
+    if (previewThumb) previewThumb.src = webpData;
+    
+    if (statusBox) {
+      statusBox.style.background = 'rgba(46, 125, 50, 0.12)';
+      statusBox.style.color = '#2e7d32';
+    }
+    if (statusIcon) statusIcon.textContent = '✅';
+    if (statusText) statusText.textContent = 'Foto erfolgreich vorbereitet! Gib unten optional eine Beschreibung ein und tippe auf Speichern.';
+    if (saveBtn) saveBtn.disabled = false;
+  } catch (err) {
+    console.error(err);
+    if (statusBox) {
+      statusBox.style.background = 'rgba(217, 83, 79, 0.15)';
+      statusBox.style.color = '#d9534f';
+    }
+    if (statusIcon) statusIcon.textContent = '❌';
+    if (statusText) statusText.textContent = `Fehler beim Laden des Fotos: ${err.message}`;
+    if (saveBtn) saveBtn.disabled = true;
+  }
+}
+
+async function saveGalleryPhoto() {
+  if (!pendingGalleryImageWebP) {
+    alert('Bitte wählen Sie zuerst ein Foto aus.');
     return;
   }
 
-  const file = fileInput.files[0];
-  const altText = altInput.value.trim() || 'Galeriebild';
+  const descInput = document.getElementById('gallery-img-desc');
+  const altText = descInput ? (descInput.value.trim() || 'Gaststätte & Biergarten') : 'Gaststätte & Biergarten';
 
-  showToast('📤 Konvertiere und lade Bild...', 'info');
+  showToast('📤 Speichere Foto in Galerie...', 'info');
 
-  try {
-    const webpData = await convertToWebP(file);
-    if (!pageData.gallery) pageData.gallery = [];
-    pageData.gallery.push({
-      src: webpData,
-      alt: altText
-    });
+  if (!pageData.gallery) pageData.gallery = [];
+  pageData.gallery.push({
+    src: pendingGalleryImageWebP,
+    alt: altText
+  });
 
-    const dataSaved = await commitDataChange('Admin Panel: Bild in Galerie hochgeladen');
-    if (dataSaved) {
-      populateGalleryTab();
-      fileInput.value = '';
-      altInput.value = '';
-    }
-  } catch (err) {
-    console.error(err);
-    showToast(`❌ Upload-Fehler: ${err.message}`, 'error');
+  const dataSaved = await commitDataChange('Admin Panel: Bild in Galerie hochgeladen');
+  if (dataSaved) {
+    showToast('✅ Foto erfolgreich zur Galerie hinzugefügt!', 'success');
+    populateGalleryTab();
+    resetGalleryUploadForm();
   }
+}
+
+function resetGalleryUploadForm() {
+  pendingGalleryImageWebP = null;
+  const fileInput = document.getElementById('gallery-file-input');
+  if (fileInput) fileInput.value = '';
+  const descInput = document.getElementById('gallery-img-desc');
+  if (descInput) descInput.value = '';
+  const previewContainer = document.getElementById('gallery-preview-container');
+  if (previewContainer) previewContainer.style.display = 'none';
 }
 
 async function deleteGalleryImage(index) {
   if (!confirm('Möchten Sie dieses Bild wirklich aus der Galerie entfernen?')) return;
   
-  const targetImg = pageData.gallery[index];
-  
-  // Note: To delete the actual file in GitHub, we would need to fetch the file's SHA, then call DELETE.
-  // To keep it robust and simple, we delete the reference in data.json. The file will remain in github but won't be loaded or visible on the website.
   pageData.gallery.splice(index, 1);
   populateGalleryTab();
   
   await commitDataChange('Admin Panel: Bild aus Galerie gelöscht');
+  showToast('🗑️ Foto aus Galerie entfernt', 'success');
 }
 
 // Save Tab 5: Guestbook Mod

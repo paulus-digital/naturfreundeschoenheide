@@ -9,7 +9,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verwaltung – Gaststätte Naturfreunde</title>
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=13">
   <link rel="icon" type="image/svg+xml" href="logo.svg">
 </head>
 <body class="admin-body">
@@ -410,33 +410,56 @@
       <!-- 4. GALLERY TAB PANEL -->
       <section id="panel-gallery" class="panel-section">
         <div class="panel-header">
-          <h2 class="panel-title">Fotogalerie</h2>
+          <h2 class="panel-title">Fotogalerie-Verwaltung</h2>
         </div>
 
-        <div class="card" style="margin-bottom: 30px;">
-          <h4 style="margin-bottom: 12px;">Neues Foto hinzufügen</h4>
-          <form id="admin-gallery-form" onsubmit="event.preventDefault(); addGalleryImage();">
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="admin-gallery-file">Foto hochladen</label>
-                <input type="file" id="admin-gallery-file" class="form-control" accept="image/*" onchange="handleGalleryFileUpload(event)">
+        <div class="card" style="margin-bottom: 28px; border-left: 4px solid var(--primary-dark); background: var(--bg-white);">
+          <h3 style="margin-bottom: 12px; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; font-size: 1.2rem;">
+            <span>📸</span> Neues Foto hinzufügen
+          </h3>
+          <p class="text-muted" style="margin-bottom: 18px; font-size: 0.92rem; line-height: 1.5;">
+            Lade ein Foto von deinem Smartphone/PC hoch oder fotografiere direkt mit der Handykamera. Das Bild wird automatisch fürs Web optimiert.
+          </p>
+
+          <!-- Upload Dropzone / Button -->
+          <div id="gallery-dropzone" class="gallery-upload-dropzone" onclick="document.getElementById('gallery-file-input').click()" style="cursor: pointer; border: 2px dashed var(--primary); border-radius: var(--radius-sm); padding: 24px 16px; text-align: center; background: var(--bg-cream); margin-bottom: 16px; transition: all 0.2s ease;">
+            <input type="file" id="gallery-file-input" accept="image/*" style="display: none;" onchange="handleGalleryFileSelected(event)">
+            <div style="font-size: 2.4rem; margin-bottom: 8px;">📷</div>
+            <strong style="display: block; font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 4px;">Foto aufnehmen oder auswählen</strong>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Hier tippen, um die Kamera oder die Fotogalerie zu öffnen</span>
+          </div>
+
+          <!-- Upload Progress & Preview Container (Initially Hidden) -->
+          <div id="gallery-preview-container" style="display: none; background: #fff; border: 1px solid var(--border-warm); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 18px;">
+            <div id="gallery-upload-status" style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 6px; background: rgba(197, 159, 45, 0.15); color: var(--primary-dark); font-weight: 600; font-size: 0.92rem; margin-bottom: 14px;">
+              <span id="gallery-status-icon">⏳</span>
+              <span id="gallery-status-text">Foto wird vorbereitet...</span>
+            </div>
+
+            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
+              <div style="width: 130px; height: 95px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-warm); background: #eee; flex-shrink: 0;">
+                <img id="gallery-preview-thumb" src="" alt="Vorschau" style="width: 100%; height: 100%; object-fit: cover;">
               </div>
-              <div class="form-group">
-                <label for="admin-gallery-src">Oder Bild-URL / Pfad</label>
-                <input type="text" id="admin-gallery-src" class="form-control" placeholder="z.B. bild.jpg">
+              <div style="flex: 1; min-width: 200px;">
+                <label for="gallery-img-desc" style="font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; display: block; color: var(--primary-dark);">
+                  Hier Beschreibung eingeben (optional):
+                </label>
+                <input type="text" id="gallery-img-desc" class="form-control" placeholder="z.B. Gemütlicher Biergarten oder Leckeres Schnitzel" style="font-size: 16px !important;">
               </div>
             </div>
-            <div class="form-group" style="margin-top: 16px;">
-              <label for="admin-gallery-alt">Bildbeschreibung (Alt-Text)</label>
-              <input type="text" id="admin-gallery-alt" class="form-control" placeholder="z.B. Unser gemütlicher Biergarten">
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" id="gallery-save-btn" class="admin-btn admin-btn-primary" onclick="saveGalleryPhoto()" style="flex: 1; min-width: 200px; padding: 12px 20px; font-weight: 700; font-size: 1rem; box-shadow: var(--shadow-sm);">
+                💾 Jetzt Foto in Galerie speichern
+              </button>
+              <button type="button" class="admin-btn" onclick="resetGalleryUploadForm()" style="background: #f5f5f5; color: #555; border: 1px solid #ccc; padding: 12px 16px; font-size: 0.9rem;">
+                ❌ Abbrechen
+              </button>
             </div>
-            <button type="submit" class="admin-btn admin-btn-primary" style="margin-top: 16px;">
-              ➕ Foto zur Galerie hinzufügen
-            </button>
-          </form>
+          </div>
         </div>
 
-        <h4>Aktuelle Galerie-Fotos</h4>
+        <h3 style="margin-bottom: 14px; font-size: 1.2rem; color: var(--primary-dark);">Aktuelle Galerie-Fotos</h3>
         <div class="gallery-admin-grid" id="admin-gallery-grid" style="margin-top: 15px;">
           <!-- Populated dynamically via JS -->
         </div>
@@ -528,6 +551,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=12"></script>
+  <script src="admin.js?v=13"></script>
 </body>
 </html>
