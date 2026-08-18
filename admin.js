@@ -826,14 +826,14 @@ function updateSocialGraphic(isUserOverride = false) {
     } else if (isClosed) {
       autoText = info.label ? `Geschlossen: ${info.label}` : `Geschlossen (Ruhetag)`;
     } else if (isEvent && info.label) {
-      autoText = `${info.label} • Öffnungszeit: ${info.hours}`;
+      autoText = `${info.label} • ${info.hours}`;
     } else {
-      autoText = `Öffnungszeit: ${info.hours}`;
+      autoText = info.hours;
     }
     statusInput.value = autoText;
   }
 
-  const displayText = statusInput ? statusInput.value.trim() : `Öffnungszeit: ${info.hours}`;
+  const displayText = statusInput ? statusInput.value.trim() : (info.hours || 'Geöffnet');
 
   // Formatted German Date
   let formattedDate = dateStr;
@@ -893,29 +893,29 @@ function updateSocialGraphic(isUserOverride = false) {
     logoImg.src = 'logo.png';
     const drawContent = () => {
       // Proportional vertical layout positions based on aspect ratio
-      let logoY = 120;
+      let logoY = 115;
       let logoWidth = 600;
-      let dateSpacing = 65;
-      let boxYOffset = 45;
+      let dateSpacing = 70;
+      let boxYOffset = 48;
       let boxHeight = 220;
       let boxWidth = 780;
       let addressSpacing = 75;
       let websiteSpacing = 50;
 
       if (aspect === '3:4') {
-        logoY = 170;
+        logoY = 165;
         logoWidth = 660;
-        dateSpacing = 80;
+        dateSpacing = 85;
         boxYOffset = 60;
         boxHeight = 250;
         boxWidth = 840;
         addressSpacing = 100;
         websiteSpacing = 55;
       } else if (aspect === '9:16') {
-        logoY = 250;
+        logoY = 240;
         logoWidth = 720;
-        dateSpacing = 105;
-        boxYOffset = 75;
+        dateSpacing = 115;
+        boxYOffset = 80;
         boxHeight = 280;
         boxWidth = 890;
         addressSpacing = 140;
@@ -937,10 +937,11 @@ function updateSocialGraphic(isUserOverride = false) {
       ctx.lineTo(width / 2 + 150, dividerY);
       ctx.stroke();
 
-      // Date Badge
+      // Date Badge - Large and Bold
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#faf6ef';
-      ctx.font = '500 38px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      const dateFontSize = (aspect === '9:16') ? 52 : ((aspect === '3:4') ? 48 : 46);
+      ctx.font = `bold ${dateFontSize}px sans-serif`;
       const dateY = dividerY + dateSpacing;
       ctx.fillText(formattedDate, width / 2, dateY);
 
@@ -969,28 +970,28 @@ function updateSocialGraphic(isUserOverride = false) {
           subline = 'Ruhetag';
         }
       } else if (raw.includes('•')) {
-        // e.g. "Weinwanderung • Öffnungszeit: Ab 12 uhr"
+        // e.g. "Weinwanderung • Ab 12 uhr" or "Weinwanderung • Öffnungszeit: Ab 12 uhr"
         const parts = raw.split('•').map(s => s.trim());
         isEvent = true;
         headline = `🎉 ${parts[0].toUpperCase()} 🎉`;
-        subline = parts[1];
+        subline = parts[1].replace(/^(öffnungszeiten?|geöffnet):?\s*/i, '').trim();
       } else if (raw.includes('(') && raw.includes(')')) {
-        // e.g. "Öffnungszeit: Ab 12 uhr (Weinwanderung)" or "Weinwanderung (ab 12 Uhr)"
+        // e.g. "Ab 12 uhr (Weinwanderung)" or "Weinwanderung (Ab 12 Uhr)"
         const p1 = raw.substring(0, raw.indexOf('(')).trim();
         const p2 = raw.substring(raw.indexOf('(') + 1, raw.indexOf(')')).trim();
 
-        if (p1.toLowerCase().includes('öffnungszeit') || p1.toLowerCase().includes('geöffnet')) {
+        if (p1.toLowerCase().includes('öffnungszeit') || p1.toLowerCase().includes('geöffnet') || p1.toLowerCase().includes('ab') || p1.includes(':') || p1.includes('-')) {
           isEvent = true;
           headline = `🎉 ${p2.toUpperCase()} 🎉`;
-          subline = p1.toLowerCase().startsWith('öffnungszeit') ? p1 : `Öffnungszeit: ${p1}`;
+          subline = p1.replace(/^(öffnungszeiten?|geöffnet):?\s*/i, '').trim();
         } else {
           isEvent = true;
           headline = `🎉 ${p1.toUpperCase()} 🎉`;
-          subline = (p2.toLowerCase().includes('ab') || p2.includes(':') || p2.includes('-')) ? (p2.toLowerCase().startsWith('öffnungszeit') ? p2 : `Öffnungszeit: ${p2}`) : p2;
+          subline = p2.replace(/^(öffnungszeiten?|geöffnet):?\s*/i, '').trim();
         }
       } else if (rawLower.startsWith('öffnungszeit') || rawLower.startsWith('geöffnet')) {
-        headline = 'ÖFFNUNGSZEITEN';
-        subline = raw.replace(/^öffnungszeiten?:?/i, '').replace(/^geöffnet:?/i, '').trim();
+        headline = raw.replace(/^öffnungszeiten?:?/i, '').replace(/^geöffnet:?/i, '').trim();
+        subline = '';
       } else {
         headline = raw;
         subline = '';
@@ -1053,11 +1054,11 @@ function updateSocialGraphic(isUserOverride = false) {
         ctx.fillText(headline, width / 2, textCenterY - (isEvent ? 24 : 18));
 
         // Subline text (Hours or details)
-        let fSize2 = isEvent ? ((aspect === '9:16') ? 44 : 40) : ((aspect === '9:16') ? 48 : 44);
-        ctx.font = `600 ${fSize2}px sans-serif`;
+        let fSize2 = isEvent ? ((aspect === '9:16') ? 48 : 44) : ((aspect === '9:16') ? 48 : 44);
+        ctx.font = `bold ${fSize2}px sans-serif`;
         while (ctx.measureText(subline).width > maxTextWidth && fSize2 > 24) {
           fSize2 -= 2;
-          ctx.font = `600 ${fSize2}px sans-serif`;
+          ctx.font = `bold ${fSize2}px sans-serif`;
         }
         ctx.fillStyle = '#ffffff';
         ctx.fillText(subline, width / 2, textCenterY + (isEvent ? 38 : 34));
