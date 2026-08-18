@@ -35,7 +35,7 @@
   <meta name="twitter:image" content="https://gaststaette-naturfreunde.de/social_share.jpg">
 
   <link rel="canonical" href="https://gaststaette-naturfreunde.de/">
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=15">
   <link rel="icon" type="image/svg+xml" href="logo.svg">
 </head>
 
@@ -69,7 +69,7 @@
           <li><a href="#termine">Termine</a></li>
           <li><a href="#galerie">Galerie</a></li>
           <li><a href="#gaestebuch">Gästebuch</a></li>
-          <li><a href="#kontakt" class="cta-button">Jetzt Anrufen</a></li>
+          <li><a href="tel:01724258894" id="nav-call-btn" class="cta-button" onclick="handleCallButton(event)">Jetzt Anrufen</a></li>
           <li><button type="button" onclick="sharePage()" class="nav-share-btn">🔗 Teilen</button></li>
         </ul>
       </nav>
@@ -104,7 +104,7 @@
           </svg>
           Unsere Öffnungszeiten
         </a>
-        <a href="#kontakt" class="hero-btn hero-btn-primary">
+        <a href="tel:01724258894" id="hero-call-btn" class="hero-btn hero-btn-primary" onclick="handleCallButton(event)">
           <svg class="hero-btn-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -263,8 +263,8 @@
             Auf Anfrage sind auch Termine an anderen Tagen möglich.
           </p>
           <div class="events-feature-actions">
-            <a href="tel:01724258894" onclick="handleCallOrScroll(event)" class="events-feature-btn">
-              <span>Jetzt unverbindlich anfragen <span class="phone-no-wrap">(0172&nbsp;4258894)</span></span>
+            <a href="tel:01724258894" id="event-call-btn" onclick="handleCallButton(event)" class="events-feature-btn">
+              <span>Jetzt unverbindlich anfragen <span class="phone-no-wrap" id="event-call-btn-phone">(0172&nbsp;4258894)</span></span>
             </a>
           </div>
         </div>
@@ -474,17 +474,17 @@
         </p>
 
         <h3>Vertreten durch</h3>
-        <p>Ina Schultze (Inhaberin)</p>
+        <p><span id="impressum-inhaber-rep">Ina Schultze (Inhaberin)</span></p>
 
         <h3>Kontakt</h3>
         <p>
-          Telefon: <a href="tel:01724258894" style="color: var(--primary); font-weight:600;">0172 4258894</a><br>
-          E-Mail: <a href="mailto:info@spartenheim-schoenheide.de" style="color: var(--primary);">info@spartenheim-schoenheide.de</a><br>
+          Telefon: <a href="tel:01724258894" id="impressum-phone-link" style="color: var(--primary); font-weight:600;"><span id="impressum-phone">0172 4258894</span></a><br>
+          E-Mail: <a href="mailto:info@spartenheim-schoenheide.de" id="impressum-email-link" style="color: var(--primary);"><span id="impressum-email">info@spartenheim-schoenheide.de</span></a><br>
           Website: <a href="https://gaststaette-naturfreunde.de" style="color: var(--primary);">https://gaststaette-naturfreunde.de</a>
         </p>
 
         <h3>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h3>
-        <p>Ina Schultze, Gartenweg 5, 08304 Schönheide</p>
+        <p><span id="impressum-inhaber-resp">Ina Schultze</span>, Gartenweg 5, 08304 Schönheide</p>
 
         <h3>EU-Streitschlichtung</h3>
         <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a
@@ -577,7 +577,7 @@
         </a>
       </div>
     </div>
-  <script src="main.js?v=7"></script>
+  <script src="main.js?v=15"></script>
 </body>
 
 </html>

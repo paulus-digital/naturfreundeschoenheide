@@ -3,7 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
-const CURRENT_APP_VERSION = '1.4.0';
+const CURRENT_APP_VERSION = '1.5.0';
 
 // Global Admin State
 let authData = {
@@ -1658,14 +1658,33 @@ function populateHoursTab() {
               ${group.label ? `<span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 1px 6px; border-radius: 4px; ${badgeStyle}">${escapeHTML(group.label)}</span>` : ''}
             </div>
           </div>
+        <div style="display: flex; gap: 6px; flex-shrink: 0;">
+          <button type="button" class="admin-btn" style="background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark); padding: 6px 10px; font-size: 0.82rem; white-space: nowrap; height: auto; font-weight: 600;" onclick="editSpecialHoursItem('${group.startDate}')" title="Diesen Tag / Zeitraum im Wochenplaner bearbeiten">✏️ Bearbeiten</button>
+          <button type="button" class="admin-btn admin-btn-danger" style="padding: 6px 10px; font-size: 0.82rem; white-space: nowrap; height: auto;" onclick="deleteSpecialHoursRange('${datesJoined}', '${escapeHTML(confirmPeriodLabel)}')">Löschen</button>
         </div>
-        <button type="button" class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.82rem; flex-shrink: 0; white-space: nowrap; height: auto;" onclick="deleteSpecialHoursRange('${datesJoined}', '${escapeHTML(confirmPeriodLabel)}')">Löschen</button>
       `;
       specialList.appendChild(row);
     });
 
     updateSpecialHoursSelectionCount();
   }
+}
+
+function editSpecialHoursItem(startDate) {
+  if (!startDate) return;
+  // Jump to the week containing this date
+  jumpToDate(startDate);
+  
+  // Switch to hours tab if not already active
+  switchTab('hours');
+  
+  // Scroll smoothly to the week planner
+  const plannerForm = document.getElementById('admin-week-planner-form') || document.querySelector('.week-planner-navigation');
+  if (plannerForm) {
+    plannerForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  showToast('📅 Woche im Planer geöffnet – passe die Zeiten an und speichere', 'info');
 }
 
 function populateCalendarTab() {

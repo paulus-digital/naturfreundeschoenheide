@@ -1116,16 +1116,37 @@ function renderContact() {
   if (!appData.contact) return;
   
   const c = appData.contact;
+  const rawPhone = (c.phone || '').replace(/[^0-9+]/g, '') || '01724258894';
+  const displayPhone = c.phone || '0172 4258894';
+  const email = c.email || 'info@spartenheim-schoenheide.de';
+  const inhaber = c.inhaber || 'Ina Schultze';
   
   // Set UI details
-  document.getElementById('contact-address').textContent = c.address;
-  document.getElementById('contact-phone').textContent = c.phone;
-  document.getElementById('contact-phone-link').href = `tel:${c.phone.replace(/[^0-9+]/g, '')}`;
-  document.getElementById('contact-inhaber').textContent = c.inhaber;
+  if (document.getElementById('contact-address')) document.getElementById('contact-address').textContent = c.address || 'Gartenweg 5, 08304 Schönheide';
+  if (document.getElementById('contact-phone')) document.getElementById('contact-phone').textContent = displayPhone;
+  if (document.getElementById('contact-phone-link')) document.getElementById('contact-phone-link').href = `tel:${rawPhone}`;
+  if (document.getElementById('contact-inhaber')) document.getElementById('contact-inhaber').textContent = inhaber;
+
+  // Header, Hero, Event, and Impressum call buttons
+  ['nav-call-btn', 'hero-call-btn', 'event-call-btn', 'impressum-phone-link'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.href = `tel:${rawPhone}`;
+  });
+
+  if (document.getElementById('event-call-btn-phone')) {
+    document.getElementById('event-call-btn-phone').textContent = `(${displayPhone})`;
+  }
+
+  // Impressum
+  if (document.getElementById('impressum-phone')) document.getElementById('impressum-phone').textContent = displayPhone;
+  if (document.getElementById('impressum-email')) document.getElementById('impressum-email').textContent = email;
+  if (document.getElementById('impressum-email-link')) document.getElementById('impressum-email-link').href = `mailto:${email}`;
+  if (document.getElementById('impressum-inhaber-rep')) document.getElementById('impressum-inhaber-rep').textContent = `${inhaber} (Inhaberin)`;
+  if (document.getElementById('impressum-inhaber-resp')) document.getElementById('impressum-inhaber-resp').textContent = inhaber;
   
   // Modals placeholders
-  document.querySelectorAll('.contact-phone-placeholder').forEach(el => el.textContent = c.phone);
-  document.querySelectorAll('.contact-email-placeholder').forEach(el => el.textContent = c.email);
+  document.querySelectorAll('.contact-phone-placeholder').forEach(el => el.textContent = displayPhone);
+  document.querySelectorAll('.contact-email-placeholder').forEach(el => el.textContent = email);
 }
 
 // Lightbox functions
@@ -1206,7 +1227,20 @@ function closeModal(id) {
   }
 }
 
-// Mobile Menu toggle
+// Mobile Menu toggle & close
+function closeMobileMenu() {
+  const nav = document.getElementById('navbar');
+  const toggleBtn = document.querySelector('.mobile-nav-toggle');
+  const backdrop = document.getElementById('nav-backdrop');
+  if (nav) nav.classList.remove('active');
+  if (toggleBtn) toggleBtn.textContent = '☰';
+  document.body.style.overflow = '';
+  if (backdrop) {
+    backdrop.classList.remove('visible');
+    backdrop.hidden = true;
+  }
+}
+
 function toggleMobileMenu() {
   const nav = document.getElementById('navbar');
   const toggleBtn = document.querySelector('.mobile-nav-toggle');
@@ -1486,15 +1520,23 @@ function toggleCalendarMobile() {
   }
 }
 
-// Smart call or scroll handler for phone button
-function handleCallOrScroll(e) {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 768 && ('ontouchstart' in window || navigator.maxTouchPoints > 0));
+// Smart call or scroll handler for phone buttons
+function getRawPhone() {
+  const p = (appData && appData.contact && appData.contact.phone) ? appData.contact.phone : '0172 4258894';
+  return p.replace(/[^0-9+]/g, '') || '01724258894';
+}
+
+function handleCallButton(e) {
+  const raw = getRawPhone();
+  closeMobileMenu();
+
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 992 && ('ontouchstart' in window || navigator.maxTouchPoints > 0));
 
   if (isMobile) {
-    // Mobile/Smartphone -> Open phone app directly
-    window.location.href = 'tel:01724258894';
+    // Smartphone / Mobile -> Directly open phone app to dial
+    window.location.href = `tel:${raw}`;
   } else {
-    // Desktop/PC -> Scroll down smoothly to contact section
+    // Desktop PC -> If clicked on a phone CTA, scroll smoothly to contact section
     if (e && e.preventDefault) e.preventDefault();
     const contactSec = document.getElementById('kontakt');
     if (contactSec) {
@@ -1503,4 +1545,8 @@ function handleCallOrScroll(e) {
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
   }
+}
+
+function handleCallOrScroll(e) {
+  handleCallButton(e);
 }
