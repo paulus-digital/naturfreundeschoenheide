@@ -3,7 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
-const CURRENT_APP_VERSION = '2.0.0';
+const CURRENT_APP_VERSION = '2.1.0';
 
 // Global Admin State
 let authData = {
@@ -816,10 +816,19 @@ function updateSocialGraphic(isUserOverride = false) {
   if (!isUserOverride && statusInput) {
     let autoText = '';
     const hLower = (info.hours || '').toLowerCase();
-    if (hLower.includes('ruhetag') || hLower.includes('geschlossen')) {
-      autoText = info.label ? `Geschlossen: ${info.label}` : `Geschlossen`;
+    const lLower = (info.label || '').toLowerCase();
+    const isUrlaub = info.type === 'holiday' || hLower.includes('urlaub') || hLower.includes('betriebsferien') || lLower.includes('urlaub') || lLower.includes('betriebsferien');
+    const isClosed = !isUrlaub && (hLower.includes('ruhetag') || hLower.includes('geschlossen') || lLower.includes('geschlossen') || lLower.includes('ruhetag'));
+    const isEvent = !isUrlaub && !isClosed && (info.type === 'event' || (info.label && info.label.trim().length > 0));
+
+    if (isUrlaub) {
+      autoText = info.label ? `Betriebsferien: ${info.label}` : `Betriebsferien / Urlaub`;
+    } else if (isClosed) {
+      autoText = info.label ? `Geschlossen: ${info.label}` : `Geschlossen (Ruhetag)`;
+    } else if (isEvent && info.label) {
+      autoText = `${info.label} • Öffnungszeit: ${info.hours}`;
     } else {
-      autoText = info.label ? `Öffnungszeit: ${info.hours} (${info.label})` : `Öffnungszeit: ${info.hours}`;
+      autoText = `Öffnungszeit: ${info.hours}`;
     }
     statusInput.value = autoText;
   }
@@ -888,8 +897,8 @@ function updateSocialGraphic(isUserOverride = false) {
       let logoWidth = 600;
       let dateSpacing = 65;
       let boxYOffset = 45;
-      let boxHeight = 200;
-      let boxWidth = 760;
+      let boxHeight = 220;
+      let boxWidth = 780;
       let addressSpacing = 75;
       let websiteSpacing = 50;
 
@@ -898,18 +907,18 @@ function updateSocialGraphic(isUserOverride = false) {
         logoWidth = 660;
         dateSpacing = 80;
         boxYOffset = 60;
-        boxHeight = 230;
-        boxWidth = 820;
-        addressSpacing = 110;
+        boxHeight = 250;
+        boxWidth = 840;
+        addressSpacing = 100;
         websiteSpacing = 55;
       } else if (aspect === '9:16') {
-        logoY = 260;
+        logoY = 250;
         logoWidth = 720;
-        dateSpacing = 110;
-        boxYOffset = 80;
-        boxHeight = 260;
-        boxWidth = 880;
-        addressSpacing = 160;
+        dateSpacing = 105;
+        boxYOffset = 75;
+        boxHeight = 280;
+        boxWidth = 890;
+        addressSpacing = 140;
         websiteSpacing = 65;
       }
 
@@ -935,10 +944,72 @@ function updateSocialGraphic(isUserOverride = false) {
       const dateY = dividerY + dateSpacing;
       ctx.fillText(formattedDate, width / 2, dateY);
 
+      // Smart Headline & Subline Detection
+      let headline = '';
+      let subline = '';
+      let isEvent = false;
+      let isHoliday = false;
+      let isClosed = false;
+
+      const raw = displayText.trim();
+      const rawLower = raw.toLowerCase();
+
+      if (rawLower.includes('urlaub') || rawLower.includes('betriebsferien') || rawLower.includes('ferien')) {
+        isHoliday = true;
+        headline = '🏖️ BETRIEBSFERIEN / URLAUB';
+        subline = raw.replace(/betriebsferien\s*\/?\s*urlaub:?/gi, '').replace(/urlaub:?/gi, '').replace(/betriebsferien:?/gi, '').trim() || 'Gaststätte vorübergehend geschlossen';
+      } else if (rawLower.includes('geschlossen') || rawLower.includes('ruhetag')) {
+        isClosed = true;
+        headline = '🚪 HEUTE GESCHLOSSEN';
+        if (raw.includes(':')) {
+          subline = raw.split(':')[1].trim();
+        } else if (raw.includes('(')) {
+          subline = raw.substring(raw.indexOf('(') + 1, raw.indexOf(')')).trim();
+        } else {
+          subline = 'Ruhetag';
+        }
+      } else if (raw.includes('•')) {
+        // e.g. "Weinwanderung • Öffnungszeit: Ab 12 uhr"
+        const parts = raw.split('•').map(s => s.trim());
+        isEvent = true;
+        headline = `🎉 ${parts[0].toUpperCase()} 🎉`;
+        subline = parts[1];
+      } else if (raw.includes('(') && raw.includes(')')) {
+        // e.g. "Öffnungszeit: Ab 12 uhr (Weinwanderung)" or "Weinwanderung (ab 12 Uhr)"
+        const p1 = raw.substring(0, raw.indexOf('(')).trim();
+        const p2 = raw.substring(raw.indexOf('(') + 1, raw.indexOf(')')).trim();
+
+        if (p1.toLowerCase().includes('öffnungszeit') || p1.toLowerCase().includes('geöffnet')) {
+          isEvent = true;
+          headline = `🎉 ${p2.toUpperCase()} 🎉`;
+          subline = p1.toLowerCase().startsWith('öffnungszeit') ? p1 : `Öffnungszeit: ${p1}`;
+        } else {
+          isEvent = true;
+          headline = `🎉 ${p1.toUpperCase()} 🎉`;
+          subline = (p2.toLowerCase().includes('ab') || p2.includes(':') || p2.includes('-')) ? (p2.toLowerCase().startsWith('öffnungszeit') ? p2 : `Öffnungszeit: ${p2}`) : p2;
+        }
+      } else if (rawLower.startsWith('öffnungszeit') || rawLower.startsWith('geöffnet')) {
+        headline = 'ÖFFNUNGSZEITEN';
+        subline = raw.replace(/^öffnungszeiten?:?/i, '').replace(/^geöffnet:?/i, '').trim();
+      } else {
+        headline = raw;
+        subline = '';
+      }
+
       // Main Status Card Box
-      const isClosed = displayText.toLowerCase().includes('geschlossen') || displayText.toLowerCase().includes('ruhetag');
-      const boxBg = isClosed ? 'rgba(128, 32, 32, 0.9)' : 'rgba(32, 80, 37, 0.9)';
-      const boxBorder = isClosed ? '#ef5350' : '#c59f2d';
+      let boxBg = 'rgba(24, 66, 32, 0.94)';
+      let boxBorder = '#f6e27a';
+
+      if (isEvent) {
+        boxBg = 'rgba(16, 52, 24, 0.96)';
+        boxBorder = '#fcd34d';
+      } else if (isHoliday) {
+        boxBg = 'rgba(20, 60, 96, 0.94)';
+        boxBorder = '#60a5fa';
+      } else if (isClosed) {
+        boxBg = 'rgba(100, 24, 24, 0.94)';
+        boxBorder = '#ef5350';
+      }
 
       const boxY = dateY + boxYOffset;
       ctx.fillStyle = boxBg;
@@ -957,38 +1028,49 @@ function updateSocialGraphic(isUserOverride = false) {
       }
 
       // Status Text Inside Box
-      const maxTextWidth = boxWidth - 100;
-      ctx.fillStyle = '#ffffff';
+      const maxTextWidth = boxWidth - 80;
       const textCenterY = boxY + boxHeight / 2;
 
-      if (displayText.includes('(') && displayText.includes(')')) {
-        const mainPart = displayText.substring(0, displayText.indexOf('(')).trim();
-        const subPart = displayText.substring(displayText.indexOf('(')).trim();
-
-        let fSize1 = (aspect === '9:16') ? 58 : 54;
+      if (subline) {
+        // Two lines layout: Headline + Subline
+        let fSize1 = isEvent ? ((aspect === '9:16') ? 54 : 48) : ((aspect === '9:16') ? 48 : 44);
         ctx.font = `bold ${fSize1}px sans-serif`;
-        while (ctx.measureText(mainPart).width > maxTextWidth && fSize1 > 28) {
+        while (ctx.measureText(headline).width > maxTextWidth && fSize1 > 26) {
           fSize1 -= 2;
           ctx.font = `bold ${fSize1}px sans-serif`;
         }
-        ctx.fillText(mainPart, width / 2, textCenterY - 18);
 
-        let fSize2 = (aspect === '9:16') ? 40 : 38;
+        // Color for headline
+        if (isEvent) {
+          ctx.fillStyle = '#fde047'; // Bright eye-catching Gold for events
+        } else if (isHoliday) {
+          ctx.fillStyle = '#93c5fd';
+        } else if (isClosed) {
+          ctx.fillStyle = '#fca5a5';
+        } else {
+          ctx.fillStyle = '#e8dcc8';
+        }
+        ctx.fillText(headline, width / 2, textCenterY - (isEvent ? 24 : 18));
+
+        // Subline text (Hours or details)
+        let fSize2 = isEvent ? ((aspect === '9:16') ? 44 : 40) : ((aspect === '9:16') ? 48 : 44);
         ctx.font = `600 ${fSize2}px sans-serif`;
-        while (ctx.measureText(subPart).width > maxTextWidth && fSize2 > 24) {
+        while (ctx.measureText(subline).width > maxTextWidth && fSize2 > 24) {
           fSize2 -= 2;
           ctx.font = `600 ${fSize2}px sans-serif`;
         }
-        ctx.fillStyle = '#e8dcc8';
-        ctx.fillText(subPart, width / 2, textCenterY + 40);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(subline, width / 2, textCenterY + (isEvent ? 38 : 34));
       } else {
+        // Single line layout
         let fSize = (aspect === '9:16') ? 58 : 54;
         ctx.font = `bold ${fSize}px sans-serif`;
-        while (ctx.measureText(displayText).width > maxTextWidth && fSize > 28) {
+        while (ctx.measureText(headline).width > maxTextWidth && fSize > 28) {
           fSize -= 2;
           ctx.font = `bold ${fSize}px sans-serif`;
         }
-        ctx.fillText(displayText, width / 2, textCenterY + 18);
+        ctx.fillStyle = isEvent ? '#fde047' : '#ffffff';
+        ctx.fillText(headline, width / 2, textCenterY + 18);
       }
 
       // Footer Info
@@ -1007,7 +1089,7 @@ function updateSocialGraphic(isUserOverride = false) {
       const downloadBtn = document.getElementById('social-gen-download');
       if (downloadBtn) {
         downloadBtn.href = canvas.toDataURL('image/png');
-        downloadBtn.download = `naturfreunde_status_${aspect.replace(':', 'x')}.png`;
+        downloadBtn.download = `naturfreunde_${isEvent ? 'event' : 'status'}_${aspect.replace(':', 'x')}.png`;
       }
 
       let siteUrl = window.location.origin;
@@ -1017,11 +1099,17 @@ function updateSocialGraphic(isUserOverride = false) {
       if (siteUrl.includes('localhost') || siteUrl.includes('127.0.0.1')) {
         siteUrl = 'https://gaststaette-naturfreunde.de';
       }
-      const textVal = `🌲 Gaststätte Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}:\n${displayText}\n\n📍 ${correctAddress}\n🌐 Öffnungszeiten & Termine: ${siteUrl}/`;
+
+      let textVal = '';
+      if (isEvent) {
+        textVal = `🎉 EVENT-EINLADUNG 🎉\n🌲 Gaststätte Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}\n✨ ${headline.replace(/[🎉✨]/g, '').trim()} ✨\n🕒 ${subline}\n\n📍 ${correctAddress}\n🌐 Alle Infos & Tisch reservieren:\n${siteUrl}/`;
+      } else {
+        textVal = `🌲 Gaststätte Naturfreunde Schönheide 🌲\n\n📅 ${formattedDate}:\n${displayText}\n\n📍 ${correctAddress}\n🌐 Öffnungszeiten & Termine:\n${siteUrl}/`;
+      }
+
       const textArea = document.getElementById('social-gen-text');
       if (textArea) {
         textArea.value = textVal;
-        // Dynamically auto-resize height to display all text cleanly without scrollbars
         textArea.style.height = 'auto';
         textArea.style.height = (textArea.scrollHeight + 8) + 'px';
       }
