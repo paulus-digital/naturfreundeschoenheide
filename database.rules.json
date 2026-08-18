@@ -3,7 +3,11 @@
     ".read": true,
     ".write": "auth != null",
     "pendingReviews": {
-      ".write": true
+      ".read": "auth != null",
+      ".write": true,
+      "$reviewId": {
+        ".validate": "newData.hasChildren(['name', 'rating', 'comment']) && newData.child('name').isString() && newData.child('rating').isNumber()"
+      }
     }
   }
 }

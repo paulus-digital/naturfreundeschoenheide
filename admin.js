@@ -3,7 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
-const CURRENT_APP_VERSION = '1.5.0';
+const CURRENT_APP_VERSION = '1.6.0';
 
 // Global Admin State
 let authData = {
@@ -213,6 +213,9 @@ async function connectToFirebase(firebaseUrl) {
     // Show Dashboard
     showDashboard();
     showToast('✅ Erfolgreich angemeldet!', 'success');
+
+    // Synchronize pending guestbook submissions
+    await syncPendingReviews();
   } catch (error) {
     console.error(error);
     const errorEl = document.getElementById('login-error');
@@ -265,6 +268,11 @@ function switchTab(tabId) {
   });
   const sec = document.getElementById(`panel-${tabId}`);
   if (sec) sec.classList.add('active');
+
+  // If opening guestbook tab, check for any newly arrived reviews
+  if (tabId === 'guestbook') {
+    syncPendingReviews();
+  }
 }
 
 // Setup Event Listeners for controls
@@ -2113,6 +2121,55 @@ async function deleteReview(index) {
   pageData.guestbook.splice(index, 1);
   populateGuestbookTab();
   await saveReviewsData();
+}
+
+// Sync pending reviews from Firebase Realtime Database
+async function syncPendingReviews() {
+  if (!authData.token) return;
+  const firebaseUrl = (pageData.firebase && pageData.firebase.url) ? pageData.firebase.url : 'https://naturfreundeschoenheide-default-rtdb.europe-west1.firebasedatabase.app';
+  const cleanUrl = firebaseUrl.endsWith('/') ? firebaseUrl.slice(0, -1) : firebaseUrl;
+
+  try {
+    const res = await fetch(`${cleanUrl}/pendingReviews.json?auth=${authData.token}`);
+    if (!res.ok) return;
+    const pendingObj = await res.json();
+    if (!pendingObj) return;
+
+    if (!pageData.guestbook) pageData.guestbook = [];
+
+    let hasNew = false;
+    for (const [key, rev] of Object.entries(pendingObj)) {
+      if (rev && typeof rev === 'object') {
+        // Prevent duplicate import if id already exists
+        const exists = pageData.guestbook.some(item => item.id === rev.id || (item.name === rev.name && item.comment === rev.comment && item.date === rev.date));
+        if (!exists) {
+          const newEntry = {
+            id: rev.id || 'rev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            name: rev.name || 'Gast',
+            rating: parseInt(rev.rating, 10) || 5,
+            comment: rev.comment || '',
+            date: rev.date || new Date().toISOString().split('T')[0],
+            approved: rev.approved === true ? true : false
+          };
+          pageData.guestbook.push(newEntry);
+          hasNew = true;
+        }
+
+        // Delete from pending node once processed
+        await fetch(`${cleanUrl}/pendingReviews/${key}.json?auth=${authData.token}`, {
+          method: 'DELETE'
+        }).catch(() => {});
+      }
+    }
+
+    if (hasNew) {
+      await commitDataChange('Admin Panel: Neue Gästebucheinträge synchronisiert');
+      populateGuestbookTab();
+      showToast('📬 Neue Gästebucheinträge empfangen!', 'success');
+    }
+  } catch (e) {
+    console.warn('Fehler beim Synchronisieren neuer Gästebucheinträge:', e);
+  }
 }
 
 function populateSettingsTab() {

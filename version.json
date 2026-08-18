@@ -1,4 +1,4 @@
 {
-  "version": "1.5.0",
-  "notes": "Ausnahmen-Bearbeiten Button im Backend und dynamische Telefonnummer-Synchronisation im Frontend"
+  "version": "1.6.0",
+  "notes": "Automatische Gästebuch-Synchronisation aus Firebase und optimierte Sicherheitsregeln"
 }
