@@ -317,39 +317,39 @@
         </details>
 
         <!-- Week Navigation Header with Calendar Jump Widget -->
-        <div class="week-planner-navigation" style="display: flex; align-items: center; justify-content: space-between; margin: 20px 0; background: var(--bg-cream); padding: 12px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm); flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="admin-btn" onclick="navigateWeek(-1)" style="padding: 8px 14px; font-weight: 600;">← Vorherige Woche</button>
-            <button type="button" class="admin-btn" onclick="jumpToCurrentWeek()" style="padding: 8px 12px; font-weight: 600; background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark);" title="Zur aktuellen Woche springen">🏠 Diese Woche</button>
-            <button type="button" class="admin-btn" onclick="navigateWeek(1)" style="padding: 8px 14px; font-weight: 600;">Nächste Woche →</button>
+        <div class="week-planner-navigation">
+          <div class="week-planner-nav-btns">
+            <button type="button" class="admin-btn" onclick="navigateWeek(-1)">← Vorherige Woche</button>
+            <button type="button" class="admin-btn" onclick="jumpToCurrentWeek()" style="background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark);" title="Zur aktuellen Woche springen">🏠 Diese Woche</button>
+            <button type="button" class="admin-btn" onclick="navigateWeek(1)">Nächste Woche →</button>
           </div>
 
-          <span id="week-planner-title" style="font-weight: 700; font-size: 1.15rem; color: var(--primary-dark); text-align: center; min-width: 240px;">Kalenderwoche ...</span>
+          <div class="week-planner-title-wrapper">
+            <span id="week-planner-title">Kalenderwoche ...</span>
+          </div>
 
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <label for="week-planner-jump-date" style="margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); white-space: nowrap;">📅 Zu Datum springen:</label>
-            <input type="date" id="week-planner-jump-date" class="form-control" onchange="jumpToDate(this.value)" style="width: auto; padding: 6px 10px; font-size: 0.9rem; cursor: pointer; height: 36px; background: #fff;">
+          <div class="week-planner-jump-box">
+            <label for="week-planner-jump-date">📅 Zu Datum springen:</label>
+            <input type="date" id="week-planner-jump-date" class="form-control" onchange="jumpToDate(this.value)">
           </div>
         </div>
 
-        <div class="week-planner-quick-actions" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
-          <button type="button" class="admin-btn" onclick="resetWeekToStandard()" style="font-size: 0.85rem; padding: 8px 14px; background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark); font-weight: 600;">
+        <div class="week-planner-quick-actions">
+          <button type="button" class="admin-btn" onclick="resetWeekToStandard()" style="background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark); font-weight: 600;">
             🔄 Ganze Woche auf Standard zurücksetzen
           </button>
-          <button type="button" class="admin-btn" onclick="setWeekToHoliday()" style="font-size: 0.85rem; padding: 8px 14px; background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark);">
+          <button type="button" class="admin-btn" onclick="setWeekToHoliday()" style="background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark);">
             🏖️ Ganze Woche als Urlaub / Ferien setzen
           </button>
         </div>
 
         <form id="admin-week-planner-form" onsubmit="event.preventDefault();">
-          <div class="week-planner-container" id="admin-week-planner-fields" style="background: var(--bg-white); border: 1px solid var(--border-warm); border-radius: var(--radius-sm); overflow: hidden; display: flex; flex-direction: column;">
+          <div class="week-planner-container" id="admin-week-planner-fields">
             <!-- Populated dynamically via JS -->
           </div>
-          <div style="margin-top: 14px; display: flex; align-items: center; justify-content: center; background: var(--bg-cream); padding: 10px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm);">
-            <span style="font-size: 0.9rem; font-weight: 600; color: var(--success); display: inline-flex; align-items: center; gap: 6px;">
-              ⚡ Alle Änderungen in diesem Wochen-Planer werden automatisch sofort live gespeichert!
-            </span>
-          </div>
+          <button type="button" class="admin-btn admin-btn-primary" onclick="saveWeekPlanner()" style="width: 100%; margin-top: 16px; font-size: 1.05rem; padding: 14px 20px; font-weight: 700; box-shadow: var(--shadow-md);">
+            💾 Änderungen für diese Kalenderwoche speichern
+          </button>
         </form>
 
         <hr style="border: 0; border-top: 1px solid var(--border-warm); margin: 40px 0;">

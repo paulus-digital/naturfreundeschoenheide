@@ -1079,12 +1079,12 @@ function renderWeekPlanner() {
           </select>
         </div>
         <div class="week-day-col">
-          <input type="text" id="week-day-hours-${i}" class="form-control week-day-input" value="${hoursVal}" placeholder="z.B. 17:00 - 22:00 Uhr" oninput="triggerPlannerAutoSave()" onchange="triggerPlannerAutoSave()">
+          <input type="text" id="week-day-hours-${i}" class="form-control week-day-input" value="${hoursVal}" placeholder="z.B. 17:00 - 22:00 Uhr">
         </div>
       </div>
 
       <div class="week-day-row-extra">
-        <input type="text" id="week-day-label-${i}" class="form-control week-day-input" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" oninput="triggerPlannerAutoSave()" onchange="triggerPlannerAutoSave()" style="display: ${showLabelInput ? 'block' : 'none'};">
+        <input type="text" id="week-day-label-${i}" class="form-control week-day-input" value="${labelVal}" placeholder="Zusatzinfo (z.B. Feiertag)" style="display: ${showLabelInput ? 'block' : 'none'};">
       </div>
     `;
 
@@ -1098,7 +1098,7 @@ async function resetSingleDayToStandard(dateStr, index) {
     if (existingIdx !== -1) {
       pageData.specialHours.splice(existingIdx, 1);
       renderWeekPlanner();
-      populateHoursTab();
+      renderSpecialHoursAdmin();
       await commitDataChange(`Wochen-Planer: ${dateStr} auf Standard zurückgesetzt`);
       showToast('✅ Tag auf Standard zurückgesetzt!', 'success');
     }
@@ -1124,7 +1124,7 @@ async function resetWeekToStandard() {
   }
 
   renderWeekPlanner();
-  populateHoursTab();
+  renderSpecialHoursAdmin();
   showToast('💾 Setze Kalenderwoche zurück...', 'info');
   const saved = await commitDataChange('Wochen-Planer: Woche auf Standard zurückgesetzt');
   if (saved) {
@@ -1164,7 +1164,7 @@ async function setWeekToHoliday() {
   pageData.specialHours.sort((a, b) => new Date(a.date) - new Date(b.date));
 
   renderWeekPlanner();
-  populateHoursTab();
+  renderSpecialHoursAdmin();
   showToast('💾 Speichere Urlaub für Kalenderwoche...', 'info');
   const saved = await commitDataChange('Wochen-Planer: Ganze Woche als Urlaub eingetragen');
   if (saved) {
@@ -1224,19 +1224,9 @@ function handleWeekDayTypeChange(index) {
   } else {
     labelInput.style.display = 'block';
   }
-
-  triggerPlannerAutoSave();
 }
 
-let autoSavePlannerTimeout = null;
-function triggerPlannerAutoSave() {
-  if (autoSavePlannerTimeout) clearTimeout(autoSavePlannerTimeout);
-  autoSavePlannerTimeout = setTimeout(async () => {
-    await saveWeekPlanner(true);
-  }, 400);
-}
-
-async function saveWeekPlanner(silent = false) {
+async function saveWeekPlanner() {
   if (!pageData.specialHours) pageData.specialHours = [];
 
   const monday = new Date(plannerSelectedMonday);
@@ -1307,14 +1297,13 @@ async function saveWeekPlanner(silent = false) {
     updateLiveStatusUI(todayStatusIsOpen);
   }
 
-  if (!silent) {
-    showToast('💾 Speichere Wochen-Öffnungszeiten...', 'info');
-  }
+  showToast('💾 Speichere Wochen-Öffnungszeiten...', 'info');
 
-  const dataSaved = await commitDataChange('Wochen-Planer: Öffnungszeiten geändert');
+  const dataSaved = await commitDataChange('Wochen-Planer: Öffnungszeiten gespeichert');
   if (dataSaved) {
-    showToast(silent ? '💾 Automatisch gespeichert!' : '✅ Wochen-Öffnungszeiten erfolgreich gespeichert!', 'success');
-    populateHoursTab();
+    showToast('✅ Wochen-Öffnungszeiten erfolgreich gespeichert!', 'success');
+    renderWeekPlanner();
+    renderSpecialHoursAdmin();
   }
 }
 
