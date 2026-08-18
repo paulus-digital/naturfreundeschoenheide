@@ -3,7 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
-const CURRENT_APP_VERSION = '1.6.0';
+const CURRENT_APP_VERSION = '1.7.0';
 
 // Global Admin State
 let authData = {

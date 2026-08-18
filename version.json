@@ -1,4 +1,4 @@
 {
-  "version": "1.6.0",
-  "notes": "Automatische Gästebuch-Synchronisation aus Firebase und optimierte Sicherheitsregeln"
+  "version": "1.7.0",
+  "notes": "Bereinigung der Wochenplaner-Buttons im Backend"
 }
