@@ -3,7 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
-const CURRENT_APP_VERSION = '1.9.0';
+const CURRENT_APP_VERSION = '2.0.0';
 
 // Global Admin State
 let authData = {
@@ -1608,68 +1608,181 @@ async function deleteSpecialHoursByDate(dateStr) {
   deleteSpecialHoursRange(dateStr, dateStr);
 }
 
-function populateHoursTab() {
-  // Render weekly planner sheet
-  renderWeekPlanner();
+let currentSpecialHoursFilter = 'all';
+let specialHoursSearchQuery = '';
 
-  // 2. Special/Deviating hours list (filter out past dates)
+function setSpecialHoursFilter(filter) {
+  currentSpecialHoursFilter = filter;
+  renderSpecialHoursAdmin();
+}
+
+function handleSpecialHoursSearch(val) {
+  specialHoursSearchQuery = (val || '').toLowerCase().trim();
+  renderSpecialHoursAdmin();
+}
+
+function populateHoursTab() {
+  renderWeekPlanner();
+  renderSpecialHoursAdmin();
+}
+
+function renderSpecialHoursAdmin() {
   const specialList = document.getElementById('admin-special-hours-list');
   const toolbar = document.getElementById('admin-special-hours-toolbar');
+  const filterChipsContainer = document.getElementById('special-hours-filter-chips');
 
-  if (specialList) {
-    specialList.innerHTML = '';
+  if (!specialList) return;
+  specialList.innerHTML = '';
 
-    if (!pageData.specialHours) pageData.specialHours = [];
+  if (!pageData.specialHours) pageData.specialHours = [];
 
-    // Automatically remove past special hours so stored list does not grow infinitely
-    pageData.specialHours = pageData.specialHours.filter(item => !isDatePast(item.date));
+  // Filter out past dates
+  pageData.specialHours = pageData.specialHours.filter(item => !isDatePast(item.date));
+  pageData.specialHours.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Sort special hours chronologically
-    pageData.specialHours.sort((a, b) => new Date(a.date) - new Date(b.date));
+  // Group consecutive items together
+  const allGroups = groupSpecialHours(pageData.specialHours);
 
-    if (pageData.specialHours.length === 0) {
-      if (toolbar) toolbar.style.display = 'none';
-      specialList.innerHTML = '<p class="text-muted" style="padding: 15px;">Keine anstehenden Termine oder Ausnahmen geplant.</p>';
-      return;
+  // Compute category counts
+  let countAll = allGroups.length;
+  let countUrlaub = 0;
+  let countEvents = 0;
+  let countClosed = 0;
+
+  allGroups.forEach(g => {
+    const lLower = (g.label || '').toLowerCase();
+    const isEvent = g.type === 'event' || lLower.includes('event') || lLower.includes('feier') || lLower.includes('buffet') || lLower.includes('schlachtfest');
+
+    if (g.isUrlaub) countUrlaub++;
+    else if (isEvent) countEvents++;
+    else if (g.isClosed) countClosed++;
+  });
+
+  // Render filter chips
+  if (filterChipsContainer) {
+    filterChipsContainer.innerHTML = `
+      <button type="button" class="special-hours-filter-chip ${currentSpecialHoursFilter === 'all' ? 'active' : ''}" onclick="setSpecialHoursFilter('all')">
+        📋 Alle (${countAll})
+      </button>
+      <button type="button" class="special-hours-filter-chip ${currentSpecialHoursFilter === 'urlaub' ? 'active' : ''}" onclick="setSpecialHoursFilter('urlaub')">
+        🏖️ Urlaub (${countUrlaub})
+      </button>
+      <button type="button" class="special-hours-filter-chip ${currentSpecialHoursFilter === 'event' ? 'active' : ''}" onclick="setSpecialHoursFilter('event')">
+        🎉 Events (${countEvents})
+      </button>
+      <button type="button" class="special-hours-filter-chip ${currentSpecialHoursFilter === 'closed' ? 'active' : ''}" onclick="setSpecialHoursFilter('closed')">
+        🚪 Ruhetage (${countClosed})
+      </button>
+    `;
+  }
+
+  // Filter groups
+  let filteredGroups = allGroups.filter(g => {
+    const lLower = (g.label || '').toLowerCase();
+    const isEvent = g.type === 'event' || lLower.includes('event') || lLower.includes('feier') || lLower.includes('buffet') || lLower.includes('schlachtfest');
+
+    if (currentSpecialHoursFilter === 'urlaub' && !g.isUrlaub) return false;
+    if (currentSpecialHoursFilter === 'event' && !isEvent) return false;
+    if (currentSpecialHoursFilter === 'closed' && !g.isClosed) return false;
+
+    if (specialHoursSearchQuery) {
+      const searchBlob = `${g.startDate} ${g.endDate} ${g.hours} ${g.label || ''}`.toLowerCase();
+      if (!searchBlob.includes(specialHoursSearchQuery)) return false;
     }
 
-    if (toolbar) toolbar.style.display = 'flex';
+    return true;
+  });
 
-    // Group consecutive items together (e.g. Urlaub period or consecutive closed days)
-    const groupedList = groupSpecialHours(pageData.specialHours);
+  if (filteredGroups.length === 0) {
+    if (toolbar) toolbar.style.display = 'none';
+    specialList.innerHTML = `
+      <div class="card" style="text-align: center; padding: 25px; color: var(--text-muted);">
+        <p style="margin: 0; font-size: 0.95rem;">
+          ${allGroups.length === 0 ? '📅 Noch keine Ausnahmen oder Urlaube für die Zukunft eingetragen.' : '🔍 Keine Einträge für diesen Filter gefunden.'}
+        </p>
+      </div>
+    `;
+    return;
+  }
 
-    groupedList.forEach(group => {
+  if (toolbar) toolbar.style.display = 'flex';
+
+  // Group by Month: "YYYY-MM"
+  const monthGroups = {};
+  filteredGroups.forEach(group => {
+    const monthKey = group.startDate.substring(0, 7);
+    if (!monthGroups[monthKey]) monthGroups[monthKey] = [];
+    monthGroups[monthKey].push(group);
+  });
+
+  const MONTH_NAMES = [
+    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+  ];
+
+  // Render month by month
+  Object.keys(monthGroups).sort().forEach(monthKey => {
+    const [yearStr, monthNumStr] = monthKey.split('-');
+    const monthName = MONTH_NAMES[parseInt(monthNumStr, 10) - 1];
+    const itemsInMonth = monthGroups[monthKey];
+
+    // Month Header Banner
+    const monthHeader = document.createElement('div');
+    monthHeader.className = 'special-hours-month-header';
+    monthHeader.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span>📅 ${monthName} ${yearStr}</span>
+      </div>
+      <span class="special-hours-month-badge">${itemsInMonth.length} ${itemsInMonth.length === 1 ? 'Eintrag' : 'Einträge'}</span>
+    `;
+    specialList.appendChild(monthHeader);
+
+    // Render items in this month
+    itemsInMonth.forEach(group => {
       const row = document.createElement('div');
       row.className = 'admin-item-row';
+      row.style.cssText = 'background: #fff; padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm); display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; box-shadow: var(--shadow-sm);';
 
       const startParts = group.startDate.split('-');
       const endParts = group.endDate.split('-');
       const dStart = new Date(parseInt(startParts[0], 10), parseInt(startParts[1], 10) - 1, parseInt(startParts[2], 10));
       const dEnd = new Date(parseInt(endParts[0], 10), parseInt(endParts[1], 10) - 1, parseInt(endParts[2], 10));
 
-      const startStr = dStart.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+      const startStr = dStart.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
       const endStr = dEnd.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
 
-      let dateDisplay = startStr;
-      let confirmPeriodLabel = startStr;
+      let dateDisplay = `${startStr}, ${dStart.toLocaleDateString('de-DE', { year: 'numeric' })}`;
+      let confirmPeriodLabel = dateDisplay;
       if (group.count > 1) {
         dateDisplay = `<span>${startStr} – ${endStr}</span> <span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 2px 7px; border-radius: 12px; background: rgba(0,0,0,0.06); color: var(--text-dark); margin-left: 4px; font-weight: 600;">${group.count} Tage</span>`;
-        confirmPeriodLabel = `${dStart.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })} – ${dEnd.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}, ${group.count} Tage`;
+        confirmPeriodLabel = `${startStr} – ${endStr}, ${group.count} Tage`;
       }
 
-      const badgeStyle = group.isUrlaub
-        ? 'background: rgba(43, 140, 204, 0.15); color: #1e70a2; border: 1px solid rgba(43, 140, 204, 0.3);'
-        : group.isClosed 
-          ? 'background: rgba(217, 83, 79, 0.15); color: #d9534f; border: 1px solid rgba(217,83,79,0.3);' 
-          : 'background: rgba(197, 159, 45, 0.15); color: var(--primary-dark); border: 1px solid rgba(197, 159, 45, 0.3);';
+      const lLower = (group.label || '').toLowerCase();
+      const isEvent = group.type === 'event' || lLower.includes('event') || lLower.includes('feier') || lLower.includes('buffet') || lLower.includes('schlachtfest');
+
+      let icon = '🕒';
+      let badgeStyle = 'background: rgba(197, 159, 45, 0.15); color: var(--primary-dark); border: 1px solid rgba(197, 159, 45, 0.3);';
+
+      if (group.isUrlaub) {
+        icon = '🏖️';
+        badgeStyle = 'background: rgba(43, 140, 204, 0.15); color: #1e70a2; border: 1px solid rgba(43, 140, 204, 0.3);';
+      } else if (isEvent) {
+        icon = '🎉';
+        badgeStyle = 'background: rgba(156, 39, 176, 0.15); color: #7b1fa2; border: 1px solid rgba(156, 39, 176, 0.3);';
+      } else if (group.isClosed) {
+        icon = '🚪';
+        badgeStyle = 'background: rgba(217, 83, 79, 0.15); color: #d9534f; border: 1px solid rgba(217,83,79,0.3);';
+      }
 
       const datesJoined = group.dates.join(',');
 
       row.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
           <input type="checkbox" class="special-hour-checkbox" data-dates="${datesJoined}" data-count="${group.count}" data-is-urlaub="${group.isUrlaub ? 'true' : 'false'}" onchange="updateSpecialHoursSelectionCount()" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; margin: 0;">
+          <div style="font-size: 1.25rem; flex-shrink: 0;">${icon}</div>
           <div style="min-width: 0; flex: 1;">
-            <div style="font-size: 0.92rem; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; flex-wrap: wrap; gap: 4px; line-height: 1.3;">
+            <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; flex-wrap: wrap; gap: 4px; line-height: 1.3;">
               ${dateDisplay}
             </div>
             <div style="margin-top: 3px; font-size: 0.88rem; color: var(--text-dark); display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
@@ -1677,16 +1790,17 @@ function populateHoursTab() {
               ${group.label ? `<span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 1px 6px; border-radius: 4px; ${badgeStyle}">${escapeHTML(group.label)}</span>` : ''}
             </div>
           </div>
+        </div>
         <div style="display: flex; gap: 6px; flex-shrink: 0;">
-          <button type="button" class="admin-btn" style="background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark); padding: 6px 10px; font-size: 0.82rem; white-space: nowrap; height: auto; font-weight: 600;" onclick="editSpecialHoursItem('${group.startDate}')" title="Diesen Tag / Zeitraum im Wochenplaner bearbeiten">✏️ Bearbeiten</button>
-          <button type="button" class="admin-btn admin-btn-danger" style="padding: 6px 10px; font-size: 0.82rem; white-space: nowrap; height: auto;" onclick="deleteSpecialHoursRange('${datesJoined}', '${escapeHTML(confirmPeriodLabel)}')">Löschen</button>
+          <button type="button" class="admin-btn" style="background: #fff; border: 1px solid var(--border-warm); color: var(--primary-dark); padding: 6px 10px; font-size: 0.82rem; white-space: nowrap; height: auto; font-weight: 600;" onclick="editSpecialHoursItem('${group.startDate}')" title="Diesen Zeitraum im Wochenplaner bearbeiten">✏️ Bearbeiten</button>
+          <button type="button" class="admin-btn admin-btn-danger" style="padding: 6px 10px; font-size: 0.82rem; white-space: nowrap; height: auto;" onclick="deleteSpecialHoursRange('${datesJoined}', '${escapeHTML(confirmPeriodLabel)}')">🗑️ Löschen</button>
         </div>
       `;
       specialList.appendChild(row);
     });
+  });
 
-    updateSpecialHoursSelectionCount();
-  }
+  updateSpecialHoursSelectionCount();
 }
 
 function editSpecialHoursItem(startDate) {

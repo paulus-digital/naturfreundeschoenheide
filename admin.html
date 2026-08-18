@@ -347,7 +347,25 @@
         <hr style="border: 0; border-top: 1px solid var(--border-warm); margin: 40px 0;">
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
-          <h3 style="margin: 0; font-size: 1.25rem; color: var(--primary-dark);">Geplante Ausnahmen &amp; Urlaub</h3>
+          <div>
+            <h3 style="margin: 0; font-size: 1.25rem; color: var(--primary-dark);">Geplante Ausnahmen, Urlaub &amp; Events</h3>
+            <p class="text-muted" style="margin: 4px 0 0; font-size: 0.88rem;">Übersicht aller manuell geänderten Tage und Zeiträume nach Monaten gegliedert.</p>
+          </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="special-hours-controls-wrapper" style="margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+            <!-- Category Filter Chips -->
+            <div class="special-hours-filter-chips" id="special-hours-filter-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <!-- Generated dynamically by JS -->
+            </div>
+
+            <!-- Search Input -->
+            <div style="position: relative; flex: 1 1 200px; max-width: 320px;">
+              <input type="search" id="special-hours-search" class="form-control" placeholder="🔍 Nach Datum, Urlaub, Event suchen..." oninput="handleSpecialHoursSearch(this.value)" style="padding: 7px 12px; font-size: 0.88rem; width: 100%;">
+            </div>
+          </div>
         </div>
 
         <!-- Multi-select / Batch Toolbar -->

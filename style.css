@@ -2047,6 +2047,58 @@ input:checked + .slider:before {
   }
 }
 
+/* Special Hours Overview Filters & Month Grouping */
+.special-hours-filter-chip {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 20px;
+  border: 1px solid var(--border-warm);
+  background: #fff;
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.special-hours-filter-chip:hover {
+  background: var(--bg-cream);
+  border-color: var(--primary-dark);
+}
+
+.special-hours-filter-chip.active {
+  background: var(--primary-dark);
+  color: #fff;
+  border-color: var(--primary-dark);
+}
+
+.special-hours-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f4ece2;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--primary-dark);
+  margin-top: 14px;
+  margin-bottom: 6px;
+  border-left: 4px solid var(--primary);
+}
+
+.special-hours-month-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(27, 61, 47, 0.12);
+  color: var(--primary-dark);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
 @media (max-width: 768px) {
   :root {
     --header-height: 64px;
