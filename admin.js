@@ -3,7 +3,7 @@
 // ============================================
 const GITHUB_REPO = 'paulus-digital/naturfreundeschoenheide';
 const GITHUB_BRANCH = 'data-sync';
-const CURRENT_APP_VERSION = '1.8.0';
+const CURRENT_APP_VERSION = '1.9.0';
 
 // Global Admin State
 let authData = {
@@ -276,7 +276,21 @@ function switchTab(tabId) {
   const activeBtn = Array.from(document.querySelectorAll('.admin-tab-btn')).find(btn => 
     btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabId)
   );
-  if (activeBtn) activeBtn.classList.add('active');
+  if (activeBtn) {
+    activeBtn.classList.add('active');
+    
+    // Smoothly center the clicked tab in mobile scrollable tab bar
+    const sidebar = document.querySelector('.admin-sidebar');
+    if (sidebar && sidebar.scrollWidth > sidebar.clientWidth) {
+      const scrollLeftTarget = activeBtn.offsetLeft - (sidebar.clientWidth / 2) + (activeBtn.clientWidth / 2);
+      sidebar.scrollTo({
+        left: Math.max(0, scrollLeftTarget),
+        behavior: 'smooth'
+      });
+    } else {
+      activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }
 
   // Update Sections
   document.querySelectorAll('.panel-section').forEach(sec => {
