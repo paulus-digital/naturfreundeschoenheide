@@ -1087,7 +1087,6 @@ function navigateCalendar(direction) {
 }
 
 let currentGalleryIndex = 0;
-let galleryAutoPlayTimer = null;
 
 function renderGallery() {
   const container = document.getElementById('gallery-container');
@@ -1133,58 +1132,20 @@ function renderGallery() {
       thumb.onclick = (e) => {
         e.stopPropagation();
         goToGallerySlide(idx);
-        restartGalleryAutoPlay();
       };
       thumb.innerHTML = `<img src="${img.src}" alt="${img.alt || 'Miniatur'}" onerror="this.src='logo.png';">`;
       thumbStrip.appendChild(thumb);
     }
   });
-
-  // Start 5-second infinite autoplay timer
-  startGalleryAutoPlay();
-
-  // Pause autoplay on mouse hover or touch interaction
-  const wrapper = document.getElementById('gallery-carousel-wrapper') || container;
-  wrapper.onmouseenter = () => pauseGalleryAutoPlay();
-  wrapper.onmouseleave = () => startGalleryAutoPlay();
-  wrapper.ontouchstart = () => pauseGalleryAutoPlay();
-  wrapper.ontouchend = () => {
-    setTimeout(startGalleryAutoPlay, 3500);
-  };
 }
 
-function startGalleryAutoPlay() {
-  if (galleryAutoPlayTimer) clearInterval(galleryAutoPlayTimer);
-  if (!appData.gallery || appData.gallery.length <= 1) return;
-
-  galleryAutoPlayTimer = setInterval(() => {
-    scrollGallery(1, false);
-  }, 5000);
-}
-
-function pauseGalleryAutoPlay() {
-  if (galleryAutoPlayTimer) {
-    clearInterval(galleryAutoPlayTimer);
-    galleryAutoPlayTimer = null;
-  }
-}
-
-function restartGalleryAutoPlay() {
-  pauseGalleryAutoPlay();
-  startGalleryAutoPlay();
-}
-
-function scrollGallery(direction, manual = true) {
+function scrollGallery(direction) {
   if (!appData.gallery || appData.gallery.length === 0) return;
 
   const total = appData.gallery.length;
   // Seamless infinite wrap-around
   currentGalleryIndex = (currentGalleryIndex + direction + total) % total;
   goToGallerySlide(currentGalleryIndex);
-
-  if (manual) {
-    restartGalleryAutoPlay();
-  }
 }
 
 function goToGallerySlide(index) {
@@ -1202,11 +1163,18 @@ function goToGallerySlide(index) {
     });
   }
 
-  // Update thumbnail active highlight and scroll thumbnail into view
+  // Update thumbnail active highlight and smoothly center thumbnail within thumbStrip WITHOUT scrolling the page
+  const thumbStrip = document.getElementById('gallery-thumbnails-strip');
   document.querySelectorAll('.gallery-thumb-item').forEach((th, idx) => {
     if (idx === index) {
       th.classList.add('active');
-      th.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      if (thumbStrip && thumbStrip.scrollWidth > thumbStrip.clientWidth) {
+        const thumbOffset = th.offsetLeft - thumbStrip.offsetLeft - (thumbStrip.clientWidth / 2) + (th.clientWidth / 2);
+        thumbStrip.scrollTo({
+          left: Math.max(0, thumbOffset),
+          behavior: 'smooth'
+        });
+      }
     } else {
       th.classList.remove('active');
     }
@@ -1214,7 +1182,7 @@ function goToGallerySlide(index) {
 }
 
 function scrollCarousel(direction) {
-  scrollGallery(direction, true);
+  scrollGallery(direction);
 }
 
 function renderGuestbook() {
