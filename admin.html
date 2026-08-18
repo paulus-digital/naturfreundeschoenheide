@@ -9,7 +9,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verwaltung – Gaststätte Naturfreunde</title>
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
   <link rel="icon" type="image/svg+xml" href="logo.svg">
 </head>
 <body class="admin-body">
@@ -118,31 +118,22 @@
             <span class="easy-help-toggle-icon">▼</span>
           </summary>
           <div class="easy-help-content">
-            Hier siehst und änderst du mit 1 Klick den Live-Status der Gaststätte oder erstellst ein WhatsApp-Statusbild für deine Gäste.
+            Hier kannst du wichtige Schnell-Aktionen durchführen, den Live-Banner der Website steuern oder ein WhatsApp-Statusbild für deine Gäste erstellen. Deine regulären &amp; speziellen Öffnungszeiten pflegst du im Reiter 'Öffnungszeiten'.
           </div>
         </details>
 
         <!-- Quick Action Cards Grid -->
-        <div class="easy-quick-grid">
-          <div class="easy-quick-card" onclick="toggleQuickStatus()">
-            <div class="quick-card-icon">🟢</div>
-            <div class="quick-card-content">
-              <span class="quick-card-title">Website Status ändern</span>
-              <span class="quick-card-desc">1-Klick Umschalten für Gäste</span>
-            </div>
-            <div class="quick-card-status-badge" id="quick-status-badge">GEÖFFNET</div>
-          </div>
-
-          <div class="easy-quick-card" onclick="switchTab('hours')">
+        <div class="easy-quick-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px;">
+          <div class="easy-quick-card" onclick="switchTab('hours')" style="cursor: pointer;">
             <div class="quick-card-icon">📅</div>
             <div class="quick-card-content">
-              <span class="quick-card-title">Ruhetag / Sonderzeit</span>
-              <span class="quick-card-desc">Feiertag oder Event eintragen</span>
+              <span class="quick-card-title">Wochen-Öffnungszeiten</span>
+              <span class="quick-card-desc">Zeiten, Ruhetage &amp; Events planen</span>
             </div>
             <div class="quick-card-btn">Öffnen &rarr;</div>
           </div>
 
-          <div class="easy-quick-card" onclick="scrollToSocialGen()">
+          <div class="easy-quick-card" onclick="scrollToSocialGen()" style="cursor: pointer;">
             <div class="quick-card-icon">📱</div>
             <div class="quick-card-content">
               <span class="quick-card-title">WhatsApp Grafik</span>
@@ -152,47 +143,35 @@
           </div>
         </div>
 
-        <div class="card" style="margin-bottom: 24px;">
-          <h3 style="margin-bottom: 16px; color: var(--primary-dark);">Live-Status Gaststätte (Manuell)</h3>
-          <div class="form-group">
-            <div class="switch-group" style="cursor: pointer; user-select: none; margin-bottom: 16px;" onclick="toggleQuickStatus()" title="Klicken, um Status umzuschalten">
-              <span class="switch-label">Live-Status Gaststätte:</span>
-              <label class="switch" style="pointer-events: none;">
-                <input type="checkbox" id="admin-status-toggle">
+        <!-- Live Banner Card -->
+        <div class="card" style="margin-bottom: 30px; border-left: 4px solid var(--accent); background: var(--bg-white);">
+          <h3 style="margin-bottom: 10px; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; font-size: 1.25rem;">
+            <span>📢</span> Live-Banner auf der Website
+          </h3>
+          <p class="text-muted" style="margin-bottom: 16px; font-size: 0.92rem; line-height: 1.5;">
+            Blende oben auf der Gäste-Website einen auffälligen Hinweis ein (z.B. für Urlaub, frische Schlachtschüssel, besondere Tages-Angebote oder kurzfristige Mitteilungen).
+          </p>
+
+          <div class="form-group" style="margin-bottom: 14px;">
+            <div class="switch-group" style="cursor: pointer; user-select: none; margin-bottom: 16px; background: var(--bg-cream); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm); display: flex; align-items: center; gap: 14px;" onclick="toggleBannerSwitch(event)">
+              <label class="switch" style="pointer-events: none; margin: 0;">
+                <input type="checkbox" id="admin-banner-toggle">
                 <span class="slider"></span>
               </label>
-              <span id="admin-status-label" style="font-weight: 700; font-size: 1.1rem; min-width: 120px;">Geöffnet</span>
+              <span style="font-weight: 700; font-size: 1rem;" id="admin-banner-status-label">Live-Banner aktiviert</span>
             </div>
 
-            <div id="admin-status-hours-container" style="background: var(--bg-white); padding: 14px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm);">
-              <label for="admin-status-today-hours" style="font-weight: 600; font-size: 0.95rem; margin-bottom: 8px; display: block; color: var(--primary-dark);">
-                🕒 Heutige Öffnungszeit für Gäste &amp; Website:
-              </label>
-              <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <input type="text" id="admin-status-today-hours" class="form-control" placeholder="z.B. 16:00 - 22:00 Uhr" onchange="saveTodayLiveHours(this.value)" style="font-weight: 600; flex: 1; min-width: 200px; max-width: 320px;">
-                <button type="button" class="admin-btn admin-btn-primary" onclick="saveTodayLiveHours(document.getElementById('admin-status-today-hours').value)" style="padding: 10px 18px; font-size: 0.9rem;">
-                  💾 Zeit für heute speichern
-                </button>
-              </div>
-              <small class="text-muted" style="display: block; margin-top: 6px;">
-                Wird direkt auf der Website (Live-Banner, Öffnungszeiten-Leiste) und im Wochen-Planer eingetragen.
-              </small>
-            </div>
-          </div>
-        </div>
-
-        <h3 style="margin-bottom: 16px;">Live Banner Benachrichtigung</h3>
-        <div class="form-group" style="margin-bottom: 16px;">
-          <div class="switch-group" style="padding: 12px; margin-bottom: 12px; background: none; border: none;">
-            <label class="switch">
-              <input type="checkbox" id="admin-banner-toggle">
-              <span class="slider"></span>
+            <label for="admin-banner-text" style="font-weight: 600; font-size: 0.95rem; margin-bottom: 8px; display: block; color: var(--primary-dark);">
+              Meldungstext für den Live-Banner:
             </label>
-            <span>Banner auf Website einblenden</span>
+            <textarea id="admin-banner-text" class="form-control" placeholder="z.B. 🥩 Heute frische Schlachtschüssel ab 11:30 Uhr! Oder: 🏖️ Betriebsferien vom 01.08. bis 14.08." style="min-height: 85px; resize: vertical; margin-bottom: 14px; font-size: 16px !important; line-height: 1.5;"></textarea>
+            
+            <button type="button" class="admin-btn admin-btn-primary" onclick="saveBannerOnly()" style="width: 100%; padding: 14px 20px; font-size: 1rem; font-weight: 700; box-shadow: var(--shadow-md);">
+              💾 Live-Banner speichern &amp; sofort anzeigen
+            </button>
           </div>
-          <label for="admin-banner-text">Meldungstext</label>
-          <textarea id="admin-banner-text" class="form-control" placeholder="z.B. Urlaub vom 01.08. bis 14.08."></textarea>
         </div>
+
         <hr style="border: 0; border-top: 1px solid var(--border-warm); margin: 35px 0;">
 
         <!-- SOCIAL MEDIA GRAPHIC & SHARE TEXT GENERATOR -->
@@ -533,6 +512,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=10"></script>
+  <script src="admin.js?v=11"></script>
 </body>
 </html>

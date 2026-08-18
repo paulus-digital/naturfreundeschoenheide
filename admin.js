@@ -475,23 +475,49 @@ function updateLiveStatusUI(isOpen) {
   }
 }
 
-function populateGeneralTab() {
-  updateLiveStatusUI(pageData.openStatus);
+function updateBannerStatusLabel(isActive) {
+  const label = document.getElementById('admin-banner-status-label');
+  if (label) {
+    label.textContent = isActive ? '🟢 Live-Banner ist AKTIV & SICHTBAR' : '⚪ Live-Banner ist AUS (Ausgeblendet)';
+    label.style.color = isActive ? '#2e7d32' : 'var(--text-muted)';
+  }
+}
 
+function toggleBannerSwitch(event) {
+  const toggle = document.getElementById('admin-banner-toggle');
+  if (toggle) {
+    toggle.checked = !toggle.checked;
+    updateBannerStatusLabel(toggle.checked);
+  }
+}
+
+async function saveBannerOnly() {
   const bannerToggle = document.getElementById('admin-banner-toggle');
-  if (bannerToggle) bannerToggle.checked = pageData.banner ? Boolean(pageData.banner.visible) : false;
+  const bannerText = document.getElementById('admin-banner-text');
+
+  if (!pageData.banner) pageData.banner = {};
+  pageData.banner.visible = bannerToggle ? Boolean(bannerToggle.checked) : false;
+  pageData.banner.text = bannerText ? bannerText.value.trim() : '';
+
+  showToast('💾 Speichere Live-Banner...', 'info');
+  const saved = await commitDataChange('Admin Panel: Live-Banner geändert');
+  if (saved) {
+    showToast(pageData.banner.visible ? '✅ Live-Banner erfolgreich aktiviert & gespeichert!' : '✅ Live-Banner deaktiviert & gespeichert!', 'success');
+    updateBannerStatusLabel(pageData.banner.visible);
+  }
+}
+
+function populateGeneralTab() {
+  const bannerToggle = document.getElementById('admin-banner-toggle');
+  const isVisible = pageData.banner ? Boolean(pageData.banner.visible) : false;
+  if (bannerToggle) bannerToggle.checked = isVisible;
+  updateBannerStatusLabel(isVisible);
 
   const bannerText = document.getElementById('admin-banner-text');
-  if (bannerText) bannerText.value = pageData.banner ? pageData.banner.text : '';
+  if (bannerText) bannerText.value = pageData.banner ? (pageData.banner.text || '') : '';
 
   // Initialize Social Media Generator canvas & preview
   initSocialGenerator();
-}
-
-async function toggleQuickStatus() {
-  const currentStatus = String(pageData.openStatus) === 'true' || pageData.openStatus === true;
-  const desiredStatus = !currentStatus;
-  await toggleLiveStatus(desiredStatus);
 }
 
 function scrollToSocialGen() {
