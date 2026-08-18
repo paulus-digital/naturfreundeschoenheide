@@ -9,7 +9,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verwaltung – Gaststätte Naturfreunde</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=10">
   <link rel="icon" type="image/svg+xml" href="logo.svg">
 </head>
 <body class="admin-body">
@@ -359,30 +359,17 @@
         </div>
 
         <!-- Multi-select / Batch Toolbar -->
-        <div id="admin-special-hours-toolbar" class="special-hours-batch-toolbar" style="display: none; justify-content: space-between; align-items: center; background: var(--bg-cream); padding: 10px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm); margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem;">
-            <span id="selected-count-badge" style="background: var(--primary-dark); color: #fff; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem;">0 ausgewählt</span>
+        <div id="admin-special-hours-toolbar" class="special-hours-batch-toolbar" style="display: none; justify-content: space-between; align-items: center; background: var(--bg-cream); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-warm); margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; flex-wrap: wrap;">
+            <span id="selected-count-badge" style="background: var(--primary-dark); color: #fff; padding: 3px 8px; border-radius: 12px; font-size: 0.78rem;">0 ausgewählt</span>
             <button type="button" class="admin-btn" style="padding: 4px 10px; font-size: 0.8rem; background: #fff; border: 1px solid var(--border-warm);" onclick="selectAllSpecialHours(true)">Alle auswählen</button>
             <button type="button" class="admin-btn" style="padding: 4px 10px; font-size: 0.8rem; background: #fff; border: 1px solid var(--border-warm);" onclick="selectAllSpecialHours(false)">Auswahl aufheben</button>
           </div>
-          <button type="button" class="admin-btn admin-btn-danger" style="padding: 6px 14px; font-size: 0.85rem;" onclick="deleteSelectedSpecialHours()">🗑️ Ausgewählte löschen</button>
+          <button type="button" class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.82rem;" onclick="deleteSelectedSpecialHours()">🗑️ Ausgewählte löschen</button>
         </div>
 
-        <div class="special-hours-table-wrapper" style="overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius-sm); border: 1px solid var(--border-warm); background: var(--bg-white);">
-          <table class="admin-table special-hours-table" style="margin-bottom: 0; width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: var(--bg-cream); border-bottom: 1px solid var(--border-warm);">
-                <th style="width: 40px; text-align: center; padding: 10px 8px;"><input type="checkbox" id="select-all-special-checkbox" onchange="toggleSelectAllSpecialHours(this.checked)" title="Alle auswählen"></th>
-                <th style="padding: 10px 12px; font-size: 0.9rem;">Datum / Zeitraum</th>
-                <th style="padding: 10px 12px; font-size: 0.9rem;">Status / Zeiten</th>
-                <th style="padding: 10px 12px; font-size: 0.9rem;">Hinweis</th>
-                <th style="padding: 10px 12px; font-size: 0.9rem; text-align: right;">Aktion</th>
-              </tr>
-            </thead>
-            <tbody id="admin-special-hours-list">
-              <!-- Populated dynamically via JS -->
-            </tbody>
-          </table>
+        <div id="admin-special-hours-list" class="special-hours-admin-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Populated dynamically via JS -->
         </div>
       </section>
 
@@ -546,6 +533,6 @@
     </main>
   </div>
 
-  <script src="admin.js?v=9"></script>
+  <script src="admin.js?v=10"></script>
 </body>
 </html>

@@ -1554,7 +1554,7 @@ function populateHoursTab() {
       let dateDisplay = startStr;
       let confirmPeriodLabel = startStr;
       if (group.count > 1) {
-        dateDisplay = `<span>${startStr} – ${endStr}</span> <span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 2px 7px; border-radius: 12px; background: rgba(0,0,0,0.06); color: var(--text-dark); margin-left: 6px; font-weight: 600;">${group.count} Tage</span>`;
+        dateDisplay = `<span>${startStr} – ${endStr}</span> <span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 2px 7px; border-radius: 12px; background: rgba(0,0,0,0.06); color: var(--text-dark); margin-left: 4px; font-weight: 600;">${group.count} Tage</span>`;
         confirmPeriodLabel = `${dStart.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })} – ${dEnd.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}, ${group.count} Tage`;
       }
 
@@ -1567,17 +1567,19 @@ function populateHoursTab() {
       const datesJoined = group.dates.join(',');
 
       row.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto;">
-          <input type="checkbox" class="special-hour-checkbox" data-dates="${datesJoined}" data-count="${group.count}" data-is-urlaub="${group.isUrlaub ? 'true' : 'false'}" onchange="updateSpecialHoursSelectionCount()" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
-          <div class="admin-item-details">
-            <span class="admin-item-date" style="font-size:0.9rem; font-weight:700; display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px;">${dateDisplay}</span>
-            <span class="admin-item-label">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+          <input type="checkbox" class="special-hour-checkbox" data-dates="${datesJoined}" data-count="${group.count}" data-is-urlaub="${group.isUrlaub ? 'true' : 'false'}" onchange="updateSpecialHoursSelectionCount()" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; margin: 0;">
+          <div style="min-width: 0; flex: 1;">
+            <div style="font-size: 0.92rem; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; flex-wrap: wrap; gap: 4px; line-height: 1.3;">
+              ${dateDisplay}
+            </div>
+            <div style="margin-top: 3px; font-size: 0.88rem; color: var(--text-dark); display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
               <strong>${escapeHTML(group.hours)}</strong>
-              ${group.label ? `<span class="special-hours-badge-inline" style="margin-left: 6px; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; ${badgeStyle}">${escapeHTML(group.label)}</span>` : ''}
-            </span>
+              ${group.label ? `<span class="special-hours-badge-inline" style="font-size: 0.75rem; padding: 1px 6px; border-radius: 4px; ${badgeStyle}">${escapeHTML(group.label)}</span>` : ''}
+            </div>
           </div>
         </div>
-        <button class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.85rem; flex-shrink: 0;" onclick="deleteSpecialHoursRange('${datesJoined}', '${escapeHTML(confirmPeriodLabel)}')">Löschen</button>
+        <button type="button" class="admin-btn admin-btn-danger" style="padding: 6px 12px; font-size: 0.82rem; flex-shrink: 0; white-space: nowrap; height: auto;" onclick="deleteSpecialHoursRange('${datesJoined}', '${escapeHTML(confirmPeriodLabel)}')">Löschen</button>
       `;
       specialList.appendChild(row);
     });

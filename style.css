@@ -3467,14 +3467,13 @@ input:checked + .slider:before {
     flex: 1 1 100%;
   }
 
-  /* Buttons & Action Links full-width on Mobile */
-  .admin-btn, 
+  /* Social Gen action buttons */
   .social-gen-actions button, 
   .social-gen-actions a {
     width: 100% !important;
     justify-content: center !important;
-    min-height: 48px !important;
-    font-size: 1rem !important;
+    min-height: 44px !important;
+    font-size: 0.95rem !important;
     box-sizing: border-box !important;
   }
 
@@ -3483,50 +3482,65 @@ input:checked + .slider:before {
     gap: 10px !important;
   }
 
-  /* Stack list rows in admin list on small screens */
+  /* Admin list rows on mobile: clean horizontal card */
   .admin-item-row {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 10px;
-    padding: 16px;
-    width: 100%;
-    box-sizing: border-box;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: #fff !important;
+    border: 1px solid var(--border-warm) !important;
+    border-radius: var(--radius-sm) !important;
+    margin-bottom: 8px !important;
   }
 
   .admin-item-details {
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: 3px;
     width: 100%;
     word-break: break-word;
     overflow-wrap: anywhere;
   }
 
   .admin-item-row button {
-    width: 100% !important;
-    min-height: 46px !important;
-    margin-top: 6px !important;
-    font-size: 0.95rem !important;
+    width: auto !important;
+    min-height: auto !important;
+    padding: 6px 12px !important;
+    margin: 0 !important;
+    font-size: 0.82rem !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
   }
 }
 
 @media (max-width: 480px) {
   .admin-main {
-    padding: 12px 8px !important;
+    padding: 14px 10px !important;
+    overflow-x: hidden !important;
   }
 
   .card {
-    padding: 18px 12px !important;
+    padding: 16px 12px !important;
     border-radius: var(--radius-sm) !important;
   }
 
   .panel-title {
-    font-size: 1.45rem !important;
+    font-size: 1.3rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .panel-header {
+    margin-bottom: 18px !important;
+    padding-bottom: 10px !important;
   }
 
   .easy-help-box {
-    padding: 12px 14px !important;
-    font-size: 0.9rem !important;
+    padding: 10px 12px !important;
+    font-size: 0.85rem !important;
   }
 }
 
