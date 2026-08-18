@@ -1,34 +1,18 @@
 // Global data state
 let appData = {};
+let lastDataFetchTime = 0;
 
 // GitHub API and Raw URL definitions
 const GITHUB_API_URL = 'https://api.github.com/repos/paulus-digital/naturfreundeschoenheide/contents/data.json?ref=data-sync';
 const RAW_DATA_URL = 'https://raw.githubusercontent.com/paulus-digital/naturfreundeschoenheide/data-sync/data.json';
 
-// Setup active tab polling
-let pollInterval = null;
 let slideshowInterval = null;
 let calendarView = 'month';
 let calendarDate = new Date();
 
-function startPolling() {
-  if (pollInterval) clearInterval(pollInterval);
-  // Poll every 4 seconds for instant updates when active
-  pollInterval = setInterval(loadData, 4000);
-}
-
-function stopPolling() {
-  if (pollInterval) {
-    clearInterval(pollInterval);
-    pollInterval = null;
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
   setupEventListeners();
-  
-  startPolling();
 
   // Close mobile navigation drawer when a link is clicked
   document.querySelectorAll('nav a').forEach(link => {
@@ -58,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     revealObserver.observe(el);
   });
 
-  // New: Prevent default scrolling for #kontakt anchors and scroll to top instead
+  // Prevent default scrolling for #kontakt anchors and scroll to top instead
   document.querySelectorAll('a[href="#kontakt"]').forEach(anchor => {
     anchor.addEventListener('click', (e) => {
       e.preventDefault();
@@ -71,13 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Stop polling when tab is hidden (saves GitHub rate limits), start again when focused
+  // Only refresh data if the user returns to the tab after at least 5 minutes of inactivity
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      stopPolling();
-    } else {
-      loadData(); // immediate fetch on active
-      startPolling();
+    if (!document.hidden) {
+      if (Date.now() - lastDataFetchTime > 300000) {
+        loadData();
+      }
     }
   });
 });
@@ -161,6 +144,7 @@ async function loadData() {
     }
 
     appData = freshData;
+    lastDataFetchTime = Date.now();
 
     renderWebsite();
   } catch (error) {
